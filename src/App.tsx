@@ -267,39 +267,30 @@ function Actions() {
   );
 }
 
-/** Small round reset next to Autofill. Grows to show its label on hover; asks once before wiping the map. */
+/** Small round reset next to Autofill: icon only, asks once (toast) before wiping the map. */
 function ResetButton() {
   const resetPicks = useStore((s) => s.resetPicks);
+  const say = useStore((s) => s.say);
   const any = useStore((s) => Object.keys(s.picks).length > 0);
-  const [hover, setHover] = useState(false);
   const [confirm, setConfirm] = useState(false);
   useEffect(() => {
     if (!confirm) return;
     const h = setTimeout(() => setConfirm(false), 3000);
     return () => clearTimeout(h);
   }, [confirm]);
-  const label = confirm ? 'Reset all?' : hover ? 'Reset' : '';
   return (
-    <motion.button
-      layout
+    <button
       className={'btn reset' + (confirm ? ' confirm' : '')}
       disabled={!any}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      onClick={() => { if (confirm) { resetPicks(); setConfirm(false); } else setConfirm(true); }}
+      title="Reset picks"
       aria-label="Reset picks"
-      transition={{ type: 'spring', stiffness: 500, damping: 36 }}
-      style={{ borderRadius: 999 }}
+      onClick={() => {
+        if (confirm) { resetPicks(); setConfirm(false); say('All picks cleared'); }
+        else { setConfirm(true); say('Click again to reset all picks'); }
+      }}
     >
-      <motion.span layout="position" style={{ display: 'grid' }}><Icon name="reset" size={18} stroke={1.9} /></motion.span>
-      <AnimatePresence initial={false}>
-        {label && (
-          <motion.span key={label} layout="position" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, transition: { duration: 0.08 } }}>
-            {label}
-          </motion.span>
-        )}
-      </AnimatePresence>
-    </motion.button>
+      <Icon name="reset" size={18} stroke={1.9} />
+    </button>
   );
 }
 

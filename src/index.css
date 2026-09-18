@@ -142,10 +142,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .actions { display: flex; gap: 16px; align-items: center; }
 .btn { height: 48px; padding: 0 20px 0 16px; border-radius: 999px; background: var(--pill); display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--fg); transition: background .2s, color .2s, transform .2s; white-space: nowrap; }
 .btn:hover { background: #333; }
-.btn.reset { width: auto; min-width: 48px; padding: 0 15px; justify-content: center; gap: 8px; overflow: hidden; }
+.btn.reset { width: 48px; padding: 0; justify-content: center; }
 .btn.reset:disabled { opacity: .35; cursor: default; }
 .btn.reset:disabled:hover { background: var(--pill); }
-.btn.reset.confirm { background: color-mix(in srgb, var(--R) 22%, var(--pill)); }
+.btn.reset.confirm { background: color-mix(in srgb, var(--R) 22%, var(--pill)); transition: background .15s; }
 .actions { gap: 12px; }
 .btn.save { height: 49px; padding: 0 16px; color: var(--dim); cursor: default; }
 .btn.save:hover { background: var(--pill); }
