@@ -88,12 +88,6 @@ function Card() {
   const tab = useStore((s) => s.tab);
   const setTab = useStore((s) => s.setTab);
   const live = useStore((s) => s.live);
-  const t = useStore((s) => s.t);
-  const picks = useStore((s) => s.picks);
-  const done = ALL.filter((r) => picks[r.id]).length;
-  const sc = liveScore(picks, t);
-  const pct = live ? sc.called / ALL.length : done / ALL.length;
-
   return (
     <section className="card">
       <div className="stage">
@@ -113,7 +107,7 @@ function Card() {
         <Palette />
         <Tally />
         <Legend />
-        <div className="rule"><b style={{ width: `${pct * 100}%` }} /></div>
+        <Balance />
       </div>
 
       <div className="foot">
@@ -124,46 +118,72 @@ function Card() {
   );
 }
 
+/** How far along you are: a label, then the count. The breakdown lives in the legend + balance bar. */
 function Tally() {
   const live = useStore((s) => s.live);
   const t = useStore((s) => s.t);
   const picks = useStore((s) => s.picks);
   const done = ALL.filter((r) => picks[r.id]).length;
-  const R = ALL.filter((r) => picks[r.id] === 'R').length;
   const sc = liveScore(picks, t);
   const big = live ? sc.correct : done;
   const of = live ? sc.called : ALL.length;
-  const sub = live ? `correct · ${sc.missed} missed · ${ALL.length - sc.called} to call` : `${ALL.length - done} left · ${R} R · ${done - R} D`;
   return (
     <div className="tally">
+      <div className="lbl">{live ? 'Correct calls' : 'Races picked'}</div>
       <div className="n">
         <AnimatePresence mode="popLayout" initial={false}>
-          <motion.span key={big} className="big num" initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -16, opacity: 0 }} transition={{ type: 'spring', stiffness: 420, damping: 32 }}>
+          <motion.span key={big} className="big num" initial={{ y: 12, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -12, opacity: 0 }} transition={{ type: 'spring', stiffness: 420, damping: 32 }}>
             {big}
           </motion.span>
         </AnimatePresence>
         <span className="of num">/{of}</span>
       </div>
-      <div className="sub num">{sub}</div>
+    </div>
+  );
+}
+
+/** Counts per bucket — shared by the legend and the balance bar. */
+function useBuckets() {
+  const live = useStore((s) => s.live);
+  const t = useStore((s) => s.t);
+  const picks = useStore((s) => s.picks);
+  if (live) {
+    const sc = liveScore(picks, t);
+    return { live, a: sc.correct, b: sc.missed, open: ALL.length - sc.correct - sc.missed };
+  }
+  const R = ALL.filter((r) => picks[r.id] === 'R').length;
+  const D = ALL.filter((r) => picks[r.id] === 'D').length;
+  return { live, a: R, b: D, open: ALL.length - R - D };
+}
+
+/** Balance bar: Republicans grow from the left, Democrats from the right, open races are the gap between.
+ *  On election night: right calls from the left, then misses, then what's still to call. */
+function Balance() {
+  const { live, a, b } = useBuckets();
+  const pct = (n: number) => (n / ALL.length) * 100 + '%';
+  return (
+    <div className={'balance' + (live ? ' live' : '')} aria-hidden>
+      <b className="a" style={{ width: pct(a) }} />
+      {live ? <b className="b" style={{ left: pct(a), width: pct(b) }} /> : <b className="b" style={{ right: 0, width: pct(b) }} />}
     </div>
   );
 }
 
 function Legend() {
-  const live = useStore((s) => s.live);
+  const { live, a, b, open } = useBuckets();
   return (
     <div className="legend">
       {live ? (
         <>
-          <span><i style={{ background: 'linear-gradient(90deg, var(--R) 50%, var(--D) 50%)' }} />Called · you got it</span>
-          <span><i className="faded" />Called · you missed</span>
-          <span><i style={{ background: 'var(--dot-pending)', boxShadow: 'inset 0 0 0 1px #4a4a4a' }} />Not called yet</span>
+          <span><i style={{ background: 'linear-gradient(90deg, var(--R) 50%, var(--D) 50%)' }} />Right <b className="num">{a}</b></span>
+          <span><i className="faded" />Missed <b className="num">{b}</b></span>
+          <span><i style={{ background: 'var(--dot-pending)', boxShadow: 'inset 0 0 0 1px #4a4a4a' }} />To call <b className="num">{open}</b></span>
         </>
       ) : (
         <>
-          <span><i style={{ background: 'var(--R)' }} />Republican</span>
-          <span><i style={{ background: 'var(--D)' }} />Democrat</span>
-          <span><i style={{ background: '#6f6f6f' }} />Open</span>
+          <span><i style={{ background: 'var(--R)' }} />Republican <b className="num">{a}</b></span>
+          <span><i style={{ background: 'var(--D)' }} />Democrat <b className="num">{b}</b></span>
+          <span><i style={{ background: '#6f6f6f' }} />Open <b className="num">{open}</b></span>
         </>
       )}
     </div>

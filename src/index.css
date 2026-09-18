@@ -100,19 +100,25 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .zoom .fit::before { content: ''; position: absolute; left: 12px; right: 12px; top: 0; height: 1px; background: rgba(255, 255, 255, .08); }
 .zoom i { display: block; background: var(--fg); border-radius: 1px; }
 
-.tally { position: absolute; right: 44px; top: 661px; text-align: right; }
-.tally .n { display: flex; align-items: baseline; justify-content: flex-end; gap: 2px; }
-.tally .big { font-size: 66px; font-weight: 600; letter-spacing: -1.3px; line-height: 80px; }
-.tally .of { font-size: 20px; font-weight: 600; color: var(--muted); line-height: 1; }
-.tally .sub { font-size: 12px; line-height: 1; color: var(--muted); }
+.tally { position: absolute; right: 44px; bottom: 30px; text-align: right; }
+.tally .lbl { font-size: 12px; line-height: 1; color: var(--muted); margin-bottom: 2px; }
+.tally .n { display: flex; align-items: baseline; justify-content: flex-end; gap: 3px; }
+.tally .big { font-size: 56px; font-weight: 600; letter-spacing: -1.2px; line-height: 64px; }
+.tally .of { font-size: 18px; font-weight: 600; color: var(--dim); line-height: 1; }
 
 .legend { position: absolute; left: 44px; top: 759px; display: flex; gap: 16px; }
 .legend span { display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: 16.8px; color: var(--muted); }
+.legend b { font-weight: 600; color: var(--fg); margin-left: 1px; }
 .legend i { width: 8px; height: 8px; border-radius: 50%; display: block; }
 .legend i.faded { background: linear-gradient(90deg, var(--R) 50%, var(--D) 50%); opacity: .25; }
 
-.rule { position: absolute; left: 44px; right: 44px; top: 792px; height: 1px; background: rgba(255, 255, 255, .1); }
-.rule b { position: absolute; left: 0; top: -2px; height: 3px; border-radius: 34px; background: var(--fg); transition: width .5s var(--ease); }
+/* balance bar: R from the left, D from the right, the gap is what's still open */
+.balance { position: absolute; left: 44px; right: 44px; top: 791px; height: 3px; border-radius: 3px; background: rgba(255, 255, 255, .08); }
+.balance b { position: absolute; top: 0; bottom: 0; border-radius: 3px; transition: width .6s var(--ease), left .6s var(--ease); }
+.balance b.a { left: 0; background: var(--R); }
+.balance b.b { background: var(--D); }
+.balance.live b.a { background: var(--fg); }
+.balance.live b.b { background: rgba(255, 255, 255, .28); border-radius: 0 3px 3px 0; }
 
 /* ---- footer: race matrix + actions ------------------------------------------------------------ */
 .foot { margin: 30px 44px 0; display: flex; align-items: center; justify-content: space-between; min-height: 79px; }
