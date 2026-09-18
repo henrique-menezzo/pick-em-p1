@@ -40,7 +40,9 @@ export default function Matrix() {
           <div key={k} className={'mx-sec' + (tab === k ? ' on' : '')}>
             <button className="lbl" onClick={() => setTab(k)}>
               {TAB_LABEL[k]}
-              <span className="c num">{live ? `${sc!.correct}/${sc!.called} right` : `${done}/${list.length}`}</span>
+              <span className={'c num' + (!live && done === list.length ? ' done' : '')}>
+                {live ? `${sc!.correct} of ${sc!.called} right` : done === list.length ? '✓ Complete' : `${done} of ${list.length}`}
+              </span>
             </button>
             <div className="mx-grid" style={{ gridTemplateColumns: `repeat(${COLS[k]}, 13px)`, rowGap: live ? 9 : 7 }}>
               {list.map((r) => {
