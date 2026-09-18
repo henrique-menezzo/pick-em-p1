@@ -8,6 +8,7 @@ import Palette from './components/Palette';
 import Matrix from './components/Matrix';
 import { Icon } from './components/ui';
 import AuthModal from './components/AuthModal';
+import { ResetButton, Toast } from './components/Common';
 import Mobile from './mobile/Mobile';
 import { V, PURPOSE } from './lib/variants';
 import { RACES } from './data/races';
@@ -32,7 +33,13 @@ export default function App() {
   usePlayback();
   const { ref, scale, height, left } = useScale();
   const isPhone = usePhone();
-  if (V.mobile || isPhone) return <Mobile />;
+  if (V.mobile || isPhone) return (
+    <>
+      <Mobile />
+      <AuthModal />
+      <Toast />
+    </>
+  );
   return (
     <div className="scaler" style={{ height }}>
       <div className="app" ref={ref} style={{ transform: `scale(${scale})`, left }}>
@@ -274,25 +281,6 @@ function Who() {
   );
 }
 
-function Toast() {
-  const toast = useStore((s) => s.toast);
-  const [shown, setShown] = useState<typeof toast>(null);
-  useEffect(() => {
-    if (!toast) return;
-    setShown(toast);
-    const h = setTimeout(() => setShown(null), 2800);
-    return () => clearTimeout(h);
-  }, [toast]);
-  return (
-    <AnimatePresence>
-      {shown && (
-        <motion.div key={shown.n} className="toast" initial={{ opacity: 0, y: 16, x: '-50%' }} animate={{ opacity: 1, y: 0, x: '-50%' }} exit={{ opacity: 0, y: 10, x: '-50%' }} transition={{ type: 'spring', stiffness: 420, damping: 32 }} style={{ position: 'fixed' }}>
-          {shown.msg}
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-}
 
 function Actions() {
   const autofill = useStore((s) => s.autofill);
@@ -319,33 +307,6 @@ function Actions() {
         {savedAt ? <><Icon name="check" size={16} stroke={2.4} /> Saved</> : 'Save Map'}
       </button>
     </div>
-  );
-}
-
-/** Small round reset next to Autofill: icon only, asks once (toast) before wiping the map. */
-function ResetButton() {
-  const resetPicks = useStore((s) => s.resetPicks);
-  const say = useStore((s) => s.say);
-  const any = useStore((s) => Object.keys(s.picks).length > 0);
-  const [confirm, setConfirm] = useState(false);
-  useEffect(() => {
-    if (!confirm) return;
-    const h = setTimeout(() => setConfirm(false), 3000);
-    return () => clearTimeout(h);
-  }, [confirm]);
-  return (
-    <button
-      className={'btn reset' + (confirm ? ' confirm' : '')}
-      disabled={!any || isLocked()}
-      title="Reset picks"
-      aria-label="Reset picks"
-      onClick={() => {
-        if (confirm) { resetPicks(); setConfirm(false); say('All picks cleared'); }
-        else { setConfirm(true); say('Click again to reset all picks'); }
-      }}
-    >
-      <Icon name="reset" size={18} stroke={1.9} />
-    </button>
   );
 }
 

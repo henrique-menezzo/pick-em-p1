@@ -14,6 +14,8 @@ const COPY = {
 export default function AuthModal() {
   const auth = useStore((s) => s.auth);
   const close = useStore((s) => s.closeAuth);
+  // on a phone the card is a bottom sheet that slides up from the edge
+  const sheet = window.matchMedia('(max-width: 760px)').matches;
   useEffect(() => {
     if (!auth) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopImmediatePropagation(); close(); } };
@@ -38,10 +40,10 @@ export default function AuthModal() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="auth-title"
-            initial={{ opacity: 0, y: 16, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.98, transition: { duration: 0.15 } }}
-            transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+            initial={sheet ? { y: '100%' } : { opacity: 0, y: 16, scale: 0.98 }}
+            animate={sheet ? { y: 0 } : { opacity: 1, y: 0, scale: 1 }}
+            exit={sheet ? { y: '100%', transition: { duration: 0.22, ease: [0.4, 0, 1, 1] } } : { opacity: 0, y: 10, scale: 0.98, transition: { duration: 0.15 } }}
+            transition={sheet ? { type: 'spring', stiffness: 320, damping: 34 } : { type: 'spring', stiffness: 380, damping: 32 }}
           >
             <button className="auth-x" aria-label="Close" onClick={close}><Icon name="x" size={20} stroke={1.8} /></button>
             <AuthForm key={auth.mode} auth={auth} />

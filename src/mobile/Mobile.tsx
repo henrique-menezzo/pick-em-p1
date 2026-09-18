@@ -7,6 +7,7 @@ import { ALL, BY_ID, RACES, RESULTS, TAB_LABEL, TABS, T_MAX, clock, raceIn, stat
 import { LOCK_AT, liveScore, useStore } from '../lib/store';
 import { V, PURPOSE } from '../lib/variants';
 import { Face, Flag, Icon, PARTY, liveLine } from '../components/ui';
+import { ResetButton } from '../components/Common';
 
 // ---- a compact, tappable dot map ------------------------------------------------------------------
 const P = grid.pitch;
@@ -158,6 +159,7 @@ function Actions() {
   const ready = done === ALL.length;
   return (
     <div className="m-actions">
+      <ResetButton className="m-btn m-reset" />
       <button className="m-btn" onClick={autofill}><Icon name="wand" size={17} /> Autofill</button>
       <button className={'m-btn primary' + (ready && !savedAt ? ' ready' : '')} disabled={!ready} onClick={() => (user ? save() : openAuth('save'))}>
         {savedAt ? '✓ Saved' : 'Save Map'}
