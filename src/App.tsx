@@ -8,6 +8,9 @@ import Palette from './components/Palette';
 import Matrix from './components/Matrix';
 import { Icon } from './components/ui';
 import AuthModal from './components/AuthModal';
+import Mobile from './mobile/Mobile';
+import { V, PURPOSE } from './lib/variants';
+import { RACES } from './data/races';
 
 // ?reset · ?night=1&t=220 · ?fill=1 · ?lock=N — handy for reviews and screenshots
 const Q = new URLSearchParams(location.search);
@@ -19,6 +22,7 @@ if (Q.has('reset')) {
   const s = useStore.getState();
   // ?fill=1 — screenshot helper: a complete map picked like the polls (swaps a few so there are misses)
   if (Q.has('fill')) useStore.setState({ picks: Object.fromEntries(ALL.map((r, i) => [r.id, i % 5 === 2 ? (r.poll === 'R' ? 'D' : 'R') : r.poll])) });
+  if (V.empty) useStore.setState({ picks: {}, savedAt: null, tab: 'senate', cursor: { senate: RACES.senate[0].id, gov: RACES.gov[0].id, house: RACES.house[0].id } });
   if (Q.has('night')) s.setLive(Q.get('night') !== '0');
   if (Q.has('t')) s.setT(+Q.get('t')!);
 }
@@ -27,10 +31,17 @@ export default function App() {
   useKeyboard();
   usePlayback();
   const { ref, scale, height, left } = useScale();
+  if (V.mobile) return <Mobile />;
   return (
     <div className="scaler" style={{ height }}>
       <div className="app" ref={ref} style={{ transform: `scale(${scale})`, left }}>
         <Header />
+        {V.intro === 'c' && (
+          <div className="v-title">
+            <h1>2026 Midterms Prediction Map</h1>
+            <p>Call every Senate, Governor and House race. Your picks lock Nov 3 — then see how you did.</p>
+          </div>
+        )}
         <Card />
         <AuthModal />
         <Toast />
@@ -62,6 +73,7 @@ function useScale() {
 function Header() {
   const live = useStore((s) => s.live);
   const goLive = useStore((s) => s.goLive);
+  const setLive = useStore((s) => s.setLive);
   const locked = useStore((s) => !s.user || !s.savedAt);
   return (
     <header className="hd">
@@ -70,6 +82,11 @@ function Header() {
         Back to Midterms
       </a>
       <img className="logo" src={logo} alt="Daily Wire" />
+      {V.en === 'a' || V.en === 'c' ? null : V.en === 'b' ? (
+        <button className="v-preview" onClick={() => setLive(!live)}>
+          {live ? <><Icon name="arrowLeft" size={15} /> Back to my picks</> : <>Preview Election Night <Icon name="arrowRight" size={15} /></>}
+        </button>
+      ) : (
       <div className="mode" role="tablist" aria-label="View">
         {[{ on: false, label: 'My Picks' }, { on: true, label: 'Election Night' }].map((m) => (
           <button key={m.label} className={live === m.on ? 'on' : ''} onClick={() => goLive(m.on)} title={m.on && locked && !live ? 'Sign in and save your map to unlock' : undefined}>
@@ -79,6 +96,7 @@ function Header() {
           </button>
         ))}
       </div>
+      )}
     </header>
   );
 }
@@ -104,6 +122,7 @@ function Card() {
         </div>
 
         <Palette />
+        {V.intro === 'b' && <MapHint />}
         {new URLSearchParams(location.search).get('tally') !== '0' && <Tally />}
         <Legend />
         <Balance />
@@ -208,7 +227,7 @@ function Who() {
   const status = live
     ? <><i className="sd live-dot" />Picks locked · live</>
     : !user
-      ? <span className="cta">Sign up to play <Icon name="arrowRight" size={13} stroke={2} /></span>
+      ? V.intro === 'a' ? <span className="purpose">{PURPOSE}</span> : <span className="cta">Sign up to play <Icon name="arrowRight" size={13} stroke={2} /></span>
       : <>{user.name}{savedAt && <><span className="sep">·</span><span className="saved"><Icon name="check" size={12} stroke={2.4} />Saved</span></>}</>;
   return (
     <div className="who">
@@ -337,8 +356,26 @@ function LockTimer() {
   return (
     <div className={'lock' + (locked ? ' done' : s < 86400 ? ' soon' : '')} title={`Picks lock ${day}, ${time} ET`}>
       <b className="num">{locked ? 'Picks locked' : <>Locks in <em>{left}</em></>}</b>
-      <small>{locked ? `${day} · ${time} ET` : `Election Day · ${day}`}</small>
+      {V.en === 'c' && !locked ? (
+        <button className="v-lockprev" onClick={() => useStore.getState().setLive(true)}>Election Day · {day} · <b>Preview</b></button>
+      ) : (
+        <small>{locked ? `${day} · ${time} ET` : `Election Day · ${day}`}</small>
+      )}
     </div>
+  );
+}
+
+/** ?intro=b — a one-line explanation floating under the map, gone after the first pick. */
+function MapHint() {
+  const n = useStore((s) => Object.keys(s.picks).length);
+  return (
+    <AnimatePresence>
+      {n === 0 && (
+        <motion.div className="v-hint" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }}>
+          <b>Call every race.</b> Click a state to pick · click again to switch
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 
