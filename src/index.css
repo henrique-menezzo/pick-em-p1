@@ -47,7 +47,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 /* ---- card ------------------------------------------------------------------------------------ */
 .card { position: relative; margin: 27px 0 0 39px; width: 1363px; min-height: 945px; background: var(--card); border-radius: 24px; padding-bottom: 44px; }
 .stage { position: relative; height: 792px; }
-.who { position: absolute; left: 44px; top: 52px; z-index: 5; }
+.who { position: absolute; left: 44px; top: 52px; z-index: 5; } /* 40px avatar centred on the 49px tabs row (48–97) */
 .who-btn { display: flex; gap: 12px; align-items: center; text-align: left; padding: 0 12px 0 0; border-radius: 999px; }
 .who .av { width: 40px; height: 40px; border-radius: 999px; background: #2e2e2e; color: #d6d6d6; display: grid; place-items: center; flex: none; transition: background .2s, color .2s; }
 .who .av.me { background: #3a3a3a; color: var(--fg); font-size: 14px; font-weight: 600; letter-spacing: .04em; }
@@ -105,7 +105,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .zoom .fit::before { content: ''; position: absolute; left: 12px; right: 12px; top: 0; height: 1px; background: rgba(255, 255, 255, .08); }
 .zoom i { display: block; background: var(--fg); border-radius: 1px; }
 
-.tally { position: absolute; right: 44px; bottom: 30px; text-align: right; }
+.tally { position: absolute; right: 44px; bottom: 16px; text-align: right; } /* number sits on the legend's baseline, just above the bar */
 .tally .lbl { font-size: 12px; line-height: 1; color: var(--muted); margin-bottom: 2px; }
 .tally .n { display: flex; align-items: baseline; justify-content: flex-end; gap: 3px; }
 .tally .big { font-size: 56px; font-weight: 600; letter-spacing: -1.2px; line-height: 64px; }
@@ -162,7 +162,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .btn.reset:disabled:hover { background: var(--pill); }
 .btn.reset.confirm { background: color-mix(in srgb, var(--R) 22%, var(--pill)); transition: background .15s; }
 .actions { gap: 12px; }
-.btn.save { height: 49px; padding: 0 16px; color: var(--dim); cursor: default; }
+.btn.save { height: 48px; padding: 0 16px; color: var(--dim); cursor: default; }
 .btn.save:hover { background: var(--pill); }
 .btn.save.ready { background: var(--fg); color: #0a0909; cursor: pointer; }
 .btn.save.ready:hover { transform: translateY(-1px); }
@@ -182,13 +182,13 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .tl .ticks { display: flex; justify-content: space-between; font-size: 10px; color: var(--dim); margin-top: 2px; }
 
 /* ---- right panel ("palette") ------------------------------------------------------------------ */
-.pal-anchor { position: absolute; right: 39px; top: 50px; z-index: 20; }
+.pal-anchor { position: absolute; right: 44px; top: 48px; z-index: 20; } /* same 44px margin as everything else; top aligned with the tabs */
 .pal { position: absolute; right: 0; top: 0; width: 300px; border-radius: 22px; background: linear-gradient(180deg, #212121, #1b1b1b); padding: 18px 16px 14px; box-shadow: 0 30px 80px rgba(0, 0, 0, .4); }
 .flag { width: 22px; height: 15px; border-radius: 3px; object-fit: cover; flex: none; display: block; }
 .flag.sm { width: 18px; height: 12px; border-radius: 2px; }
 
 /* header: overline · state · nav · section progress */
-.fb-head { padding: 0 2px 16px; }
+.fb-head { padding: 0 0 16px; }
 .fb-title { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 30px; }
 .fb-name { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .fb-name .flag { width: 26px; height: 18px; }
