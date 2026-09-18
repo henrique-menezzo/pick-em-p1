@@ -1,4 +1,4 @@
-import { RESULTS, RACES, statusAt, clock, type Race, type Side } from '../data/races';
+import { RESULTS, statusAt, clock, type Race, type Side } from '../data/races';
 import { useStore } from '../lib/store';
 
 export const PARTY: Record<Side, string> = { R: 'Republican', D: 'Democrat' };
@@ -46,21 +46,6 @@ export function Icon({ name, size = 16, stroke = 1.8, fill }: { name: IconName; 
   );
 }
 
-/** Figma "ph": flag · State · Section ········ n of N */
-export function RaceHead({ race, extra }: { race: Race; extra?: React.ReactNode }) {
-  const list = RACES[race.type];
-  const i = list.findIndex((r) => r.id === race.id);
-  return (
-    <div className="ph">
-      <div className="row">
-        <Flag st={race.state} />
-        <span className="nm">{race.stateName}</span>
-      </div>
-      {extra ?? <span className="ix num">{i + 1} of {list.length}</span>}
-    </div>
-  );
-}
-
 /** Figma candidate row (272×58). In election-night mode it shows the count instead of taking a pick. */
 export function CandidateRow({ race, side, advance }: { race: Race; side: Side; advance?: boolean }) {
   const pick = useStore((s) => s.picks[race.id]);
@@ -103,7 +88,8 @@ export function CandidateRow({ race, side, advance }: { race: Race; side: Side; 
         <span className="n">{name}</span>
         <span className="p">{PARTY[side]}</span>
       </span>
-      {on && <span className="ck"><Icon name="check" size={12} stroke={2.6} /></span>}
+      {/* radio: empty ring until picked, then filled in the party colour */}
+      <span className={'ck' + (on ? ' on' : '')}>{on && <Icon name="check" size={12} stroke={2.8} />}</span>
     </button>
   );
 }

@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from 'motion/react';
 import { BY_ID, RACES, RESULTS, TAB_LABEL, clock, type Race } from '../data/races';
 import { useStore } from '../lib/store';
-import { CandidateRow, Flag, Icon, PARTY, RaceHead, liveLine } from './ui';
+import { CandidateRow, Flag, Icon, PARTY, liveLine } from './ui';
 
 /** The Figma "palette": always open, one race at a time. */
 export default function Palette() {
@@ -23,30 +23,56 @@ function FocusBody({ race }: { race: Race }) {
   const live = useStore((s) => s.live);
   const t = useStore((s) => s.t);
   const line = live ? liveLine(race, t, pick) : null;
+  const list = RACES[race.type];
+  const idx = list.findIndex((r) => r.id === race.id);
+  const done = live ? list.filter((r) => RESULTS[r.id].call <= t).length : list.filter((r) => picks[r.id]).length;
 
   return (
     <div>
+      <div className="fb-head">
+        <div className="fb-over num">
+          {TAB_LABEL[race.type]} <b>·</b> {idx + 1} of {list.length}
+        </div>
+        <div className="fb-title">
+          <AnimatePresence mode="popLayout" initial={false}>
+            <motion.div
+              key={race.id}
+              className="fb-name"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+            >
+              <Flag st={race.state} />
+              <h3>{race.stateName}</h3>
+            </motion.div>
+          </AnimatePresence>
+          <div className="fb-nav">
+            <button aria-label="Previous race" onClick={() => step(-1)}><Icon name="arrowLeft" size={15} /></button>
+            <button aria-label="Next race" onClick={() => step(1)}><Icon name="arrowRight" size={15} /></button>
+          </div>
+        </div>
+        <div className="fb-prog" title={`${done} of ${list.length} ${live ? 'called' : 'picked'}`}>
+          <i style={{ width: (done / list.length) * 100 + '%' }} />
+        </div>
+      </div>
+
       <AnimatePresence mode="popLayout" initial={false}>
         <motion.div
           key={race.id}
-          initial={{ opacity: 0, x: 14 }}
+          className="fb-cands"
+          initial={{ opacity: 0, x: 12 }}
           animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -14 }}
+          exit={{ opacity: 0, x: -12 }}
           transition={{ type: 'spring', stiffness: 420, damping: 36 }}
         >
-          <RaceHead race={race} />
-          <div>
-            <CandidateRow race={race} side="R" advance />
-            <CandidateRow race={race} side="D" advance />
-          </div>
+          <CandidateRow race={race} side="R" advance />
+          <CandidateRow race={race} side="D" advance />
         </motion.div>
       </AnimatePresence>
-      <div className="pf">
-        <button className="nav" onClick={() => step(-1)}><Icon name="arrowLeft" size={15} />Prev</button>
-        <span className={'hint' + (line?.tone === 'ok' || (!live && pick) ? ' ok' : '')}>
-          {line ? line.text : pick ? `${PARTY[pick]} pick` : "Pick a candidate"}
-        </span>
-        <button className="nav" onClick={() => step(1)}>Next<Icon name="arrowRight" size={15} /></button>
+
+      <div className={'fb-hint' + (line?.tone === 'ok' || (!live && pick) ? ' ok' : '')}>
+        {line ? line.text : pick ? `${PARTY[pick]} pick · next up…` : <>Pick a candidate <span>· or press R / D</span></>}
       </div>
       {live ? <JustCalled /> : <UpNext race={race} picks={picks} />}
     </div>
