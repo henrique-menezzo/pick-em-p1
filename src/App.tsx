@@ -1,7 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import logo from './data/logo.svg';
-import wand from './data/wand.svg';
 import { ALL, TAB_LABEL, TABS, T_MAX, clock, statusAt } from './data/races';
 import { LOCK_AT, isLocked, liveScore, useStore } from './lib/store';
 import DotMap from './components/DotMap';
@@ -105,7 +104,7 @@ function Card() {
         </div>
 
         <Palette />
-        <Tally />
+        {new URLSearchParams(location.search).get('tally') !== '0' && <Tally />}
         <Legend />
         <Balance />
       </div>
@@ -276,7 +275,7 @@ function Actions() {
       <LockTimer />
       <ResetButton />
       <button className="btn" onClick={autofill} disabled={isLocked()} style={isLocked() ? { opacity: 0.35, cursor: 'default' } : undefined}>
-        <img src={wand} width={20} height={20} alt="" />
+        <Icon name="wand" size={18} stroke={1.8} />
         Autofill
       </button>
       <button

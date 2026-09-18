@@ -296,11 +296,10 @@ export default function DotMap() {
 
       <div className="zoom">
         <button aria-label="Zoom in" onClick={() => zoomBy(1.6)} disabled={vb.w <= W / 4 + 1}>
-          <i style={{ width: 20, height: 2, position: 'absolute' }} />
-          <i style={{ width: 2, height: 20 }} />
+          <Icon name="plus" size={18} stroke={1.8} />
         </button>
         <button aria-label="Zoom out" onClick={() => zoomBy(1 / 1.6)} disabled={vb.w >= W - 1}>
-          <i style={{ width: 20, height: 2 }} />
+          <Icon name="minus" size={18} stroke={1.8} />
         </button>
         {/* back to the whole map — only exists while zoomed */}
         <AnimatePresence initial={false}>
@@ -312,7 +311,7 @@ export default function DotMap() {
               title="Show whole map"
               onClick={() => fly(FULL, 0.6)}
               initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 44, opacity: 1 }}
+              animate={{ height: 40, opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 420, damping: 34 }}
             >

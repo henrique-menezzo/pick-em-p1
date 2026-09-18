@@ -19,7 +19,7 @@ export function Flag({ st, sm }: { st: string; sm?: boolean }) {
   return <img className={'flag' + (sm ? ' sm' : '')} src={asset(`flags/us-${st.toLowerCase()}.png`)} alt="" draggable={false} />;
 }
 
-type IconName = 'arrowLeft' | 'arrowRight' | 'chevDown' | 'chevUp' | 'check' | 'x' | 'list' | 'focus' | 'zoom' | 'play' | 'pause' | 'user' | 'wand' | 'collapse' | 'reset' | 'lock';
+type IconName = 'arrowLeft' | 'arrowRight' | 'chevDown' | 'chevUp' | 'check' | 'x' | 'list' | 'focus' | 'zoom' | 'play' | 'pause' | 'user' | 'wand' | 'collapse' | 'reset' | 'lock' | 'plus' | 'minus';
 const PATHS: Record<IconName, string> = {
   arrowLeft: 'M19 12H5 M11 6l-6 6 6 6',
   arrowRight: 'M5 12h14 M13 6l6 6-6 6',
@@ -33,7 +33,9 @@ const PATHS: Record<IconName, string> = {
   play: 'M8 5.5v13l10.5-6.5z',
   pause: 'M8 5.5v13 M16 5.5v13',
   user: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z M5.5 20c.8-3.4 3.4-5 6.5-5s5.7 1.6 6.5 5',
-  wand: 'M3 21l12-12 M15 3l6 6-3 3-6-6z',
+  wand: 'M5 19L15.5 8.5 M13.5 6.5l4 4 M15.5 8.5l2-2-2-2-2 2 M8.5 4.5v3 M7 6h3 M18.5 13.5v3 M17 15h3 M5.5 9.5v2 M4.5 10.5h2',
+  plus: 'M12 5.5v13 M5.5 12h13',
+  minus: 'M5.5 12h13',
   collapse: 'M4 14h6v6 M20 10h-6V4 M14 10l7-7 M3 21l7-7',
   reset: 'M4.5 12a7.5 7.5 0 1 0 2.2-5.3 M4.5 4.5V9H9',
   lock: 'M6 10.5h12v9H6z M8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3',

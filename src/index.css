@@ -66,8 +66,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .who-menu .em { padding: 10px 10px 8px; font-size: 12px; color: var(--muted); }
 .who-menu button { width: 100%; text-align: left; height: 36px; padding: 0 10px; border-radius: 9px; font-size: 13px; font-weight: 500; }
 .who-menu button:hover { background: var(--pill); }
-.tabs { position: absolute; left: 549px; top: 48px; display: flex; gap: 8px; }
-.tabs button { position: relative; height: 49px; padding: 0 16px; border-radius: 999px; font-size: 14px; font-weight: 500; color: var(--muted); z-index: 0; transition: color .2s; }
+.tabs { position: absolute; left: 50%; top: 51px; transform: translateX(-50%); display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: rgba(255, 255, 255, .04); }
+.tabs button { position: relative; height: 37px; padding: 0 18px; border-radius: 999px; font-size: 14px; font-weight: 500; color: var(--muted); z-index: 0; transition: color .2s; }
 .tabs button:hover { color: var(--fg); }
 .tabs button.on { color: var(--fg); font-weight: 600; }
 .tabs .hl { position: absolute; inset: 0; border-radius: 999px; background: var(--pill); z-index: -1; }
@@ -97,13 +97,11 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .map.grab { cursor: grab; }
 .map.grabbing { cursor: grabbing; }
 
-.zoom { position: absolute; left: 44px; top: 598px; width: 44px; border-radius: 999px; background: var(--pill); overflow: hidden; }
-.zoom button { width: 44px; height: 44px; display: grid; place-items: center; transition: background .2s; }
+.zoom { position: absolute; left: 44px; top: 606px; width: 40px; border-radius: 999px; background: var(--pill); overflow: hidden; color: var(--fg); }
+.zoom button { width: 40px; height: 40px; display: grid; place-items: center; transition: background .2s; }
 .zoom button:hover { background: #333; }
 .zoom button:disabled { opacity: .35; cursor: default; background: none; }
 .zoom .fit { overflow: hidden; color: var(--fg); position: relative; }
-.zoom .fit::before { content: ''; position: absolute; left: 12px; right: 12px; top: 0; height: 1px; background: rgba(255, 255, 255, .08); }
-.zoom i { display: block; background: var(--fg); border-radius: 1px; }
 
 .tally { position: absolute; right: 44px; bottom: 16px; text-align: right; } /* number sits on the legend's baseline, just above the bar */
 .tally .lbl { font-size: 12px; line-height: 1; color: var(--muted); margin-bottom: 2px; }
@@ -194,7 +192,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .fb-name .flag { width: 26px; height: 18px; }
 .fb-name h3 { margin: 0; font-size: 21px; line-height: 1.1; font-weight: 600; letter-spacing: -.2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .fb-nav { display: flex; gap: 0; flex: none; margin-right: -6px; }
-.fb-nav button { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; color: #5c5c5c; transition: background .2s, color .2s; }
+.fb-nav button { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; color: #8a8a8a; transition: background .2s, color .2s; }
 .fb-nav button:hover { background: rgba(255, 255, 255, .06); color: var(--fg); }
 
 /* candidate cards */
