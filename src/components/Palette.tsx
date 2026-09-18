@@ -84,7 +84,6 @@ function UpNext({ race, picks }: { race: Race; picks: Record<string, unknown> })
       <h6>{queue.length ? 'Up next' : `${TAB_LABEL[race.type]} complete`}</h6>
       {queue.map((r) => (
         <button key={r.id} onMouseEnter={() => setHover(r.id)} onMouseLeave={() => setHover(null)} onClick={() => { setHover(null); select(r.id); }}>
-          <Flag st={r.state} sm />
           {r.stateName}
           <span className="r"><Icon name="arrowRight" size={13} /></span>
         </button>

@@ -88,8 +88,7 @@ export function CandidateRow({ race, side, advance }: { race: Race; side: Side; 
         <span className="n">{name}</span>
         <span className="p">{PARTY[side]}</span>
       </span>
-      {/* radio: empty ring until picked, then filled in the party colour */}
-      <span className={'ck' + (on ? ' on' : '')}>{on && <Icon name="check" size={12} stroke={2.8} />}</span>
+      {on && <span className="ck on"><Icon name="check" size={12} stroke={2.8} /></span>}
     </button>
   );
 }
