@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { BY_ID, RACES, RESULTS, TAB_LABEL, clock, rating, type Race } from '../data/races';
+import { BY_ID, RACES, RESULTS, TAB_LABEL, clock, type Race } from '../data/races';
 import { useStore } from '../lib/store';
-import { CandidateRow, Flag, Icon, PARTY, liveLine } from './ui';
+import { CandidateRow, Flag, Icon, liveLine } from './ui';
 
 /** The Figma "palette": always open, one race at a time. */
 export default function Palette() {
@@ -23,16 +23,10 @@ function FocusBody({ race }: { race: Race }) {
   const live = useStore((s) => s.live);
   const t = useStore((s) => s.t);
   const line = live ? liveLine(race, t, pick) : null;
-  const list = RACES[race.type];
-  const idx = list.findIndex((r) => r.id === race.id);
-  const done = live ? list.filter((r) => RESULTS[r.id].call <= t).length : list.filter((r) => picks[r.id]).length;
 
   return (
     <div>
       <div className="fb-head">
-        <div className="fb-over num">
-          {TAB_LABEL[race.type]} <b>·</b> {idx + 1} of {list.length}
-        </div>
         <div className="fb-title">
           <AnimatePresence mode="popLayout" initial={false}>
             <motion.div
@@ -52,14 +46,6 @@ function FocusBody({ race }: { race: Race }) {
             <button aria-label="Next race" onClick={() => step(1)}><Icon name="arrowRight" size={15} /></button>
           </div>
         </div>
-        <div className="fb-meta">
-          <span className={'rt' + (rating(race).side ? ' ' + rating(race).side : '')}>{rating(race).label}</span>
-          <span className="pl num">Polls {rating(race).polls}</span>
-        </div>
-        <div className="fb-prog" title={`${done} of ${list.length} ${live ? 'called' : 'picked'}`}>
-          <i style={{ width: (done / list.length) * 100 + '%' }} />
-          <span className="num">{done}/{list.length}</span>
-        </div>
       </div>
 
       <AnimatePresence mode="popLayout" initial={false}>
@@ -76,9 +62,7 @@ function FocusBody({ race }: { race: Race }) {
         </motion.div>
       </AnimatePresence>
 
-      <div className={'fb-hint' + (line?.tone === 'ok' || (!live && pick) ? ' ok' : '')}>
-        {line ? line.text : pick ? `${PARTY[pick]} pick · next up…` : <>Pick a candidate <span>or press <kbd>R</kbd> <kbd>D</kbd></span></>}
-      </div>
+      {line && <div className={'fb-hint' + (line.tone === 'ok' ? ' ok' : '')}>{line.text}</div>}
       {live ? <JustCalled /> : <UpNext race={race} picks={picks} />}
     </div>
   );
@@ -95,15 +79,14 @@ function UpNext({ race, picks }: { race: Race; picks: Record<string, unknown> })
     const r = list[(i + k) % list.length];
     if (!picks[r.id]) queue.push(r);
   }
-  const left = list.filter((r) => !picks[r.id]).length;
   return (
-    <div className="next">
-      <h6><span>{queue.length ? 'Up next' : `${TAB_LABEL[race.type]} complete`}</span>{queue.length > 0 && <em className="num">{left} open</em>}</h6>
+    <div className="next up">
+      <h6>{queue.length ? 'Up next' : `${TAB_LABEL[race.type]} complete`}</h6>
       {queue.map((r) => (
         <button key={r.id} onMouseEnter={() => setHover(r.id)} onMouseLeave={() => setHover(null)} onClick={() => { setHover(null); select(r.id); }}>
           <Flag st={r.state} sm />
           {r.stateName}
-          <span className="r">{rating(r).label}<Icon name="arrowRight" size={13} /></span>
+          <span className="r"><Icon name="arrowRight" size={13} /></span>
         </button>
       ))}
     </div>

@@ -77,13 +77,6 @@ export const RACES: Record<Tab, Race[]> = {
 // The Figma frame shows New Mexico's Senate race with these two names.
 Object.assign(RACES.senate.find((r) => r.state === 'NM')!, { R: 'Adrian Smith', D: 'Becky Stille' });
 
-/** Cook-style rating from the (simulated) polling margin, R positive. */
-export function rating(r: Race) {
-  const m = Math.abs(r.margin), side = r.margin >= 0 ? 'R' : 'D';
-  const label = m < 3 ? 'Toss-up' : m < 8 ? `Lean ${side}` : m < 15 ? `Likely ${side}` : `Safe ${side}`;
-  return { label, side: m < 3 ? null : (side as Side), polls: `${r.margin >= 0 ? 'R' : 'D'} +${m.toFixed(1)}` };
-}
-
 export const ALL: Race[] = [...RACES.senate, ...RACES.gov, ...RACES.house];
 export const BY_ID: Record<string, Race> = Object.fromEntries(ALL.map((r) => [r.id, r]));
 export const raceIn = (tab: Tab, st: string) => RACES[tab].find((r) => r.state === st);
