@@ -210,7 +210,7 @@ function Who() {
     ? <><i className="sd live-dot" />Picks locked · live</>
     : !user
       ? <span className="cta">Sign up to play <Icon name="arrowRight" size={13} stroke={2} /></span>
-      : <>{user.name.split(' ')[0]}<span className="sep">·</span><i className={'sd' + (savedAt ? ' ok' : '')} />{savedAt ? 'Saved' : 'Not saved'}</>;
+      : <>{user.name}{savedAt && <><span className="sep">·</span><span className="saved"><Icon name="check" size={12} stroke={2.4} />Saved</span></>}</>;
   return (
     <div className="who">
       <button className={'who-btn' + (user ? ' in' : '')} onClick={() => (user ? setMenu(!menu) : openAuth('play'))}>

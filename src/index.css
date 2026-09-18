@@ -49,12 +49,13 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .stage { position: relative; height: 792px; }
 .who { position: absolute; left: 44px; top: 52px; z-index: 5; }
 .who-btn { display: flex; gap: 12px; align-items: center; text-align: left; padding: 0 12px 0 0; border-radius: 999px; }
-.who .av { width: 40px; height: 40px; border-radius: 999px; background: #262626; color: var(--muted); display: grid; place-items: center; flex: none; transition: background .2s, color .2s; }
-.who .av.me { background: #2e2e2e; color: var(--fg); font-size: 13px; font-weight: 600; letter-spacing: .04em; }
-.who-btn:hover .av { background: #303030; color: var(--fg); }
+.who .av { width: 40px; height: 40px; border-radius: 999px; background: #2e2e2e; color: #d6d6d6; display: grid; place-items: center; flex: none; transition: background .2s, color .2s; }
+.who .av.me { background: #3a3a3a; color: var(--fg); font-size: 14px; font-weight: 600; letter-spacing: .04em; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .08); }
+.who-btn:hover .av { background: #404040; color: var(--fg); }
 .who .tx { display: flex; flex-direction: column; gap: 6px; }
 .who .t1 { font-size: 15px; font-weight: 600; line-height: 1; }
-.who .t2 { display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: 1; color: var(--muted); }
+.who .t2 { display: flex; align-items: center; gap: 6px; font-size: 13px; line-height: 1; color: #b0b0b0; }
+.who .t2 .saved { display: inline-flex; align-items: center; gap: 3px; color: #6fcf8f; }
 .who .t2 .sep { color: #3d3d3d; }
 .who .t2 .sd { width: 6px; height: 6px; border-radius: 50%; background: #4a4a4a; flex: none; }
 .who .t2 .sd.ok { background: #4ec27a; }
