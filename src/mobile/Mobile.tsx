@@ -1,5 +1,5 @@
 // Phone layouts for review (?mobile=1|2|3). They share the store with desktop, so picks carry over.
-import { memo, useRef } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import grid from '../data/grid.json';
 import logo from '../data/logo.svg';
@@ -67,8 +67,16 @@ function MobileMap({ onTap }: { onTap: (id: string) => void }) {
 function TopBar() {
   const user = useStore((s) => s.user);
   const openAuth = useStore((s) => s.openAuth);
+  // the hairline only appears once content scrolls under the bar
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const on = () => setScrolled(window.scrollY > 4);
+    on();
+    window.addEventListener('scroll', on, { passive: true });
+    return () => window.removeEventListener('scroll', on);
+  }, []);
   return (
-    <div className="m-top">
+    <div className={'m-top' + (scrolled ? ' scrolled' : '')}>
       <button className="m-icon" aria-label="Back"><Icon name="arrowLeft" size={20} /></button>
       <img src={logo} alt="Daily Wire" className="m-logo" />
       <button className="m-av" onClick={() => !user && openAuth('play')} aria-label="Account">
@@ -175,14 +183,26 @@ function LayoutSheet() {
   return (
     <div className="m-page">
       <TopBar />
-      <div className="m-head">
-        <h1>Your 2026 Map</h1>
-        <p>{PURPOSE}</p>
-      </div>
-      <Tabs />
-      <MobileMap onTap={tap} />
-      <Progress />
-      <Sheet />
+      {/* the game is one screen-tall section; the sheet sticks to the bottom only while this section is on
+          screen, so whatever content comes below the map later scrolls in free of it */}
+      <section className="m-hero">
+        <div className="m-head">
+          <h1>Your 2026 Map</h1>
+          <p>{PURPOSE}</p>
+        </div>
+        <Tabs />
+        <div className="m-stage">
+          <MobileMap onTap={tap} />
+          <Progress />
+        </div>
+        <Sheet />
+      </section>
+      {V.more && (
+        <section className="m-more" aria-label="Future content placeholder">
+          <h4>More from the midterms</h4>
+          {[0, 1, 2, 3].map((i) => <div key={i} className="m-ph"><i /><span><b /><b /></span></div>)}
+        </section>
+      )}
     </div>
   );
 }

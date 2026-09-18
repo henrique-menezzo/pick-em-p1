@@ -9,5 +9,6 @@ export const V = {
   en: Q.get('en') as 'a' | 'b' | 'c' | null,
   mobile: Q.get('mobile') as '1' | '2' | '3' | null,
   empty: Q.has('empty'),
+  more: Q.has('more'), // placeholder blocks where future content under the map will go
 };
 export const PURPOSE = 'Call every race. See how you did on Nov 3.';

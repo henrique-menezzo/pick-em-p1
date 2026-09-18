@@ -31,7 +31,8 @@ export default function App() {
   useKeyboard();
   usePlayback();
   const { ref, scale, height, left } = useScale();
-  if (V.mobile) return <Mobile />;
+  const isPhone = usePhone();
+  if (V.mobile || isPhone) return <Mobile />;
   return (
     <div className="scaler" style={{ height }}>
       <div className="app" ref={ref} style={{ transform: `scale(${scale})`, left }}>
@@ -51,6 +52,18 @@ export default function App() {
 }
 
 // The Figma frame is 1440 wide; narrower windows get the same composition, uniformly scaled.
+function usePhone() {
+  const q = '(max-width: 760px)';
+  const [m, setM] = useState(() => window.matchMedia(q).matches);
+  useEffect(() => {
+    const mq = window.matchMedia(q);
+    const on = () => setM(mq.matches);
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
+  return m;
+}
+
 function useScale() {
   const ref = useRef<HTMLDivElement>(null);
   const [s, setS] = useState({ scale: 1, height: 0, left: 0 });

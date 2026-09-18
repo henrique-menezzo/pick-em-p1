@@ -347,19 +347,22 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 
 /* ---- phone layouts (?mobile=1|2|3) ---------------------------------------------------------------- */
 .m-page { max-width: 430px; margin: 0 auto; min-height: 100dvh; padding: 0 16px calc(24px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; }
-.m-top { height: 56px; display: flex; align-items: center; justify-content: space-between; }
+.m-top { position: sticky; top: 0; z-index: 30; height: 56px; margin: 0 -16px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; background: var(--bg); box-shadow: 0 1px 0 transparent; transition: box-shadow .2s; }
+.m-top.scrolled { box-shadow: 0 1px 0 rgba(255, 255, 255, .08); }
+.m-hero { min-height: calc(100dvh - 56px); display: flex; flex-direction: column; }
 .m-logo { height: 12px; }
 .m-icon { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; color: var(--fg); }
 .m-icon.sm { width: 30px; height: 30px; color: #8a8a8a; }
 .m-av { width: 34px; height: 34px; border-radius: 50%; background: #2e2e2e; color: #d6d6d6; display: grid; place-items: center; font-size: 12px; font-weight: 600; }
-.m-head { margin: 8px 0 16px; }
+.m-head { margin: 8px 0 16px; text-align: center; }
 .m-head h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -.2px; }
 .m-head p { margin: 6px 0 0; font-size: 14px; color: var(--muted); }
-.m-tabs { display: flex; padding: 3px; gap: 2px; border-radius: 999px; background: rgba(255, 255, 255, .05); }
-.m-tabs button { position: relative; flex: 1; height: 36px; border-radius: 999px; font-size: 14px; font-weight: 500; color: var(--muted); z-index: 0; }
+.m-tabs { display: flex; align-self: center; padding: 3px; gap: 2px; border-radius: 999px; background: rgba(255, 255, 255, .05); }
+.m-tabs button { position: relative; height: 36px; padding: 0 16px; border-radius: 999px; font-size: 14px; font-weight: 500; color: var(--muted); z-index: 0; }
 .m-tabs button.on { color: var(--fg); font-weight: 600; }
 .m-tabs .hl { position: absolute; inset: 0; border-radius: 999px; background: var(--pill); z-index: -1; }
-.map.mmap { width: 100%; height: auto; margin: 14px 0 6px; overflow: visible; touch-action: manipulation; }
+.m-stage { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 12px 0 20px; }
+.map.mmap { width: calc(100% + 16px); margin: 0 -8px 10px; height: auto; overflow: visible; touch-action: manipulation; }
 .m-prog { margin-top: 8px; }
 .m-prog-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
 .m-prog-row span { display: flex; align-items: center; gap: 6px; }
@@ -370,7 +373,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .m-bar { position: relative; height: 3px; margin-top: 10px; border-radius: 3px; background: rgba(255, 255, 255, .08); }
 .m-bar b { position: absolute; top: 0; bottom: 0; border-radius: 3px; transition: width .5s var(--ease); }
 .m-bar b.R { left: 0; background: var(--R); } .m-bar b.D { right: 0; background: var(--D); }
-.m-sheet { margin: 18px -16px 0; margin-top: auto; padding: 8px 16px calc(16px + env(safe-area-inset-bottom)); border-radius: 22px 22px 0 0; background: #1c1c1c; box-shadow: 0 -20px 60px rgba(0, 0, 0, .5); position: sticky; bottom: 0; }
+.m-sheet { margin: 0 -16px; padding: 8px 16px calc(16px + env(safe-area-inset-bottom)); border-radius: 22px 22px 0 0; background: #1c1c1c; box-shadow: 0 -20px 60px rgba(0, 0, 0, .5); position: sticky; bottom: 0; }
 .m-grab { width: 36px; height: 4px; border-radius: 4px; background: #3a3a3a; margin: 0 auto 12px; }
 .m-race { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .m-race h3 { margin: 0; font-size: 19px; font-weight: 600; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -414,3 +417,14 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .m-float .t b { font-size: 16px; font-weight: 600; }
 .m-float .t small { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .m-float .m-actions { grid-column: 1 / -1; }
+.m-page:has(.m-sheet) { padding-bottom: 0; }
+.m-hero .m-sheet { position: sticky; bottom: 0; }
+
+/* ?more=1 — neutral placeholders for the content that will live under the map */
+.m-more { padding: 28px 0 40px; }
+.m-more h4 { margin: 0 0 14px; font-size: 13px; font-weight: 600; color: var(--dim); }
+.m-ph { display: flex; gap: 12px; padding: 12px 0; }
+.m-ph i { width: 88px; height: 64px; border-radius: 10px; background: #1a1a1a; flex: none; }
+.m-ph span { flex: 1; display: flex; flex-direction: column; gap: 8px; padding-top: 6px; }
+.m-ph b { height: 10px; border-radius: 5px; background: #1e1e1e; }
+.m-ph b + b { width: 60%; }
