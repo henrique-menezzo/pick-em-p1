@@ -168,7 +168,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 
 /* ---- right panel ("palette") ------------------------------------------------------------------ */
 .pal-anchor { position: absolute; right: 39px; top: 50px; z-index: 20; }
-.pal { position: absolute; right: 0; top: 0; width: 300px; border-radius: 22px; background: linear-gradient(180deg, #212121, #1b1b1b); padding: 18px 16px 14px; box-shadow: 0 30px 80px rgba(0, 0, 0, .4), inset 0 0 0 1px rgba(255, 255, 255, .06); }
+.pal { position: absolute; right: 0; top: 0; width: 300px; border-radius: 22px; background: linear-gradient(180deg, #212121, #1b1b1b); padding: 18px 16px 14px; box-shadow: 0 30px 80px rgba(0, 0, 0, .4); }
 .flag { width: 22px; height: 15px; border-radius: 3px; object-fit: cover; flex: none; display: block; box-shadow: 0 0 0 1px rgba(255, 255, 255, .08); }
 .flag.sm { width: 18px; height: 12px; border-radius: 2px; }
 
@@ -183,15 +183,22 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .fb-nav { display: flex; gap: 4px; flex: none; }
 .fb-nav button { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; color: var(--muted); background: rgba(255, 255, 255, .04); transition: background .2s, color .2s; }
 .fb-nav button:hover { background: var(--pill); color: var(--fg); }
-.fb-prog { margin-top: 14px; height: 2px; border-radius: 2px; background: rgba(255, 255, 255, .07); overflow: hidden; }
-.fb-prog i { display: block; height: 100%; background: var(--fg); border-radius: 2px; transition: width .5s var(--ease); }
+.fb-meta { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 12px; }
+.fb-meta .rt { height: 20px; padding: 0 8px; border-radius: 99px; display: inline-flex; align-items: center; font-weight: 600; font-size: 11px; letter-spacing: .02em; background: rgba(255, 255, 255, .06); color: #cfcfcf; }
+.fb-meta .rt.R { background: color-mix(in srgb, var(--R) 16%, transparent); color: #ff9aa8; }
+.fb-meta .rt.D { background: color-mix(in srgb, var(--D) 18%, transparent); color: #9cb7ff; }
+.fb-meta .pl { color: var(--muted); }
+.fb-prog { position: relative; margin-top: 14px; display: flex; align-items: center; gap: 10px; }
+.fb-prog::before { content: ''; position: absolute; left: 0; right: 42px; height: 2px; border-radius: 2px; background: rgba(255, 255, 255, .06); }
+.fb-prog i { position: relative; display: block; height: 2px; max-width: calc(100% - 42px); background: #6a6a6a; border-radius: 2px; transition: width .5s var(--ease); }
+.fb-prog span { margin-left: auto; font-size: 11px; color: var(--dim); }
 
 /* candidate cards */
 .fb-cands { display: flex; flex-direction: column; gap: 8px; }
 .cand { width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 14px 12px 12px; border-radius: 14px; background: rgba(255, 255, 255, .035); text-align: left; position: relative; transition: background .25s var(--ease), opacity .25s, box-shadow .25s; }
 .cand:hover { background: rgba(255, 255, 255, .065); }
-.cand .face { width: 42px; height: 42px; border-radius: 50%; overflow: hidden; flex: none; background: var(--R-face); box-shadow: 0 0 0 2px var(--panel), 0 0 0 3.5px color-mix(in srgb, var(--R) 55%, transparent); }
-.cand.d .face { background: var(--D-face); box-shadow: 0 0 0 2px var(--panel), 0 0 0 3.5px color-mix(in srgb, var(--D) 60%, transparent); }
+.cand .face { width: 42px; height: 42px; border-radius: 50%; overflow: hidden; flex: none; background: var(--R-face); }
+.cand.d .face { background: var(--D-face); }
 .cand .face img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .cand .t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
 .cand .n { font-size: 16px; line-height: 1.1; font-weight: 600; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -216,11 +223,13 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .vbar i { display: block; height: 100%; transition: width .5s var(--ease); }
 
 .fb-hint { margin-top: 12px; text-align: center; font-size: 12px; line-height: 1.4; color: var(--muted); }
-.fb-hint span { color: var(--dim); }
+.fb-hint span { color: var(--dim); margin-left: 4px; }
+.fb-hint kbd { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 4px; margin: 0 1px; border-radius: 5px; font: 600 10px 'Libre Franklin', sans-serif; color: #bdbdbd; background: rgba(255, 255, 255, .06); box-shadow: inset 0 -1px 0 rgba(255, 255, 255, .08); }
 .fb-hint.ok { color: var(--fg); }
 
 .next { margin: 14px -4px 0; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, .06); }
-.next h6 { margin: 0 8px 4px; font-size: 11px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: var(--dim); }
+.next h6 { margin: 0 8px 4px; display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: var(--dim); }
+.next h6 em { font-style: normal; letter-spacing: .02em; text-transform: none; font-weight: 500; }
 .next button { width: 100%; height: 36px; padding: 0 8px; border-radius: 10px; display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 500; color: #a8a8a8; transition: background .2s, color .2s; }
 .next button:hover { background: rgba(255, 255, 255, .05); color: var(--fg); }
 .next button .r { margin-left: auto; font-size: 12px; color: var(--dim); display: flex; align-items: center; gap: 6px; }
@@ -322,3 +331,6 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .map .st.pk.sel circle, .map .st.pk.hov circle, .map .st.pk.sel.hov circle { fill: var(--c); }
 .map .st.pk.hov { filter: brightness(1.22); }
 .map .st.pk.sel { filter: brightness(1.28) drop-shadow(0 0 5px color-mix(in srgb, var(--c) 60%, transparent)); }
+
+.pdot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; background: var(--R); flex: none; }
+.pdot.D { background: var(--D); }
