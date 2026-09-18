@@ -177,7 +177,7 @@ function Legend() {
         <>
           <span><i style={{ background: 'linear-gradient(90deg, var(--R) 50%, var(--D) 50%)' }} />Right <b className="num">{a}</b></span>
           <span><i className="faded" />Missed <b className="num">{b}</b></span>
-          <span><i style={{ background: 'var(--dot-pending)', boxShadow: 'inset 0 0 0 1px #4a4a4a' }} />To call <b className="num">{open}</b></span>
+          <span><i style={{ background: '#4a4a4a' }} />To call <b className="num">{open}</b></span>
         </>
       ) : (
         <>

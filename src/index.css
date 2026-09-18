@@ -50,7 +50,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .who { position: absolute; left: 44px; top: 52px; z-index: 5; }
 .who-btn { display: flex; gap: 12px; align-items: center; text-align: left; padding: 0 12px 0 0; border-radius: 999px; }
 .who .av { width: 40px; height: 40px; border-radius: 999px; background: #2e2e2e; color: #d6d6d6; display: grid; place-items: center; flex: none; transition: background .2s, color .2s; }
-.who .av.me { background: #3a3a3a; color: var(--fg); font-size: 14px; font-weight: 600; letter-spacing: .04em; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .08); }
+.who .av.me { background: #3a3a3a; color: var(--fg); font-size: 14px; font-weight: 600; letter-spacing: .04em; }
 .who-btn:hover .av { background: #404040; color: var(--fg); }
 .who .tx { display: flex; flex-direction: column; gap: 6px; }
 .who .t1 { font-size: 15px; font-weight: 600; line-height: 1; }
@@ -62,7 +62,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .who .t2 .sd.live-dot { background: var(--R); }
 .who .t2 .cta { display: inline-flex; align-items: center; gap: 4px; color: var(--fg); transition: gap .2s var(--ease); }
 .who-btn:hover .t2 .cta { gap: 7px; }
-.who-menu { position: absolute; left: 0; top: 50px; min-width: 220px; background: var(--panel); border-radius: 14px; padding: 6px; box-shadow: 0 20px 60px rgba(0, 0, 0, .55), 0 0 0 1px rgba(255, 255, 255, .05); }
+.who-menu { position: absolute; left: 0; top: 50px; min-width: 220px; background: var(--panel); border-radius: 14px; padding: 6px; box-shadow: 0 20px 60px rgba(0, 0, 0, .55); }
 .who-menu .em { padding: 10px 10px 8px; font-size: 12px; color: var(--muted); }
 .who-menu button { width: 100%; text-align: left; height: 36px; padding: 0 10px; border-radius: 9px; font-size: 13px; font-weight: 500; }
 .who-menu button:hover { background: var(--pill); }
@@ -184,7 +184,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 /* ---- right panel ("palette") ------------------------------------------------------------------ */
 .pal-anchor { position: absolute; right: 39px; top: 50px; z-index: 20; }
 .pal { position: absolute; right: 0; top: 0; width: 300px; border-radius: 22px; background: linear-gradient(180deg, #212121, #1b1b1b); padding: 18px 16px 14px; box-shadow: 0 30px 80px rgba(0, 0, 0, .4); }
-.flag { width: 22px; height: 15px; border-radius: 3px; object-fit: cover; flex: none; display: block; box-shadow: 0 0 0 1px rgba(255, 255, 255, .08); }
+.flag { width: 22px; height: 15px; border-radius: 3px; object-fit: cover; flex: none; display: block; }
 .flag.sm { width: 18px; height: 12px; border-radius: 2px; }
 
 /* header: overline · state · nav · section progress */
@@ -239,7 +239,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .sdot.R { background: var(--R); box-shadow: none; } .sdot.D { background: var(--D); box-shadow: none; }
 
 /* ---- floating: popover + tooltips (portaled to body, fixed) ----------------------------------- */
-.tip { position: fixed; z-index: 70; pointer-events: none; background: #232323; border-radius: 12px; padding: 10px 12px; box-shadow: 0 16px 40px rgba(0, 0, 0, .55), 0 0 0 1px rgba(255, 255, 255, .05); min-width: 180px; }
+.tip { position: fixed; z-index: 70; pointer-events: none; background: #232323; border-radius: 12px; padding: 10px 12px; box-shadow: 0 16px 40px rgba(0, 0, 0, .55); min-width: 180px; }
 .tip .h { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: var(--fg); white-space: nowrap; }
 .tip .h em { font-style: normal; font-weight: 500; color: var(--muted); }
 .tip .who2 { display: flex; align-items: center; gap: 10px; margin-top: 10px; white-space: nowrap; }
@@ -264,7 +264,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .map .st.sel.hov circle { fill: color-mix(in srgb, var(--c) 58%, #fff); }
 
 /* pick badge: the candidate you just picked by clicking the map, next to the state */
-.pick-badge { position: fixed; z-index: 62; pointer-events: none; min-width: 200px; border-radius: 14px; background: var(--panel); padding: 10px 12px; box-shadow: 0 18px 50px rgba(0, 0, 0, .55), 0 0 0 1px rgba(255, 255, 255, .05); overflow: hidden; }
+.pick-badge { position: fixed; z-index: 62; pointer-events: none; min-width: 200px; border-radius: 14px; background: var(--panel); padding: 10px 12px; box-shadow: 0 18px 50px rgba(0, 0, 0, .55); overflow: hidden; }
 .pb-row { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
 .pb-row .face { width: 32px; height: 32px; border-radius: 50%; overflow: hidden; flex: none; background: var(--R-face); }
 .pb-row .face.D { background: var(--D-face); }
