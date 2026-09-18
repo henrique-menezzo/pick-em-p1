@@ -303,13 +303,13 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .auth-terms { margin: 0; text-align: center; font-size: 12px; line-height: 1.5; color: var(--muted); }
 .auth-terms a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
 
-/* countdown to the pick lock, next to the actions */
-.lock { display: flex; align-items: center; gap: 10px; margin-right: 12px; color: var(--muted); }
-.lock div { display: flex; flex-direction: column; gap: 5px; }
-.lock small { font-size: 11px; line-height: 1; letter-spacing: .02em; }
-.lock b { font-size: 14px; line-height: 1; font-weight: 600; color: var(--fg); }
-.lock.soon b { color: #ff8a8a; }
-.lock.done b { color: var(--muted); font-weight: 500; }
+/* countdown to the pick lock: a quiet caption, set apart from the buttons by a hairline */
+.lock { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; padding-right: 20px; margin-right: 8px; border-right: 1px solid rgba(255, 255, 255, .08); text-align: right; white-space: nowrap; }
+.lock b { font-size: 13px; line-height: 1; font-weight: 500; color: var(--muted); }
+.lock b em { font-style: normal; font-weight: 600; color: var(--fg); }
+.lock small { font-size: 11px; line-height: 1; color: var(--dim); }
+.lock.soon b em { color: #ff8a8a; }
+.lock.done b { color: var(--fg); font-weight: 600; }
 
 
 

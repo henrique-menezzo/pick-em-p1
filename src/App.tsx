@@ -281,7 +281,7 @@ function ResetButton() {
   return (
     <button
       className={'btn reset' + (confirm ? ' confirm' : '')}
-      disabled={!any}
+      disabled={!any || isLocked()}
       title="Reset picks"
       aria-label="Reset picks"
       onClick={() => {
@@ -294,7 +294,7 @@ function ResetButton() {
   );
 }
 
-/** Countdown to election day: after it, picks can't change any more. */
+/** Countdown to election day: after it, picks can't change any more. Precision grows as the lock gets close. */
 function LockTimer() {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -304,16 +304,17 @@ function LockTimer() {
   const ms = Math.max(0, LOCK_AT - now);
   const locked = ms === 0;
   const s = Math.floor(ms / 1000);
-  const d = Math.floor(s / 86400);
-  const hms = [Math.floor((s % 86400) / 3600), Math.floor((s % 3600) / 60), s % 60].map((v) => String(v).padStart(2, '0')).join(':');
-  const when = new Date(LOCK_AT).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' });
+  const days = Math.floor(s / 86400), hrs = Math.floor(s / 3600), mins = Math.floor((s % 3600) / 60);
+  const left =
+    days >= 2 ? `${days} days`
+    : hrs >= 1 ? `${hrs}h ${String(mins).padStart(2, '0')}m`
+    : `${mins}:${String(s % 60).padStart(2, '0')}`;
+  const day = new Date(LOCK_AT).toLocaleString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/New_York' });
+  const time = new Date(LOCK_AT).toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' });
   return (
-    <div className={'lock' + (locked ? ' done' : d < 1 ? ' soon' : '')} title={`Picks lock ${when} ET`}>
-      <Icon name="lock" size={16} stroke={1.8} />
-      <div>
-        <small>{locked ? 'Picks locked' : 'Picks lock in'}</small>
-        <b className="num">{locked ? `${when} ET` : (d ? `${d}d ` : '') + hms}</b>
-      </div>
+    <div className={'lock' + (locked ? ' done' : s < 86400 ? ' soon' : '')} title={`Picks lock ${day}, ${time} ET`}>
+      <b className="num">{locked ? 'Picks locked' : <>Locks in <em>{left}</em></>}</b>
+      <small>{locked ? `${day} · ${time} ET` : `Election Day · ${day}`}</small>
     </div>
   );
 }
