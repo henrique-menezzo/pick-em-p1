@@ -37,13 +37,13 @@ export default function Matrix() {
         const done = list.filter((r) => picks[r.id]).length;
         const sc = live ? liveScore(picks, t, k) : null;
         return (
-          <div key={k} className={'mx-sec' + (tab === k ? ' on' : '')}>
-            <button className="lbl" onClick={() => setTab(k)}>
+          <div key={k} className={'mx-sec' + (tab === k ? ' on' : '')} onClick={() => tab !== k && setTab(k)}>
+            <div className="lbl">
               {TAB_LABEL[k]}
               <span className={'c num' + (!live && done === list.length ? ' done' : '')}>
                 {live ? `${sc!.correct} of ${sc!.called} right` : done === list.length ? '✓ Complete' : `${done} of ${list.length}`}
               </span>
-            </button>
+            </div>
             <div className="mx-grid" style={{ gridTemplateColumns: `repeat(${COLS[k]}, 13px)`, rowGap: live ? 9 : 7 }}>
               {list.map((r) => {
                 const p = picks[r.id];
@@ -62,7 +62,7 @@ export default function Matrix() {
                       if (k === tab) setHover(r.id);
                     }}
                     onMouseLeave={() => { setTip(null); setHover(null); }}
-                    onClick={() => go(r.id)}
+                    onClick={(e) => { e.stopPropagation(); go(r.id); }}
                   >
                     <span className="mx-pair">
                       <span className={'mx' + (p ? ' ' + p : '') + (r.id === curId && tab === k ? ' cur' : '') + (lost ? ' lost' : '')} style={live && !called && p ? { opacity: 0.45 } : undefined}>

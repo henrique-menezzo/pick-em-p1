@@ -130,7 +130,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .mx-sec .lbl { display: flex; align-items: baseline; gap: 8px; font-size: 13px; line-height: 1; font-weight: 600; color: var(--fg); text-align: left; }
 .mx-sec .lbl .c { font-size: 12px; font-weight: 500; color: var(--dim); }
 .mx-sec .lbl .c.done { color: #8fd19e; }
-.mx-sec:not(.on) .lbl:hover { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: #555; }
+.mx-sec:not(.on) { cursor: pointer; }
 .mx-grid { display: grid; gap: 7px; }
 .mx { position: relative; width: 13px; height: 13px; border-radius: 50%; background: #2c2c2c; transition: background .3s, transform .25s var(--ease), box-shadow .2s; }
 .mx.R { background: var(--R); } .mx.D { background: var(--D); }
