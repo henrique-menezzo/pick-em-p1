@@ -1,0 +1,107 @@
+import { AnimatePresence, motion } from 'motion/react';
+import { BY_ID, RACES, RESULTS, TAB_LABEL, clock, type Race } from '../data/races';
+import { useStore } from '../lib/store';
+import { CandidateRow, Flag, Icon, PARTY, RaceHead, liveLine } from './ui';
+
+/** The Figma "palette": always open, one race at a time. */
+export default function Palette() {
+  const race = useStore((s) => BY_ID[s.cursor[s.tab]]);
+  return (
+    <div className="pal-anchor">
+      <div className="pal">
+        <FocusBody race={race} />
+      </div>
+    </div>
+  );
+}
+
+// ---- one race at a time --------------------------------------------------------------------------
+function FocusBody({ race }: { race: Race }) {
+  const pick = useStore((s) => s.picks[race.id]);
+  const picks = useStore((s) => s.picks);
+  const step = useStore((s) => s.step);
+  const live = useStore((s) => s.live);
+  const t = useStore((s) => s.t);
+  const line = live ? liveLine(race, t, pick) : null;
+
+  return (
+    <div>
+      <AnimatePresence mode="popLayout" initial={false}>
+        <motion.div
+          key={race.id}
+          initial={{ opacity: 0, x: 14 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -14 }}
+          transition={{ type: 'spring', stiffness: 420, damping: 36 }}
+        >
+          <RaceHead race={race} />
+          <div>
+            <CandidateRow race={race} side="R" advance />
+            <CandidateRow race={race} side="D" advance />
+          </div>
+        </motion.div>
+      </AnimatePresence>
+      <div className="pf">
+        <button className="nav" onClick={() => step(-1)}><Icon name="arrowLeft" size={15} />Prev</button>
+        <span className={'hint' + (line?.tone === 'ok' || (!live && pick) ? ' ok' : '')}>
+          {line ? line.text : pick ? `${PARTY[pick]} pick` : "Pick a candidate"}
+        </span>
+        <button className="nav" onClick={() => step(1)}>Next<Icon name="arrowRight" size={15} /></button>
+      </div>
+      {live ? <JustCalled /> : <UpNext race={race} picks={picks} />}
+    </div>
+  );
+}
+
+/** A short queue of the next open races. Hovering one hands the map spotlight to it (focus / defocus). */
+function UpNext({ race, picks }: { race: Race; picks: Record<string, unknown> }) {
+  const select = useStore((s) => s.select);
+  const setHover = useStore((s) => s.setHover);
+  const list = RACES[race.type];
+  const i = list.findIndex((r) => r.id === race.id);
+  const queue: Race[] = [];
+  for (let k = 1; k < list.length && queue.length < 3; k++) {
+    const r = list[(i + k) % list.length];
+    if (!picks[r.id]) queue.push(r);
+  }
+  const left = list.filter((r) => !picks[r.id]).length;
+  return (
+    <div className="next">
+      <h6>{queue.length ? `Up next · ${left} open in ${TAB_LABEL[race.type]}` : `${TAB_LABEL[race.type]} complete`}</h6>
+      {queue.map((r) => (
+        <button key={r.id} onMouseEnter={() => setHover(r.id)} onMouseLeave={() => setHover(null)} onClick={() => { setHover(null); select(r.id); }}>
+          <Flag st={r.state} sm />
+          {r.stateName}
+          <span className="r">#{list.indexOf(r) + 1}<Icon name="arrowRight" size={13} /></span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function JustCalled() {
+  const t = useStore((s) => s.t);
+  const tab = useStore((s) => s.tab);
+  const picks = useStore((s) => s.picks);
+  const select = useStore((s) => s.select);
+  const setHover = useStore((s) => s.setHover);
+  const called = RACES[tab].filter((r) => RESULTS[r.id].call <= t).sort((a, b) => RESULTS[b.id].call - RESULTS[a.id].call).slice(0, 4);
+  return (
+    <div className="next">
+      <h6>{called.length ? 'Just called' : 'Waiting for the first call'}</h6>
+      {called.map((r) => {
+        const w = RESULTS[r.id].winner, p = picks[r.id];
+        return (
+          <button key={r.id} onMouseEnter={() => setHover(r.id)} onMouseLeave={() => setHover(null)} onClick={() => { setHover(null); select(r.id); }}>
+            <span className={'sdot ' + w} />
+            {r.stateName}
+            <span className="r">
+              {clock(RESULTS[r.id].call)}
+              <span style={{ color: !p ? 'var(--dim)' : p === w ? 'var(--fg)' : 'var(--R)', fontWeight: 600 }}>{!p ? '–' : p === w ? '✓' : '✕'}</span>
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
