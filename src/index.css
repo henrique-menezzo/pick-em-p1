@@ -212,7 +212,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .fb-hint { margin-top: 12px; text-align: center; font-size: 12px; line-height: 1.4; color: var(--muted); }
 .fb-hint.ok { color: var(--fg); }
 
-.next { margin: 20px -10px 0; }
+.next { margin: 16px -10px 0; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, .06); }
 .next h6 { margin: 0 10px 4px; font-size: 12px; font-weight: 500; color: var(--dim); }
 .next button { width: 100%; height: 34px; padding: 0 10px; border-radius: 10px; display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 500; color: #a8a8a8; transition: background .2s, color .2s; }
 .next button:hover { background: rgba(255, 255, 255, .05); color: var(--fg); }
