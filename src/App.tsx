@@ -192,7 +192,6 @@ function Legend() {
 
 /** Top-left: "Sign up to play" until there is an account, then the account itself. */
 function Who() {
-  const tab = useStore((s) => s.tab);
   const live = useStore((s) => s.live);
   const user = useStore((s) => s.user);
   const savedAt = useStore((s) => s.savedAt);
@@ -206,7 +205,12 @@ function Who() {
     return () => window.removeEventListener('pointerdown', off);
   }, [menu]);
 
-  const sub = live ? 'Picks locked · results live' : !user ? 'Sign up to play' : savedAt ? `${user.name} · Saved` : `${user.name} · Not saved yet`;
+  // one status line: what state the map is in, never the section (the tabs already say that)
+  const status = live
+    ? <><i className="sd live-dot" />Picks locked · live</>
+    : !user
+      ? <span className="cta">Sign up to play <Icon name="arrowRight" size={13} stroke={2} /></span>
+      : <>{user.name.split(' ')[0]}<span className="sep">·</span><i className={'sd' + (savedAt ? ' ok' : '')} />{savedAt ? 'Saved' : 'Not saved'}</>;
   return (
     <div className="who">
       <button className={'who-btn' + (user ? ' in' : '')} onClick={() => (user ? setMenu(!menu) : openAuth('play'))}>
@@ -214,17 +218,17 @@ function Who() {
           <motion.span
             key={user ? 'u' : 'anon'}
             className={'av' + (user ? ' me' : '')}
-            initial={{ scale: 0.6, opacity: 0 }}
+            initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.6, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 420, damping: 28 }}
+            exit={{ scale: 0.8, opacity: 0 }}
+            transition={{ duration: 0.2 }}
           >
-            {user ? user.initials : <Icon name="user" size={24} stroke={1.8} />}
+            {user ? user.initials : <Icon name="user" size={18} stroke={1.8} />}
           </motion.span>
         </AnimatePresence>
         <span className="tx">
-          <span className="t1">Your {TAB_LABEL[tab]} Map</span>
-          <span className={'t2' + (!user && !live ? ' cta' : '')}>{sub}</span>
+          <span className="t1">Your 2026 Map</span>
+          <span className="t2">{status}</span>
         </span>
       </button>
       <AnimatePresence>

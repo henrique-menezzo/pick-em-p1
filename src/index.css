@@ -47,17 +47,21 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 /* ---- card ------------------------------------------------------------------------------------ */
 .card { position: relative; margin: 27px 0 0 39px; width: 1363px; min-height: 945px; background: var(--card); border-radius: 24px; padding-bottom: 44px; }
 .stage { position: relative; height: 792px; }
-.who { position: absolute; left: 44px; top: 44px; display: flex; gap: 16px; align-items: center; }
-.who { z-index: 5; }
-.who-btn { display: flex; gap: 16px; align-items: center; text-align: left; padding: 0 14px 0 0; border-radius: 999px; transition: background .2s; }
-.who-btn:hover { background: rgba(255, 255, 255, .03); }
-.who .av { width: 56px; height: 56px; border-radius: 999px; background: var(--avatar); display: grid; place-items: center; flex: none; }
-.who .av.me { background: var(--fg); color: #0a0909; font-size: 18px; font-weight: 600; letter-spacing: .02em; }
-.who .tx { display: flex; flex-direction: column; }
-.who .t1 { font-size: 16px; font-weight: 500; line-height: 1.2; }
-.who .t2 { font-size: 14px; line-height: 1.2; color: rgba(255, 255, 255, .6); margin-top: 8px; transition: color .2s; }
-.who-btn:hover .t2.cta { color: var(--fg); text-decoration: underline; text-underline-offset: 3px; }
-.who-menu { position: absolute; left: 0; top: 64px; min-width: 220px; background: var(--panel); border-radius: 14px; padding: 6px; box-shadow: 0 20px 60px rgba(0, 0, 0, .55), 0 0 0 1px rgba(255, 255, 255, .05); }
+.who { position: absolute; left: 44px; top: 52px; z-index: 5; }
+.who-btn { display: flex; gap: 12px; align-items: center; text-align: left; padding: 0 12px 0 0; border-radius: 999px; }
+.who .av { width: 40px; height: 40px; border-radius: 999px; background: #262626; color: var(--muted); display: grid; place-items: center; flex: none; transition: background .2s, color .2s; }
+.who .av.me { background: #2e2e2e; color: var(--fg); font-size: 13px; font-weight: 600; letter-spacing: .04em; }
+.who-btn:hover .av { background: #303030; color: var(--fg); }
+.who .tx { display: flex; flex-direction: column; gap: 6px; }
+.who .t1 { font-size: 15px; font-weight: 600; line-height: 1; }
+.who .t2 { display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: 1; color: var(--muted); }
+.who .t2 .sep { color: #3d3d3d; }
+.who .t2 .sd { width: 6px; height: 6px; border-radius: 50%; background: #4a4a4a; flex: none; }
+.who .t2 .sd.ok { background: #4ec27a; }
+.who .t2 .sd.live-dot { background: var(--R); }
+.who .t2 .cta { display: inline-flex; align-items: center; gap: 4px; color: var(--fg); transition: gap .2s var(--ease); }
+.who-btn:hover .t2 .cta { gap: 7px; }
+.who-menu { position: absolute; left: 0; top: 50px; min-width: 220px; background: var(--panel); border-radius: 14px; padding: 6px; box-shadow: 0 20px 60px rgba(0, 0, 0, .55), 0 0 0 1px rgba(255, 255, 255, .05); }
 .who-menu .em { padding: 10px 10px 8px; font-size: 12px; color: var(--muted); }
 .who-menu button { width: 100%; text-align: left; height: 36px; padding: 0 10px; border-radius: 9px; font-size: 13px; font-weight: 500; }
 .who-menu button:hover { background: var(--pill); }
