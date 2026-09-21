@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { ALL, TAB_LABEL, TABS, T_MAX, clock, statusAt } from './data/races';
 import { LOCK_AT, isLocked, liveScore, useStore } from './lib/store';
@@ -83,7 +84,8 @@ function useScale() {
       const scale = Math.min(1, window.innerWidth / 1440);
       // wider than the frame: keep it centred
       const left = Math.max(0, (document.documentElement.clientWidth - 1440 * scale) / 2);
-      setS({ scale, height: (ref.current?.offsetHeight ?? 0) * scale + 40 * scale, left });
+      // room under the card so the floating prototype switch never sits on top of the footer
+      setS({ scale, height: (ref.current?.offsetHeight ?? 0) * scale + 96 * scale, left });
     };
     fit();
     const ro = new ResizeObserver(fit);
@@ -200,7 +202,8 @@ function ViewSwitch() {
   const live = useStore((s) => s.live);
   const setLive = useStore((s) => s.setLive);
   const goLive = useStore((s) => s.goLive);
-  return (
+  // portalled out of the scaled page wrapper: inside a transform, `position: fixed` sticks to the card
+  return createPortal(
     <div className="viewswitch">
       <span className="vs-label">Preview</span>
       <div className="vs-seg">
@@ -213,7 +216,8 @@ function ViewSwitch() {
           <span className="live-dot" /> Election night
         </button>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

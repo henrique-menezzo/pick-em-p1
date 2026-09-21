@@ -505,7 +505,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .pal-handle svg { color: var(--muted); }
 
 /* prototype view switch: floats at the bottom, says what it does, never touches the layout */
-.viewswitch { position: fixed; right: 18px; bottom: 12px; z-index: 70; display: flex; align-items: center; gap: 10px; padding: 6px 12px 6px 14px; border-radius: 999px; background: rgba(22, 22, 22, .92); backdrop-filter: blur(8px); box-shadow: 0 18px 50px rgba(0, 0, 0, .5); }
+.viewswitch { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 70; display: flex; align-items: center; gap: 10px; padding: 6px 12px 6px 14px; border-radius: 999px; background: rgba(22, 22, 22, .92); backdrop-filter: blur(8px); box-shadow: 0 18px 50px rgba(0, 0, 0, .5); }
 .vs-label { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
 .vs-seg { display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: rgba(255, 255, 255, .05); }
 .vs-seg button { position: relative; height: 30px; padding: 0 14px; border-radius: 999px; display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 500; color: var(--muted); z-index: 0; transition: color .2s; }
