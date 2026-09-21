@@ -1,0 +1,14 @@
+<!doctype html><html><head><meta charset="utf-8"><title>capture</title>
+<style>html,body{margin:0;background:#0a0909}iframe{border:0;display:block}</style></head><body>
+<iframe id="f" src="/?reset=0" width="1440" height="1120"></iframe>
+<script>
+// Loads the app at a true 1440 viewport and posts the extracted tree to the local build server.
+const f = document.getElementById('f');
+f.onload = async () => {
+  await new Promise(r => setTimeout(r, 2600));
+  const src = await (await fetch('http://localhost:9230/scripts/dom2fig.js')).text();
+  const json = f.contentWindow.eval(src);
+  await fetch('http://localhost:9230/tree.json', { method: 'POST', body: json });
+  document.title = 'captured ' + json.length;
+};
+</script></body></html>
