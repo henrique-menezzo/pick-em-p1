@@ -33,7 +33,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .app { width: 1440px; transform-origin: 0 0; position: absolute; left: 0; top: 0; }
 
 /* ---- site navigation (Figma "Header (Web)") ------------------------------------------------------ */
-.nav { position: relative; height: 64px; padding: 0 64px; display: flex; align-items: center; justify-content: space-between; }
+.nav { position: relative; height: 64px; padding: 0 64px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
 .nav-links { display: flex; gap: 2px; }
 .nav-links a, .nav-right a { height: 32px; padding: 0 12px; display: flex; align-items: center; gap: 8px; font-size: 14px; line-height: 1; color: var(--fg); border-radius: 999px; transition: background .2s, color .2s; }
 .nav-links a:hover, .nav-right a:hover { background: rgba(255, 255, 255, .05); }
@@ -50,12 +50,26 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 /* ---- card ------------------------------------------------------------------------------------ */
 .card { position: relative; margin: 27px 0 0 39px; width: 1363px; min-height: 945px; background: var(--card); border-radius: 24px; padding-bottom: 44px; }
 .stage { position: relative; height: 792px; }
+.gtitle { margin: 26px 0 -10px; text-align: center; }
+.gtitle h1 { margin: 0; font-size: 30px; line-height: 1.1; font-weight: 600; letter-spacing: -.4px; }
+.gtitle .sub { margin: 10px 0 0; font-size: 14px; line-height: 1; color: var(--muted); }
+.gtitle .sub b { color: var(--fg); font-weight: 600; }
+.gtitle .sub.soon b { color: #ff8a8a; }
+
 .head { position: absolute; left: 44px; top: 44px; z-index: 5; }
-.head h1 { margin: 0; font-size: 22px; line-height: 1.1; font-weight: 600; letter-spacing: -.2px; }
-.head .sub { margin: 8px 0 0; font-size: 13px; line-height: 1; color: var(--muted); }
-.head .sub b { color: var(--fg); font-weight: 600; }
-.head .sub.soon b { color: #ff8a8a; }
-.head-actions { display: flex; gap: 6px; margin: 14px 0 0 -10px; }
+.head .who-btn { display: flex; gap: 12px; align-items: center; text-align: left; padding: 0 12px 0 0; border-radius: 999px; }
+.head .av { width: 40px; height: 40px; border-radius: 999px; background: #2e2e2e; color: #d6d6d6; display: grid; place-items: center; flex: none; transition: background .2s, color .2s; }
+.head .av.me { background: #3a3a3a; color: var(--fg); font-size: 14px; font-weight: 600; letter-spacing: .04em; }
+.head .who-btn:hover .av { background: #404040; color: var(--fg); }
+.head .tx { display: flex; flex-direction: column; gap: 6px; }
+.head .t1 { font-size: 15px; font-weight: 600; line-height: 1; }
+.head .t2 { display: flex; align-items: center; gap: 6px; font-size: 13px; line-height: 1; color: #b0b0b0; }
+.head .t2 .sep { color: #3d3d3d; }
+.head .t2 .sd { width: 6px; height: 6px; border-radius: 50%; }
+.head .t2 .saved { display: inline-flex; align-items: center; gap: 3px; color: #6fcf8f; }
+.head .t2 .cta { display: inline-flex; align-items: center; gap: 4px; color: var(--fg); transition: gap .2s var(--ease); }
+.head .who-btn:hover .t2 .cta { gap: 7px; }
+.head .quiet { margin: 12px 0 0 -10px; }
 .quiet { height: 28px; padding: 0 10px; border-radius: 999px; display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 500; color: var(--muted); transition: background .2s, color .2s; }
 .quiet:hover { background: rgba(255, 255, 255, .05); color: var(--fg); }
 .quiet .live-dot { width: 6px; height: 6px; }

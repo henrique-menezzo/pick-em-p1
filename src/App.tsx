@@ -11,7 +11,7 @@ import AuthModal from './components/AuthModal';
 import Nav from './components/Nav';
 import Onboarding from './components/Onboarding';
 import Tip from './components/Tip';
-import TitleStudy, { CardTitle } from './components/TitleStudies';
+import TitleStudy from './components/TitleStudies';
 import { ResetButton, Toast } from './components/Common';
 import Mobile from './mobile/Mobile';
 import { V } from './lib/variants';
@@ -48,7 +48,7 @@ export default function App() {
     <div className="scaler" style={{ height }}>
       <div className="app" ref={ref} style={{ transform: `scale(${scale})`, left }}>
         <Nav />
-        {V.title > 0 && <TitleStudy v={V.title} />}
+        {V.title > 0 ? <TitleStudy v={V.title} /> : <GameTitle />}
         {V.intro === 'c' && (
           <div className="v-title">
             <h1>2026 Midterms Prediction Map</h1>
@@ -223,20 +223,38 @@ function ViewSwitch() {
   );
 }
 
+function GameTitle() {
+  const live = useStore((s) => s.live);
+  return (
+    <div className="gtitle">
+      <h1>Midterms Pick Em</h1>
+      {live ? <p>Picks locked · live results</p> : <LockLine />}
+    </div>
+  );
+}
+
+/** Back on the left of the map: who you are and what this map is. */
 function CardHead() {
   const live = useStore((s) => s.live);
+  const user = useStore((s) => s.user);
+  const savedAt = useStore((s) => s.savedAt);
+  const openAuth = useStore((s) => s.openAuth);
   const setTour = useStore((s) => s.setTour);
+  const tab = useStore((s) => s.tab);
   return (
-    <div className={'head' + (V.title ? ' ts-head-' + V.title : '')}>
-      {V.title && CardTitle({ v: V.title }) ? <CardTitle v={V.title} /> : (
-        <>
-          <h1>Your 2026 Map</h1>
-          {live ? <p className="sub">Picks locked · live results</p> : <LockLine />}
-        </>
-      )}
-      <div className="head-actions">
-        {!live && <button className="quiet" onClick={() => setTour(0)}><Icon name="help" size={15} stroke={1.8} /> How it works</button>}
-      </div>
+    <div className="head">
+      <button className="who-btn" onClick={() => !user && openAuth('play')}>
+        <span className={'av' + (user ? ' me' : '')}>{user ? user.initials : <Icon name="user" size={18} stroke={1.8} />}</span>
+        <span className="tx">
+          <span className="t1">Your {TAB_LABEL[tab]} Map</span>
+          <span className="t2">
+            {live ? <><i className="sd live-dot" />Picks locked · live</>
+              : !user ? <span className="cta">Sign up to play <Icon name="arrowRight" size={13} stroke={2} /></span>
+              : <>{user.name}{savedAt && <><span className="sep">·</span><span className="saved"><Icon name="check" size={12} stroke={2.4} />Saved</span></>}</>}
+          </span>
+        </span>
+      </button>
+      {!live && <button className="quiet" onClick={() => setTour(0)}><Icon name="help" size={15} stroke={1.8} /> How it works</button>}
     </div>
   );
 }
