@@ -497,14 +497,18 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .tour-next { height: 32px; padding: 0 14px; border-radius: 999px; background: var(--fg); color: #0a0909; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
 
 /* the panel can step aside so the whole map is visible; any pick brings it back */
-.pal-min { position: absolute; right: 14px; top: 14px; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; color: var(--dim); transition: background .2s, color .2s; z-index: 2; }
-.pal-min:hover { background: rgba(255, 255, 255, .06); color: var(--fg); }
-.pal-handle { position: absolute; right: 0; top: 0; height: 40px; padding: 0 12px; border-radius: 999px; display: flex; align-items: center; gap: 8px; background: var(--panel); color: var(--muted); box-shadow: 0 14px 40px rgba(0, 0, 0, .35); transition: background .2s, color .2s; }
-.pal-handle:hover { background: #262626; color: var(--fg); }
+.pal-min { position: absolute; right: 12px; top: 12px; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; color: #c9c9c9; background: rgba(255, 255, 255, .08); transition: background .2s, color .2s; z-index: 2; }
+.pal-min:hover { background: rgba(255, 255, 255, .16); color: var(--fg); }
+.pal-handle { position: absolute; right: 0; top: 0; height: 44px; padding: 0 14px; border-radius: 999px; display: flex; align-items: center; gap: 10px; background: var(--panel); color: var(--fg); font-size: 14px; font-weight: 600; box-shadow: 0 14px 40px rgba(0, 0, 0, .4); transition: background .2s; }
+.pal-handle:hover { background: #272727; }
+.pal-handle svg { color: var(--muted); }
 
-/* prototype view switch: minimal dots, fixed, outside the layout */
-.viewdots { position: fixed; left: 18px; bottom: 18px; z-index: 70; display: flex; gap: 8px; }
-.viewdots button { width: 9px; height: 9px; padding: 0; border-radius: 50%; background: #3a3a3a; transition: background .2s, transform .2s; }
-.viewdots button:hover { transform: scale(1.3); background: #6a6a6a; }
-.viewdots button.on { background: var(--fg); }
-.viewdots button.live.on { background: var(--R); }
+/* prototype view switch: floats at the bottom, says what it does, never touches the layout */
+.viewswitch { position: fixed; right: 18px; bottom: 12px; z-index: 70; display: flex; align-items: center; gap: 10px; padding: 6px 12px 6px 14px; border-radius: 999px; background: rgba(22, 22, 22, .92); backdrop-filter: blur(8px); box-shadow: 0 18px 50px rgba(0, 0, 0, .5); }
+.vs-label { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
+.vs-seg { display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: rgba(255, 255, 255, .05); }
+.vs-seg button { position: relative; height: 30px; padding: 0 14px; border-radius: 999px; display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 500; color: var(--muted); z-index: 0; transition: color .2s; }
+.vs-seg button:hover { color: var(--fg); }
+.vs-seg button.on { color: var(--fg); font-weight: 600; }
+.vs-seg .hl { position: absolute; inset: 0; border-radius: 999px; background: var(--pill); z-index: -1; }
+.vs-seg .live-dot { width: 6px; height: 6px; }

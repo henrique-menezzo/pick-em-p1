@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { BY_ID, RACES, RESULTS, clock, type Race } from '../data/races';
 import { useStore } from '../lib/store';
 import { CandidateRow, Flag, Icon, liveLine } from './ui';
+import Tip from './Tip';
 
 /** The Figma "palette": always open, one race at a time. */
 export default function Palette() {
@@ -24,7 +25,8 @@ export default function Palette() {
             transition={{ type: 'spring', stiffness: 420, damping: 30 }}
           >
             <Flag st={race.state} />
-            <Icon name="chevDown" size={14} stroke={2} />
+            <span>{race.stateName}</span>
+            <Icon name="chevLeft" size={15} stroke={2} />
           </motion.button>
         ) : (
           <motion.div
@@ -36,9 +38,11 @@ export default function Palette() {
             transition={{ type: 'spring', stiffness: 380, damping: 32 }}
             style={{ transformOrigin: 'top right' }}
           >
-            <button className="pal-min" onClick={() => setMin(true)} aria-label="Minimise panel">
-              <Icon name="minus" size={16} stroke={2} />
-            </button>
+            <Tip text="Hide the panel to see the whole map — picking a state brings it back">
+              <button className="pal-min" onClick={() => setMin(true)} aria-label="Hide panel">
+                <Icon name="chevRight" size={16} stroke={2} />
+              </button>
+            </Tip>
             <FocusBody race={race} />
           </motion.div>
         )}

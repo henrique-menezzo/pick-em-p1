@@ -54,7 +54,7 @@ export default function App() {
         )}
         <Card />
         <AuthModal />
-        <ViewDots />
+        <ViewSwitch />
         <Onboarding />
         <Toast />
       </div>
@@ -195,15 +195,24 @@ function Legend() {
 }
 
 /** Top-left of the card: what this is and how long you have. The account lives in the site nav now. */
-/** Prototype-only view switch: two small dots parked off the layout, so the final design stays clean. */
-function ViewDots() {
+/** Prototype-only: swap between the two states of the product. Floats at the bottom, outside the layout. */
+function ViewSwitch() {
   const live = useStore((s) => s.live);
   const setLive = useStore((s) => s.setLive);
   const goLive = useStore((s) => s.goLive);
   return (
-    <div className="viewdots">
-      <Tip text="My picks"><button className={!live ? 'on' : ''} onClick={() => setLive(false)} aria-label="My picks" /></Tip>
-      <Tip text="Preview election night"><button className={live ? 'on live' : 'live'} onClick={() => goLive(true)} aria-label="Preview election night" /></Tip>
+    <div className="viewswitch">
+      <span className="vs-label">Preview</span>
+      <div className="vs-seg">
+        <button className={!live ? 'on' : ''} onClick={() => setLive(false)}>
+          {!live && <motion.span layoutId="vs-hl" className="hl" transition={{ type: 'spring', stiffness: 500, damping: 38 }} />}
+          My picks
+        </button>
+        <button className={live ? 'on' : ''} onClick={() => goLive(true)}>
+          {live && <motion.span layoutId="vs-hl" className="hl" transition={{ type: 'spring', stiffness: 500, damping: 38 }} />}
+          <span className="live-dot" /> Election night
+        </button>
+      </div>
     </div>
   );
 }

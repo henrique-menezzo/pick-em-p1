@@ -19,11 +19,13 @@ export function Flag({ st, sm }: { st: string; sm?: boolean }) {
   return <img className={'flag' + (sm ? ' sm' : '')} src={asset(`flags/us-${st.toLowerCase()}.png`)} alt="" draggable={false} />;
 }
 
-type IconName = 'arrowLeft' | 'arrowRight' | 'chevDown' | 'chevUp' | 'check' | 'x' | 'list' | 'focus' | 'zoom' | 'play' | 'pause' | 'user' | 'wand' | 'collapse' | 'reset' | 'lock' | 'plus' | 'minus' | 'download' | 'search' | 'help';
+type IconName = 'arrowLeft' | 'arrowRight' | 'chevDown' | 'chevUp' | 'check' | 'x' | 'list' | 'focus' | 'zoom' | 'play' | 'pause' | 'user' | 'wand' | 'collapse' | 'reset' | 'lock' | 'plus' | 'minus' | 'download' | 'search' | 'help' | 'chevRight' | 'chevLeft';
 const PATHS: Record<IconName, string> = {
   arrowLeft: 'M19 12H5 M11 6l-6 6 6 6',
   arrowRight: 'M5 12h14 M13 6l6 6-6 6',
   chevDown: 'M6 9.5l6 6 6-6',
+  chevRight: 'M9.5 6l6 6-6 6',
+  chevLeft: 'M14.5 6l-6 6 6 6',
   chevUp: 'M6 14.5l6-6 6 6',
   check: 'M5 12.5l4.2 4.2L19 7',
   x: 'M6.5 6.5l11 11 M17.5 6.5l-11 11',
