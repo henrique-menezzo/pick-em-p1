@@ -19,6 +19,7 @@ import { RACES } from './data/races';
 
 // ?reset · ?night=1&t=220 · ?fill=1 · ?lock=N — handy for reviews and screenshots
 const Q = new URLSearchParams(location.search);
+const RULE = Q.get('rule') !== '0'; // ?rule=0 — the nav without its hairline, for comparison
 if (Q.has('reset')) {
   localStorage.removeItem('pick-em-p1');
   history.replaceState(null, '', location.pathname);
@@ -46,6 +47,8 @@ export default function App() {
   );
   return (
     <div className="scaler" style={{ height }}>
+      {/* the nav's rule is the only thing that bleeds past the 1440 frame: it has to reach both screen edges */}
+      {RULE && <div className="page-rule" style={{ top: 64 * scale }} />}
       <div className="app" ref={ref} style={{ transform: `scale(${scale})`, left }}>
         <Nav />
         {V.title > 0 ? <TitleStudy v={V.title} /> : <GameTitle />}
@@ -227,19 +230,23 @@ function GameTitle() {
   const live = useStore((s) => s.live);
   const setTour = useStore((s) => s.setTour);
   return (
-    <div className="gtitle">
-      <h1>Midterms Pick Em</h1>
-      {/* one quiet meta line for everything that is about the game rather than the map */}
-      <div className="meta">
+    <header className="ghead">
+      {/* three zones on one band: where you came from · what this is · how to play */}
+      <a className="back" href="#" onClick={(e) => e.preventDefault()}>
+        <Icon name="arrowLeft" size={16} stroke={1.8} /> The Midterms
+      </a>
+      <div className="gtitle">
+        <h1>Midterms Pick Em</h1>
         {live ? <p className="sub"><i className="sd live-dot" />Live results</p> : <LockLine />}
-        {!live && (
-          <>
-            <span className="mdot" />
-            <button className="quiet" onClick={() => setTour(0)}><Icon name="help" size={14} stroke={1.8} /> How it works</button>
-          </>
-        )}
       </div>
-    </div>
+      <span className="ghead-r">
+        {!live && (
+          <button className="help" onClick={() => setTour(0)}>
+            <Icon name="help" size={16} stroke={1.8} /> How it works
+          </button>
+        )}
+      </span>
+    </header>
   );
 }
 
@@ -282,8 +289,7 @@ function LockLine() {
   const s = Math.floor(ms / 1000), days = Math.floor(s / 86400);
   const hms = [Math.floor((s % 86400) / 3600), Math.floor((s % 3600) / 60), s % 60].map((v) => String(v).padStart(2, '0')).join(':');
   const left = days > 0 ? `${days}d ${hms}` : hms;
-  // just the deadline, one quiet line: the date adds nothing the countdown doesn't already say
-  return <p className="sub">{ms === 0 ? 'Picks locked' : <>Picks lock in <b>{left}</b></>}</p>;
+  return <p className="sub">{ms === 0 ? 'Picks locked' : <><span>Picks lock in</span><b>{left}</b></>}</p>;
 }
 
 function Actions() {
