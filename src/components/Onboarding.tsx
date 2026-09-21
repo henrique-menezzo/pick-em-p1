@@ -143,17 +143,19 @@ export default function Onboarding() {
             <div className="tour-step">Step {(step ?? 0) + 1} of {STEPS.length}</div>
             <h3>{s.title}</h3>
             <p>{s.body}</p>
+            {/* doing it moves you on, but Next is always there for anyone who just wants to read */}
+            {s.ask && (
+              <div className={'tour-ask' + (ok ? ' ok' : '')}>
+                {ok ? <><Icon name="check" size={13} stroke={2.6} /> Nice</> : <><span className="pulse" /> {s.ask}</>}
+              </div>
+            )}
             <div className="tour-foot">
               <div className="tour-dots">{STEPS.map((_, i) => <i key={i} className={i === step ? 'on' : i < step! ? 'past' : ''} />)}</div>
               <div className="tour-btns">
                 <button className="quiet" onClick={() => setTour(null)}>Skip</button>
-                {s.ask ? (
-                  <span className={'tour-ask' + (ok ? ' ok' : '')}>
-                    {ok ? <><Icon name="check" size={13} stroke={2.6} /> Nice</> : s.ask}
-                  </span>
-                ) : (
-                  <button className="tour-next" onClick={next}>Next <Icon name="arrowRight" size={14} stroke={2} /></button>
-                )}
+                <button className="tour-next" onClick={next}>
+                  {step! === STEPS.length - 1 ? 'Done' : <>Next <Icon name="arrowRight" size={14} stroke={2} /></>}
+                </button>
               </div>
             </div>
           </motion.div>

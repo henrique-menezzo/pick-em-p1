@@ -568,5 +568,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .head .ts-grad { background: linear-gradient(95deg, var(--R), #8f6bff 60%, var(--D)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .head .ts-grad span { -webkit-text-fill-color: var(--muted); }
 
-.tour-ask { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #9a9a9a; padding: 0 4px; }
+.tour-ask { display: flex; align-items: center; gap: 7px; margin-top: 12px; font-size: 12px; font-weight: 600; color: #9a9a9a; }
+.tour-ask .pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--fg); animation: askpulse 1.6s ease-in-out infinite; }
+@keyframes askpulse { 0%, 100% { opacity: .35; transform: scale(.85); } 50% { opacity: 1; transform: scale(1); } }
 .tour-ask.ok { color: #6fcf8f; }
