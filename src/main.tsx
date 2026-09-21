@@ -5,9 +5,13 @@ import '@fontsource/libre-franklin/500.css';
 import '@fontsource/libre-franklin/600.css';
 import './index.css';
 import App from './App';
+import HeaderBoard from './components/HeaderBoard';
+
+// ?board=1 — the header exploration board, outside the product
+const BOARD = new URLSearchParams(location.search).has('board');
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    {BOARD ? <HeaderBoard /> : <App />}
   </StrictMode>,
 );
