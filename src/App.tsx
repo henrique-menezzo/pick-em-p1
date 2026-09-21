@@ -225,41 +225,52 @@ function ViewSwitch() {
 
 function GameTitle() {
   const live = useStore((s) => s.live);
+  const setTour = useStore((s) => s.setTour);
   return (
     <div className="gtitle">
       <h1>Midterms Pick Em</h1>
-      {live ? <p>Picks locked · live results</p> : <LockLine />}
+      {/* one quiet meta line for everything that is about the game rather than the map */}
+      <div className="meta">
+        {live ? <p className="sub"><i className="sd live-dot" />Live results</p> : <LockLine />}
+        {!live && (
+          <>
+            <span className="mdot" />
+            <button className="quiet" onClick={() => setTour(0)}><Icon name="help" size={14} stroke={1.8} /> How it works</button>
+          </>
+        )}
+      </div>
     </div>
   );
 }
 
-/** Back on the left of the map: who you are and what this map is. */
+/** Back on the left of the map: who you are, and whether this map is saved. Nothing else —
+    the game's name is in the page title and the chamber is in the tabs. */
 function CardHead() {
   const live = useStore((s) => s.live);
   const user = useStore((s) => s.user);
   const savedAt = useStore((s) => s.savedAt);
   const openAuth = useStore((s) => s.openAuth);
-  const setTour = useStore((s) => s.setTour);
-  const tab = useStore((s) => s.tab);
+  // on election night the header already says the map is locked and live — don't say it twice
+  const status = !live && savedAt ? <><Icon name="check" size={12} stroke={2.4} />Saved</> : null;
   return (
     <div className="head">
       <button className="who-btn" onClick={() => !user && openAuth('play')}>
         <span className={'av' + (user ? ' me' : '')}>{user ? user.initials : <Icon name="user" size={18} stroke={1.8} />}</span>
         <span className="tx">
-          <span className="t1">Your {TAB_LABEL[tab]} Map</span>
-          <span className="t2">
-            {live ? <><i className="sd live-dot" />Picks locked · live</>
-              : !user ? <span className="cta">Sign up to play <Icon name="arrowRight" size={13} stroke={2} /></span>
-              : <>{user.name}{savedAt && <><span className="sep">·</span><span className="saved"><Icon name="check" size={12} stroke={2.4} />Saved</span></>}</>}
-          </span>
+          {user ? (
+            <>
+              <span className="t1">{user.name}</span>
+              {status && <span className="t2 saved">{status}</span>}
+            </>
+          ) : (
+            <span className="t1 cta">Sign up to play <Icon name="arrowRight" size={13} stroke={2} /></span>
+          )}
         </span>
       </button>
-      {!live && <button className="quiet" onClick={() => setTour(0)}><Icon name="help" size={15} stroke={1.8} /> How it works</button>}
     </div>
   );
 }
 
-/** The deadline, right under the title: "Picks lock in 43 days · Election Day, Nov 3". */
 function LockLine() {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {

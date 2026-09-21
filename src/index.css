@@ -48,27 +48,32 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .nav-acct .who-menu { left: auto; right: 0; top: 40px; }
 
 /* ---- card ------------------------------------------------------------------------------------ */
-.card { position: relative; margin: 27px 0 0 39px; width: 1363px; min-height: 945px; background: var(--card); border-radius: 24px; padding-bottom: 44px; }
+.card { position: relative; margin: 29px 0 0 39px; width: 1363px; min-height: 945px; background: var(--card); border-radius: 24px; padding-bottom: 44px; }
 .stage { position: relative; height: 792px; }
-.gtitle { margin: 26px 0 -10px; text-align: center; }
-.gtitle h1 { margin: 0; font-size: 30px; line-height: 1.1; font-weight: 600; letter-spacing: -.4px; }
-.gtitle .sub { margin: 10px 0 0; font-size: 14px; line-height: 1; color: var(--muted); }
-.gtitle .sub b { color: inherit; font-weight: 500; font-variant-numeric: tabular-nums; }
 
-.head { position: absolute; left: 44px; top: 44px; z-index: 5; }
+/* ---- page header: the game's name, then one quiet meta line (deadline + help) ----------------- */
+.gtitle { margin: 35px 0 0; text-align: center; }
+.gtitle h1 { margin: 0; font-size: 30px; line-height: 1.1; font-weight: 600; letter-spacing: -.4px; }
+.gtitle .meta { margin-top: 1px; height: 20px; display: flex; align-items: center; justify-content: center; gap: 9px; }
+.gtitle .sub { margin: 0; display: inline-flex; align-items: center; gap: 7px; font-size: 14px; line-height: 1; color: var(--muted); }
+.gtitle .sub b { color: inherit; font-weight: 500; font-variant-numeric: tabular-nums; }
+.gtitle .sub .sd { width: 6px; height: 6px; border-radius: 50%; background: var(--R); }
+.gtitle .mdot { width: 3px; height: 3px; border-radius: 50%; background: #3f3f3f; }
+.gtitle .quiet { height: 20px; padding: 0 8px; font-size: 14px; font-weight: 400; gap: 6px; }
+
+/* the identity block sits on the same centre line as the tabs, so the card's top reads as one row */
+.head { position: absolute; left: 44px; top: 51px; height: 43px; display: flex; align-items: center; z-index: 5; }
 .head .who-btn { display: flex; gap: 12px; align-items: center; text-align: left; padding: 0 12px 0 0; border-radius: 999px; }
 .head .av { width: 40px; height: 40px; border-radius: 999px; background: #2e2e2e; color: #d6d6d6; display: grid; place-items: center; flex: none; transition: background .2s, color .2s; }
 .head .av.me { background: #3a3a3a; color: var(--fg); font-size: 14px; font-weight: 600; letter-spacing: .04em; }
 .head .who-btn:hover .av { background: #404040; color: var(--fg); }
 .head .tx { display: flex; flex-direction: column; gap: 6px; }
 .head .t1 { font-size: 15px; font-weight: 600; line-height: 1; }
-.head .t2 { display: flex; align-items: center; gap: 6px; font-size: 13px; line-height: 1; color: #b0b0b0; }
-.head .t2 .sep { color: #3d3d3d; }
-.head .t2 .sd { width: 6px; height: 6px; border-radius: 50%; }
-.head .t2 .saved { display: inline-flex; align-items: center; gap: 3px; color: #6fcf8f; }
-.head .t2 .cta { display: inline-flex; align-items: center; gap: 4px; color: var(--fg); transition: gap .2s var(--ease); }
-.head .who-btn:hover .t2 .cta { gap: 7px; }
-.head .quiet { margin: 12px 0 0 -10px; }
+.head .t2 { display: flex; align-items: center; gap: 5px; font-size: 13px; line-height: 1; color: #b0b0b0; }
+.head .t2.saved { color: #6fcf8f; }
+.head .t2 .sd { width: 6px; height: 6px; border-radius: 50%; background: var(--R); }
+.head .t1.cta { display: inline-flex; align-items: center; gap: 5px; color: var(--fg); transition: gap .2s var(--ease); }
+.head .who-btn:hover .t1.cta { gap: 8px; }
 .quiet { height: 28px; padding: 0 10px; border-radius: 999px; display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 500; color: var(--muted); transition: background .2s, color .2s; }
 .quiet:hover { background: rgba(255, 255, 255, .05); color: var(--fg); }
 .quiet .live-dot { width: 6px; height: 6px; }
