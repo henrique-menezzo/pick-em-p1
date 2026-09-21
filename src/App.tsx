@@ -271,12 +271,8 @@ function LockLine() {
   const s = Math.floor(ms / 1000), days = Math.floor(s / 86400);
   const hms = [Math.floor((s % 86400) / 3600), Math.floor((s % 3600) / 60), s % 60].map((v) => String(v).padStart(2, '0')).join(':');
   const left = days > 0 ? `${days}d ${hms}` : hms;
-  const day = new Date(LOCK_AT).toLocaleString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/New_York' });
-  return (
-    <p className={'sub' + (s < 86400 ? ' soon' : '')}>
-      {ms === 0 ? <>Picks locked · Election Day, {day}</> : <>Picks lock in <b>{left}</b> · Election Day, {day}</>}
-    </p>
-  );
+  // just the deadline, one quiet line: the date adds nothing the countdown doesn't already say
+  return <p className="sub">{ms === 0 ? 'Picks locked' : <>Picks lock in <b>{left}</b></>}</p>;
 }
 
 function Actions() {

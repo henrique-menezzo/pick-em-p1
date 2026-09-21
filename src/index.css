@@ -53,8 +53,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .gtitle { margin: 26px 0 -10px; text-align: center; }
 .gtitle h1 { margin: 0; font-size: 30px; line-height: 1.1; font-weight: 600; letter-spacing: -.4px; }
 .gtitle .sub { margin: 10px 0 0; font-size: 14px; line-height: 1; color: var(--muted); }
-.gtitle .sub b { color: var(--fg); font-weight: 600; }
-.gtitle .sub.soon b { color: #ff8a8a; }
+.gtitle .sub b { color: inherit; font-weight: 500; font-variant-numeric: tabular-nums; }
 
 .head { position: absolute; left: 44px; top: 44px; z-index: 5; }
 .head .who-btn { display: flex; gap: 12px; align-items: center; text-align: left; padding: 0 12px 0 0; border-radius: 999px; }
