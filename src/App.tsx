@@ -267,8 +267,10 @@ function LockLine() {
     return () => clearInterval(h);
   }, []);
   const ms = Math.max(0, LOCK_AT - now);
-  const s = Math.floor(ms / 1000), days = Math.floor(s / 86400), hrs = Math.floor(s / 3600), mins = Math.floor((s % 3600) / 60);
-  const left = days >= 2 ? `${days} days` : hrs >= 1 ? `${hrs}h ${String(mins).padStart(2, '0')}m` : `${mins}:${String(s % 60).padStart(2, '0')}`;
+  // ticking down to the second, so the deadline feels real
+  const s = Math.floor(ms / 1000), days = Math.floor(s / 86400);
+  const hms = [Math.floor((s % 86400) / 3600), Math.floor((s % 3600) / 60), s % 60].map((v) => String(v).padStart(2, '0')).join(':');
+  const left = days > 0 ? `${days}d ${hms}` : hms;
   const day = new Date(LOCK_AT).toLocaleString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/New_York' });
   return (
     <p className={'sub' + (s < 86400 ? ' soon' : '')}>
