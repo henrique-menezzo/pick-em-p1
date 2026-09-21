@@ -34,6 +34,7 @@ interface State {
   playing: boolean;
   savedAt: number | null;
   user: User | null;
+  panelMin: boolean;
   tourDone: boolean;
   tour: number | null;
   // transient
@@ -62,6 +63,7 @@ interface State {
   signOut(): void;
   say(msg: string): void;
   setTour(step: number | null): void;
+  setPanelMin(min: boolean): void;
   /** Election Night needs an account and a saved map. */
   goLive(on: boolean): void;
 }
@@ -85,6 +87,7 @@ export const useStore = create<State>()(
       playing: false,
       savedAt: null,
       user: null,
+      panelMin: false,
       tourDone: false,
       tour: null,
       auth: null,
@@ -100,6 +103,7 @@ export const useStore = create<State>()(
         set((s) => ({
           tab: r.type,
           cursor: { ...s.cursor, [r.type]: id },
+          panelMin: false, // picking anywhere brings the panel back
           hoverId: null, // a click always ends any borrowed spotlight
           flash: { id, n: (s.flash?.n ?? 0) + 1 },
         }));
@@ -175,6 +179,7 @@ export const useStore = create<State>()(
       },
       signOut: () => set({ user: null, live: false, playing: false }),
       say: (msg) => set((s) => ({ toast: { msg, n: (s.toast?.n ?? 0) + 1 } })),
+      setPanelMin: (panelMin) => set({ panelMin }),
       setTour: (tour) => set({ tour, tourDone: tour === null ? true : get().tourDone }),
       goLive: (on) => {
         const s = get();
@@ -186,7 +191,7 @@ export const useStore = create<State>()(
     }),
     {
       name: 'pick-em-p1',
-      partialize: (s) => ({ picks: s.picks, tab: s.tab, cursor: s.cursor, live: s.live, t: s.t, savedAt: s.savedAt, user: s.user, tourDone: s.tourDone }),
+      partialize: (s) => ({ picks: s.picks, tab: s.tab, cursor: s.cursor, live: s.live, t: s.t, savedAt: s.savedAt, user: s.user, tourDone: s.tourDone, panelMin: s.panelMin }),
     },
   ),
 );

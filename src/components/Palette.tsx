@@ -6,11 +6,43 @@ import { CandidateRow, Flag, Icon, liveLine } from './ui';
 /** The Figma "palette": always open, one race at a time. */
 export default function Palette() {
   const race = useStore((s) => BY_ID[s.cursor[s.tab]]);
+  const min = useStore((s) => s.panelMin);
+  const setMin = useStore((s) => s.setPanelMin);
   return (
     <div className="pal-anchor">
-      <div className="pal">
-        <FocusBody race={race} />
-      </div>
+      <AnimatePresence initial={false} mode="popLayout">
+        {min ? (
+          // out of the way, so the whole map is visible; any pick on the map brings it back
+          <motion.button
+            key="handle"
+            className="pal-handle"
+            onClick={() => setMin(false)}
+            aria-label="Show the race panel"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ type: 'spring', stiffness: 420, damping: 30 }}
+          >
+            <Flag st={race.state} />
+            <Icon name="chevDown" size={14} stroke={2} />
+          </motion.button>
+        ) : (
+          <motion.div
+            key="panel"
+            className="pal"
+            initial={{ opacity: 0, scale: 0.96, y: -6 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: -6 }}
+            transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+            style={{ transformOrigin: 'top right' }}
+          >
+            <button className="pal-min" onClick={() => setMin(true)} aria-label="Minimise panel">
+              <Icon name="minus" size={16} stroke={2} />
+            </button>
+            <FocusBody race={race} />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
