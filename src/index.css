@@ -497,8 +497,9 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .tour-next { height: 32px; padding: 0 14px; border-radius: 999px; background: var(--fg); color: #0a0909; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
 
 /* the panel can step aside so the whole map is visible; any pick brings it back */
-.pal-min { position: absolute; right: 12px; top: 12px; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; color: #c9c9c9; background: rgba(255, 255, 255, .08); transition: background .2s, color .2s; z-index: 2; }
-.pal-min:hover { background: rgba(255, 255, 255, .16); color: var(--fg); }
+.pal-collapse { display: flex; align-items: center; justify-content: center; width: calc(100% + 32px); height: 26px; margin: 8px -16px -14px; border-radius: 0 0 22px 22px; color: #5e5e5e; transition: background .2s, color .2s; }
+.pal-collapse:hover { background: rgba(255, 255, 255, .05); color: var(--fg); }
+.pal .tip-host { display: block; }
 .pal-handle { position: absolute; right: 0; top: 0; height: 44px; padding: 0 14px; border-radius: 999px; display: flex; align-items: center; gap: 10px; background: var(--panel); color: var(--fg); font-size: 14px; font-weight: 600; box-shadow: 0 14px 40px rgba(0, 0, 0, .4); transition: background .2s; }
 .pal-handle:hover { background: #272727; }
 .pal-handle svg { color: var(--muted); }

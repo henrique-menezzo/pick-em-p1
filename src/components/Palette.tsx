@@ -26,7 +26,7 @@ export default function Palette() {
           >
             <Flag st={race.state} />
             <span>{race.stateName}</span>
-            <Icon name="chevLeft" size={15} stroke={2} />
+            <Icon name="chevDown" size={15} stroke={2} />
           </motion.button>
         ) : (
           <motion.div
@@ -38,12 +38,13 @@ export default function Palette() {
             transition={{ type: 'spring', stiffness: 380, damping: 32 }}
             style={{ transformOrigin: 'top right' }}
           >
-            <Tip text="Hide the panel to see the whole map — picking a state brings it back">
-              <button className="pal-min" onClick={() => setMin(true)} aria-label="Hide panel">
-                <Icon name="chevRight" size={16} stroke={2} />
+            <FocusBody race={race} />
+            {/* one quiet arrow along the panel's bottom edge: tuck it away, any pick brings it back */}
+            <Tip text="Hide the panel — picking a state brings it back">
+              <button className="pal-collapse" onClick={() => setMin(true)} aria-label="Hide panel">
+                <Icon name="chevUp" size={16} stroke={2} />
               </button>
             </Tip>
-            <FocusBody race={race} />
           </motion.div>
         )}
       </AnimatePresence>
