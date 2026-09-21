@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { BY_ID, RACES, RESULTS, TAB_LABEL, clock, type Race } from '../data/races';
+import { BY_ID, RACES, RESULTS, clock, type Race } from '../data/races';
 import { useStore } from '../lib/store';
 import { CandidateRow, Flag, Icon, liveLine } from './ui';
 
@@ -18,7 +18,6 @@ export default function Palette() {
 // ---- one race at a time --------------------------------------------------------------------------
 function FocusBody({ race }: { race: Race }) {
   const pick = useStore((s) => s.picks[race.id]);
-  const picks = useStore((s) => s.picks);
   const step = useStore((s) => s.step);
   const live = useStore((s) => s.live);
   const t = useStore((s) => s.t);
@@ -63,31 +62,7 @@ function FocusBody({ race }: { race: Race }) {
       </AnimatePresence>
 
       {line && <div className={'fb-hint' + (line.tone === 'ok' ? ' ok' : '')}>{line.text}</div>}
-      {live ? <JustCalled /> : <UpNext race={race} picks={picks} />}
-    </div>
-  );
-}
-
-/** A short queue of the next open races. Hovering one hands the map spotlight to it (focus / defocus). */
-function UpNext({ race, picks }: { race: Race; picks: Record<string, unknown> }) {
-  const select = useStore((s) => s.select);
-  const setHover = useStore((s) => s.setHover);
-  const list = RACES[race.type];
-  const i = list.findIndex((r) => r.id === race.id);
-  const queue: Race[] = [];
-  for (let k = 1; k < list.length && queue.length < 3; k++) {
-    const r = list[(i + k) % list.length];
-    if (!picks[r.id]) queue.push(r);
-  }
-  return (
-    <div className="next up">
-      <h6>{queue.length ? 'Up next' : `${TAB_LABEL[race.type]} complete`}</h6>
-      {queue.map((r) => (
-        <button key={r.id} onMouseEnter={() => setHover(r.id)} onMouseLeave={() => setHover(null)} onClick={() => { setHover(null); select(r.id); }}>
-          {r.stateName}
-          <span className="r"><Icon name="arrowRight" size={13} /></span>
-        </button>
-      ))}
+      {live && <JustCalled />}
     </div>
   );
 }

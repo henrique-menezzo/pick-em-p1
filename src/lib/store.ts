@@ -34,6 +34,8 @@ interface State {
   playing: boolean;
   savedAt: number | null;
   user: User | null;
+  tourDone: boolean;
+  tour: number | null;
   // transient
   auth: { mode: 'signup' | 'login'; reason: AuthReason } | null;
   toast: { msg: string; n: number } | null;
@@ -47,7 +49,7 @@ interface State {
   toggle(id: string, side: Side, opts?: { advance?: boolean }): void;
   tap(id: string): void;
   step(dir: 1 | -1): void;
-  autofill(): void;
+  autofill(source: 'polls' | 'market'): void;
   save(): void;
   resetPicks(): void;
   setLive(on: boolean): void;
@@ -59,6 +61,7 @@ interface State {
   signIn(email: string): void;
   signOut(): void;
   say(msg: string): void;
+  setTour(step: number | null): void;
   /** Election Night needs an account and a saved map. */
   goLive(on: boolean): void;
 }
@@ -82,6 +85,8 @@ export const useStore = create<State>()(
       playing: false,
       savedAt: null,
       user: null,
+      tourDone: false,
+      tour: null,
       auth: null,
       toast: null,
       hoverId: null,
@@ -140,14 +145,14 @@ export const useStore = create<State>()(
         const i = list.findIndex((r) => r.id === s.cursor[s.tab]);
         s.select(list[(i + dir + list.length) % list.length].id);
       },
-      autofill: () => {
+      autofill: (source) => {
         const s = get();
         if (isLocked()) return;
         let todo = RACES[s.tab].filter((r) => !s.picks[r.id]);
         if (!todo.length) todo = ALL.filter((r) => !s.picks[r.id]);
         // one quiet change: every open race fills at once (colours fade via CSS), no per-state ripple
         const picks = { ...s.picks };
-        for (const r of todo) picks[r.id] = r.poll;
+        for (const r of todo) picks[r.id] = source === 'market' ? r.market : r.poll;
         set({ picks, savedAt: null });
       },
       save: () => set({ savedAt: Date.now() }),
@@ -170,6 +175,7 @@ export const useStore = create<State>()(
       },
       signOut: () => set({ user: null, live: false, playing: false }),
       say: (msg) => set((s) => ({ toast: { msg, n: (s.toast?.n ?? 0) + 1 } })),
+      setTour: (tour) => set({ tour, tourDone: tour === null ? true : get().tourDone }),
       goLive: (on) => {
         const s = get();
         if (!on) return s.setLive(false);
@@ -180,7 +186,7 @@ export const useStore = create<State>()(
     }),
     {
       name: 'pick-em-p1',
-      partialize: (s) => ({ picks: s.picks, tab: s.tab, cursor: s.cursor, live: s.live, t: s.t, savedAt: s.savedAt, user: s.user }),
+      partialize: (s) => ({ picks: s.picks, tab: s.tab, cursor: s.cursor, live: s.live, t: s.t, savedAt: s.savedAt, user: s.user, tourDone: s.tourDone }),
     },
   ),
 );

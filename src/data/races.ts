@@ -15,6 +15,7 @@ export interface Race {
   margin: number;
   marketR: number;
   poll: Side;
+  market: Side; // who the (simulated) prediction market has ahead
   tight: boolean;
 }
 
@@ -64,7 +65,7 @@ function build(type: Tab, st: string, base: number): Race {
   return {
     id, type, state: st, stateName: STATES[st], region: regionOf[st],
     R: person(id + 'R'), D: person(id + 'D'),
-    margin, marketR, poll: margin >= 0 ? 'R' : 'D', tight: Math.abs(margin) < 6,
+    margin, marketR, poll: margin >= 0 ? 'R' : 'D', market: marketR >= 50 ? 'R' : 'D', tight: Math.abs(margin) < 6,
   };
 }
 const ENV = -2.5;

@@ -32,17 +32,34 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .scaler { position: relative; width: 100%; overflow: hidden; }
 .app { width: 1440px; transform-origin: 0 0; position: absolute; left: 0; top: 0; }
 
-/* ---- header ---------------------------------------------------------------------------------- */
-.hd { height: 64px; position: relative; }
-.hd .back { position: absolute; left: 64px; top: 16px; height: 32px; padding: 0 12px; display: flex; align-items: center; gap: 4px; border-radius: 999px; font-weight: 600; font-size: 14px; transition: background .2s; }
-.hd .back:hover { background: var(--card); }
-.hd .logo { position: absolute; left: 640px; top: 25px; width: 160px; height: 15px; }
-.hd .mode { position: absolute; right: 64px; top: 12px; display: flex; padding: 3px; gap: 2px; border-radius: 999px; background: var(--card); }
-.hd .mode button { position: relative; height: 34px; padding: 0 14px; border-radius: 999px; font-size: 13px; font-weight: 500; color: var(--muted); display: flex; align-items: center; gap: 8px; z-index: 0; transition: color .2s; }
-.hd .mode button.on { color: var(--fg); font-weight: 600; }
-.hd .mode .hl { position: absolute; inset: 0; border-radius: 999px; background: var(--pill); z-index: -1; }
-.live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--R); box-shadow: 0 0 0 0 rgba(252, 0, 44, .6); animation: live 1.8s infinite; }
-@keyframes live { 0% { box-shadow: 0 0 0 0 rgba(252, 0, 44, .55); } 70% { box-shadow: 0 0 0 7px rgba(252, 0, 44, 0); } 100% { box-shadow: 0 0 0 0 rgba(252, 0, 44, 0); } }
+/* ---- site navigation (Figma "Header (Web)") ------------------------------------------------------ */
+.nav { position: relative; height: 64px; padding: 0 64px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
+.nav-links { display: flex; gap: 2px; }
+.nav-links a, .nav-right a { height: 32px; padding: 0 12px; display: flex; align-items: center; gap: 8px; font-size: 14px; line-height: 1; color: var(--fg); border-radius: 999px; transition: background .2s, color .2s; }
+.nav-links a:hover, .nav-right a:hover { background: rgba(255, 255, 255, .05); }
+.nav-links a.here { color: #4d86ff; }
+.nav-logo { position: absolute; left: 50%; top: 25px; transform: translateX(-50%); width: 160px; height: 15px; }
+.nav-right { display: flex; align-items: center; gap: 4px; }
+.nav-div { width: 1px; height: 36px; margin: 0 8px; background: var(--line); }
+.nav-acct { position: relative; }
+.nav-av { width: 28px; height: 28px; border-radius: 50%; background: #2e2e2e; color: #d6d6d6; display: grid; place-items: center; font-size: 11px; font-weight: 600; transition: background .2s, color .2s; }
+.nav-av:hover { background: #3d3d3d; color: var(--fg); }
+.nav-av.me { background: #3a3a3a; color: var(--fg); }
+.nav-acct .who-menu { left: auto; right: 0; top: 40px; }
+
+/* ---- card ------------------------------------------------------------------------------------ */
+.card { position: relative; margin: 27px 0 0 39px; width: 1363px; min-height: 945px; background: var(--card); border-radius: 24px; padding-bottom: 44px; }
+.stage { position: relative; height: 792px; }
+.head { position: absolute; left: 44px; top: 44px; z-index: 5; }
+.head h1 { margin: 0; font-size: 22px; line-height: 1.1; font-weight: 600; letter-spacing: -.2px; }
+.head .sub { margin: 8px 0 0; font-size: 13px; line-height: 1; color: var(--muted); }
+.head .sub b { color: var(--fg); font-weight: 600; }
+.head .sub.soon b { color: #ff8a8a; }
+.head-actions { display: flex; gap: 6px; margin: 14px 0 0 -10px; }
+.quiet { height: 28px; padding: 0 10px; border-radius: 999px; display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 500; color: var(--muted); transition: background .2s, color .2s; }
+.quiet:hover { background: rgba(255, 255, 255, .05); color: var(--fg); }
+.quiet .live-dot { width: 6px; height: 6px; }
+.who-menu { left: auto; right: 0; top: 40px; }
 
 /* ---- card ------------------------------------------------------------------------------------ */
 .card { position: relative; margin: 27px 0 0 39px; width: 1363px; min-height: 945px; background: var(--card); border-radius: 24px; padding-bottom: 44px; }
@@ -76,16 +93,9 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   /* the map dissolves into the card instead of ending on a hard edge */
   -webkit-mask-image: linear-gradient(to right, transparent, #000 56px, #000 calc(100% - 56px), transparent), linear-gradient(to bottom, transparent, #000 40px, #000 calc(100% - 28px), transparent);
   -webkit-mask-composite: source-in; mask-composite: intersect; }
-.scrim i { position: absolute; pointer-events: none; opacity: 0; transition: opacity .5s var(--ease); }
-.mapbox.zoomed .scrim i { opacity: 1; }
-.mapbox.zoomed .scrim i.s-right:not(.on) { opacity: 0; }
-.s-top { left: 0; right: 0; top: 0; height: 170px; background: linear-gradient(var(--card) 38%, color-mix(in srgb, var(--card) 70%, transparent) 62%, transparent); }
-.s-bottom { left: 0; right: 0; bottom: 0; height: 220px; background: linear-gradient(transparent, color-mix(in srgb, var(--card) 75%, transparent) 45%, var(--card) 80%); }
-.s-left { left: 0; top: 0; bottom: 0; width: 170px; background: linear-gradient(to right, var(--card) 30%, transparent); }
-.s-right { right: 0; top: 0; bottom: 0; width: 460px; background: linear-gradient(to left, var(--card) 45%, color-mix(in srgb, var(--card) 60%, transparent) 72%, transparent); }
 .map { width: 100%; height: 100%; display: block; overflow: hidden; touch-action: none; }
 .map .st { transition: opacity .35s ease; }
-.map .st circle { fill: var(--c); transform-box: fill-box; transform-origin: center; transition: r .22s var(--ease), cx .22s var(--ease), cy .22s var(--ease), fill .35s ease, stroke .35s ease; }
+.map .st circle { fill: var(--c); transform-box: fill-box; transform-origin: center; transition: fill .35s ease, stroke .35s ease; }
 /* selected state: a brighter shade of its own colour (grey → light grey, red → brighter red…), no white */
 .map .st.sel circle { fill: color-mix(in srgb, var(--c) 76%, #fff); }
 .map .st.sel { filter: drop-shadow(0 0 5px color-mix(in srgb, var(--c) 55%, transparent)); }
@@ -94,14 +104,6 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 /* election night: calls ease in slowly instead of popping */
 .map.live .st { transition: opacity 1.2s ease; }
 .map.live .st circle { transition: r .22s var(--ease), cx .22s var(--ease), cy .22s var(--ease), fill 1.4s ease; }
-.map.grab { cursor: grab; }
-.map.grabbing { cursor: grabbing; }
-
-.zoom { position: absolute; left: 44px; top: 606px; width: 40px; border-radius: 999px; background: var(--pill); overflow: hidden; color: var(--fg); }
-.zoom button { width: 40px; height: 40px; display: grid; place-items: center; transition: background .2s; }
-.zoom button:hover { background: #333; }
-.zoom button:disabled { opacity: .35; cursor: default; background: none; }
-.zoom .fit { overflow: hidden; color: var(--fg); position: relative; }
 
 .tally { position: absolute; right: 44px; bottom: 16px; text-align: right; } /* number sits on the legend's baseline, just above the bar */
 .tally .lbl { font-size: 12px; line-height: 1; color: var(--muted); margin-bottom: 2px; }
@@ -115,13 +117,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .legend i { width: 8px; height: 8px; border-radius: 50%; display: block; }
 .legend i.faded { background: linear-gradient(90deg, var(--R) 50%, var(--D) 50%); opacity: .25; }
 
-/* balance bar: R from the left, D from the right, the gap is what's still open */
-.balance { position: absolute; left: 44px; right: 44px; top: 791px; height: 3px; border-radius: 3px; background: rgba(255, 255, 255, .08); }
-.balance b { position: absolute; top: 0; bottom: 0; border-radius: 3px; transition: width .6s var(--ease), left .6s var(--ease); }
-.balance b.a { left: 0; background: var(--R); }
-.balance b.b { background: var(--D); }
-.balance.live b.a { background: var(--fg); }
-.balance.live b.b { background: rgba(255, 255, 255, .28); border-radius: 0 3px 3px 0; }
+.progress { position: absolute; left: 44px; right: 44px; top: 791px; height: 3px; border-radius: 3px; background: rgba(255, 255, 255, .08); }
+.progress b { display: block; height: 100%; border-radius: 3px; background: var(--fg); transition: width .6s var(--ease); }
 
 /* ---- footer: race matrix + actions ------------------------------------------------------------ */
 .foot { margin: 30px 44px 0; display: flex; align-items: center; justify-content: space-between; min-height: 79px; }
@@ -328,7 +325,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 
 /* coloured (picked / called) states light up in their OWN colour — no white mixed in, so they never look washed out */
 .map .st.pk.sel circle, .map .st.pk.hov circle, .map .st.pk.sel.hov circle { fill: var(--c); }
-.map .st.pk.hov { filter: brightness(1.22); }
+.map .st.pk.hov { filter: brightness(1.45); }
 .map .st.pk.sel { filter: brightness(1.28) drop-shadow(0 0 5px color-mix(in srgb, var(--c) 60%, transparent)); }
 
 
@@ -469,3 +466,29 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   .auth-captcha { margin-top: 20px; height: auto; }
   .toast { bottom: calc(24px + env(safe-area-inset-bottom)); max-width: calc(100vw - 32px); white-space: normal; text-align: center; }
 }
+
+/* autofill sources */
+.autofill { position: relative; }
+.autofill-menu { position: absolute; right: 0; bottom: 56px; width: 268px; padding: 6px; border-radius: 16px; background: var(--panel); box-shadow: 0 24px 70px rgba(0, 0, 0, .6); z-index: 40; }
+.autofill-menu button { width: 100%; text-align: left; padding: 10px; border-radius: 11px; display: flex; flex-direction: column; gap: 4px; transition: background .2s; }
+.autofill-menu button:hover { background: rgba(255, 255, 255, .06); }
+.autofill-menu b { font-size: 13px; font-weight: 600; }
+.autofill-menu small { font-size: 11.5px; color: var(--muted); }
+
+/* hover hints on controls */
+.tip-host { display: inline-flex; }
+.hint { position: fixed; z-index: 90; transform: translate(-50%, -100%); pointer-events: none; max-width: 240px; padding: 8px 11px; border-radius: 10px; background: #232323; color: #d8d8d8; font-size: 12px; line-height: 1.35; text-align: center; box-shadow: 0 14px 40px rgba(0, 0, 0, .5); }
+
+/* first-visit tour */
+.tour { position: fixed; inset: 0; z-index: 95; }
+.tour-mask { position: absolute; inset: 0; background: rgba(6, 6, 6, .72); }
+.tour-card { position: absolute; padding: 18px; border-radius: 18px; background: var(--panel); box-shadow: 0 30px 80px rgba(0, 0, 0, .6); }
+.tour-step { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
+.tour-card h3 { margin: 8px 0 6px; font-size: 18px; font-weight: 600; }
+.tour-card p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--muted); }
+.tour-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; }
+.tour-dots { display: flex; gap: 5px; }
+.tour-dots i { width: 6px; height: 6px; border-radius: 50%; background: #3a3a3a; }
+.tour-dots i.on { background: var(--fg); }
+.tour-btns { display: flex; align-items: center; gap: 4px; }
+.tour-next { height: 32px; padding: 0 14px; border-radius: 999px; background: var(--fg); color: #0a0909; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }

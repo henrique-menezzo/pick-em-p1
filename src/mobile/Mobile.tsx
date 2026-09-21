@@ -160,7 +160,7 @@ function Actions() {
   return (
     <div className="m-actions">
       <ResetButton className="m-btn m-reset" />
-      <button className="m-btn" onClick={autofill}><Icon name="wand" size={17} /> Autofill</button>
+      <button className="m-btn" onClick={() => autofill('polls')}><Icon name="wand" size={17} /> Autofill</button>
       <button className={'m-btn primary' + (ready && !savedAt ? ' ready' : '')} disabled={!ready} onClick={() => (user ? save() : openAuth('save'))}>
         {savedAt ? '✓ Saved' : 'Save Map'}
       </button>

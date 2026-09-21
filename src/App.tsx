@@ -1,6 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import logo from './data/logo.svg';
 import { ALL, TAB_LABEL, TABS, T_MAX, clock, statusAt } from './data/races';
 import { LOCK_AT, isLocked, liveScore, useStore } from './lib/store';
 import DotMap from './components/DotMap';
@@ -8,9 +7,12 @@ import Palette from './components/Palette';
 import Matrix from './components/Matrix';
 import { Icon } from './components/ui';
 import AuthModal from './components/AuthModal';
+import Nav from './components/Nav';
+import Onboarding from './components/Onboarding';
+import Tip from './components/Tip';
 import { ResetButton, Toast } from './components/Common';
 import Mobile from './mobile/Mobile';
-import { V, PURPOSE } from './lib/variants';
+import { V } from './lib/variants';
 import { RACES } from './data/races';
 
 // ?reset · ?night=1&t=220 · ?fill=1 · ?lock=N — handy for reviews and screenshots
@@ -43,7 +45,7 @@ export default function App() {
   return (
     <div className="scaler" style={{ height }}>
       <div className="app" ref={ref} style={{ transform: `scale(${scale})`, left }}>
-        <Header />
+        <Nav />
         {V.intro === 'c' && (
           <div className="v-title">
             <h1>2026 Midterms Prediction Map</h1>
@@ -52,6 +54,7 @@ export default function App() {
         )}
         <Card />
         <AuthModal />
+        <Onboarding />
         <Toast />
       </div>
     </div>
@@ -90,37 +93,6 @@ function useScale() {
   return { ref, ...s };
 }
 
-function Header() {
-  const live = useStore((s) => s.live);
-  const goLive = useStore((s) => s.goLive);
-  const setLive = useStore((s) => s.setLive);
-  const locked = useStore((s) => !s.user || !s.savedAt);
-  return (
-    <header className="hd">
-      <a className="back" href="#">
-        <Icon name="arrowLeft" size={20} stroke={1.8} />
-        Back to Midterms
-      </a>
-      <img className="logo" src={logo} alt="Daily Wire" />
-      {V.en === 'a' || V.en === 'c' ? null : V.en === 'b' ? (
-        <button className="v-preview" onClick={() => setLive(!live)}>
-          {live ? <><Icon name="arrowLeft" size={15} /> Back to my picks</> : <>Preview Election Night <Icon name="arrowRight" size={15} /></>}
-        </button>
-      ) : (
-      <div className="mode" role="tablist" aria-label="View">
-        {[{ on: false, label: 'My Picks' }, { on: true, label: 'Election Night' }].map((m) => (
-          <button key={m.label} className={live === m.on ? 'on' : ''} onClick={() => goLive(m.on)} title={m.on && locked && !live ? 'Sign in and save your map to unlock' : undefined}>
-            {live === m.on && <motion.span layoutId="mode-hl" className="hl" transition={{ type: 'spring', stiffness: 500, damping: 38 }} />}
-            {m.on && (locked && !live ? <Icon name="lock" size={13} stroke={1.9} /> : <span className="live-dot" />)}
-            {m.label}
-          </button>
-        ))}
-      </div>
-      )}
-    </header>
-  );
-}
-
 function Card() {
   const tab = useStore((s) => s.tab);
   const setTab = useStore((s) => s.setTab);
@@ -130,7 +102,7 @@ function Card() {
       <div className="stage">
         <DotMap />
 
-        <Who />
+        <CardHead />
 
         <div className="tabs" role="tablist">
           {TABS.map((k) => (
@@ -145,7 +117,7 @@ function Card() {
         {V.intro === 'b' && <MapHint />}
         {new URLSearchParams(location.search).get('tally') !== '0' && <Tally />}
         <Legend />
-        <Balance />
+        <Progress />
       </div>
 
       <div className="foot">
@@ -194,17 +166,10 @@ function useBuckets() {
   return { live, a: R, b: D, open: ALL.length - R - D };
 }
 
-/** Balance bar: Republicans grow from the left, Democrats from the right, open races are the gap between.
- *  On election night: right calls from the left, then misses, then what's still to call. */
-function Balance() {
-  const { live, a, b } = useBuckets();
-  const pct = (n: number) => (n / ALL.length) * 100 + '%';
-  return (
-    <div className={'balance' + (live ? ' live' : '')} aria-hidden>
-      <b className="a" style={{ width: pct(a) }} />
-      {live ? <b className="b" style={{ left: pct(a), width: pct(b) }} /> : <b className="b" style={{ right: 0, width: pct(b) }} />}
-    </div>
-  );
+/** Plain progress: how much of the map is picked. The R/D split is in the legend. */
+function Progress() {
+  const { a, b } = useBuckets();
+  return <div className="progress" aria-hidden><b style={{ width: ((a + b) / ALL.length) * 100 + '%' }} /></div>;
 }
 
 function Legend() {
@@ -228,113 +193,107 @@ function Legend() {
   );
 }
 
-/** Top-left: "Sign up to play" until there is an account, then the account itself. */
-function Who() {
+/** Top-left of the card: what this is and how long you have. The account lives in the site nav now. */
+function CardHead() {
   const live = useStore((s) => s.live);
-  const user = useStore((s) => s.user);
-  const savedAt = useStore((s) => s.savedAt);
-  const openAuth = useStore((s) => s.openAuth);
-  const signOut = useStore((s) => s.signOut);
-  const [menu, setMenu] = useState(false);
-  useEffect(() => {
-    if (!menu) return;
-    const off = (e: PointerEvent) => { if (!(e.target as HTMLElement).closest('.who')) setMenu(false); };
-    window.addEventListener('pointerdown', off);
-    return () => window.removeEventListener('pointerdown', off);
-  }, [menu]);
-
-  // one status line: what state the map is in, never the section (the tabs already say that)
-  const status = live
-    ? <><i className="sd live-dot" />Picks locked · live</>
-    : !user
-      ? V.intro === 'a' ? <span className="purpose">{PURPOSE}</span> : <span className="cta">Sign up to play <Icon name="arrowRight" size={13} stroke={2} /></span>
-      : <>{user.name}{savedAt && <><span className="sep">·</span><span className="saved"><Icon name="check" size={12} stroke={2.4} />Saved</span></>}</>;
+  const setTour = useStore((s) => s.setTour);
+  const goLive = useStore((s) => s.goLive);
+  const setLive = useStore((s) => s.setLive);
   return (
-    <div className="who">
-      <button className={'who-btn' + (user ? ' in' : '')} onClick={() => (user ? setMenu(!menu) : openAuth('play'))}>
-        <AnimatePresence mode="popLayout" initial={false}>
-          <motion.span
-            key={user ? 'u' : 'anon'}
-            className={'av' + (user ? ' me' : '')}
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.8, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            {user ? user.initials : <Icon name="user" size={18} stroke={1.8} />}
-          </motion.span>
-        </AnimatePresence>
-        <span className="tx">
-          <span className="t1">Your 2026 Map</span>
-          <span className="t2">{status}</span>
-        </span>
-      </button>
-      <AnimatePresence>
-        {menu && user && (
-          <motion.div className="who-menu" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.15 }}>
-            <div className="em">{user.email}</div>
-            <button onClick={() => { setMenu(false); signOut(); }}>Sign out</button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+    <div className="head">
+      <h1>Your 2026 Map</h1>
+      {live ? <p className="sub">Picks locked · live results</p> : <LockLine />}
+      <div className="head-actions">
+        {!live && <button className="quiet" onClick={() => setTour(0)}><Icon name="help" size={15} stroke={1.8} /> How it works</button>}
+        <button className="quiet" onClick={() => (live ? setLive(false) : goLive(true))}>
+          {live ? <><Icon name="arrowLeft" size={14} stroke={1.9} /> Back to my picks</> : <><span className="live-dot" /> Preview Election Night</>}
+        </button>
+      </div>
     </div>
   );
 }
 
-
-function Actions() {
-  const autofill = useStore((s) => s.autofill);
-  const save = useStore((s) => s.save);
-  const savedAt = useStore((s) => s.savedAt);
-  const user = useStore((s) => s.user);
-  const openAuth = useStore((s) => s.openAuth);
-  const picks = useStore((s) => s.picks);
-  const ready = ALL.every((r) => picks[r.id]);
-  return (
-    <div className="actions">
-      <LockTimer />
-      <ResetButton />
-      <button className="btn" onClick={autofill} disabled={isLocked()} style={isLocked() ? { opacity: 0.35, cursor: 'default' } : undefined}>
-        <Icon name="wand" size={18} stroke={1.8} />
-        Autofill
-      </button>
-      <button
-        className={'btn save' + (ready ? ' ready' : '') + (savedAt ? ' saved' : '')}
-        disabled={!ready}
-        onClick={() => (user ? save() : openAuth('save'))}
-        title={!ready ? 'Pick all 97 races to save' : undefined}
-      >
-        {savedAt ? <><Icon name="check" size={16} stroke={2.4} /> Saved</> : 'Save Map'}
-      </button>
-    </div>
-  );
-}
-
-/** Countdown to election day: after it, picks can't change any more. Precision grows as the lock gets close. */
-function LockTimer() {
+/** The deadline, right under the title: "Picks lock in 43 days · Election Day, Nov 3". */
+function LockLine() {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const h = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(h);
   }, []);
   const ms = Math.max(0, LOCK_AT - now);
-  const locked = ms === 0;
-  const s = Math.floor(ms / 1000);
-  const days = Math.floor(s / 86400), hrs = Math.floor(s / 3600), mins = Math.floor((s % 3600) / 60);
-  const left =
-    days >= 2 ? `${days} days`
-    : hrs >= 1 ? `${hrs}h ${String(mins).padStart(2, '0')}m`
-    : `${mins}:${String(s % 60).padStart(2, '0')}`;
+  const s = Math.floor(ms / 1000), days = Math.floor(s / 86400), hrs = Math.floor(s / 3600), mins = Math.floor((s % 3600) / 60);
+  const left = days >= 2 ? `${days} days` : hrs >= 1 ? `${hrs}h ${String(mins).padStart(2, '0')}m` : `${mins}:${String(s % 60).padStart(2, '0')}`;
   const day = new Date(LOCK_AT).toLocaleString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/New_York' });
-  const time = new Date(LOCK_AT).toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' });
   return (
-    <div className={'lock' + (locked ? ' done' : s < 86400 ? ' soon' : '')} title={`Picks lock ${day}, ${time} ET`}>
-      <b className="num">{locked ? 'Picks locked' : <>Locks in <em>{left}</em></>}</b>
-      {V.en === 'c' && !locked ? (
-        <button className="v-lockprev" onClick={() => useStore.getState().setLive(true)}>Election Day · {day} · <b>Preview</b></button>
-      ) : (
-        <small>{locked ? `${day} · ${time} ET` : `Election Day · ${day}`}</small>
-      )}
+    <p className={'sub' + (s < 86400 ? ' soon' : '')}>
+      {ms === 0 ? <>Picks locked · Election Day, {day}</> : <>Picks lock in <b>{left}</b> · Election Day, {day}</>}
+    </p>
+  );
+}
+
+function Actions() {
+  const save = useStore((s) => s.save);
+  const savedAt = useStore((s) => s.savedAt);
+  const user = useStore((s) => s.user);
+  const openAuth = useStore((s) => s.openAuth);
+  const picks = useStore((s) => s.picks);
+  const say = useStore((s) => s.say);
+  const done = ALL.filter((r) => picks[r.id]).length;
+  const locked = isLocked();
+  return (
+    <div className="actions">
+      <ResetButton />
+      <AutofillButton />
+      <Tip text={savedAt ? 'Saved. Keep picking — save again any time before Nov 3.' : 'Save any time. You can keep picking until election day.'}>
+      <button
+        className={'btn save' + (savedAt ? ' saved' : ' ready')}
+        disabled={locked}
+        onClick={() => {
+          if (!user) return openAuth('save');
+          save();
+          say(done === ALL.length ? 'Map saved' : `Saved · ${done} of ${ALL.length} picked — keep going until Nov 3`);
+        }}
+      >
+        {savedAt ? <><Icon name="check" size={16} stroke={2.4} /> Saved</> : 'Save Map'}
+      </button>
+      </Tip>
+    </div>
+  );
+}
+
+/** Autofill offers the two sources a reader would recognise: polling averages or prediction-market odds. */
+function AutofillButton() {
+  const autofill = useStore((s) => s.autofill);
+  const say = useStore((s) => s.say);
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (!open) return;
+    const off = (e: PointerEvent) => { if (!(e.target as HTMLElement).closest('.autofill')) setOpen(false); };
+    window.addEventListener('pointerdown', off);
+    return () => window.removeEventListener('pointerdown', off);
+  }, [open]);
+  const pick = (source: 'polls' | 'market') => {
+    autofill(source);
+    setOpen(false);
+    say(source === 'polls' ? 'Filled from polling averages' : 'Filled from Polymarket odds');
+  };
+  return (
+    <div className="autofill">
+      <Tip text="Fill every open race at once — from polling averages or Polymarket odds.">
+        <button className="btn" onClick={() => setOpen(!open)} disabled={isLocked()}>
+          <Icon name="wand" size={18} stroke={1.8} />
+          Autofill
+          <Icon name="chevDown" size={14} stroke={2} />
+        </button>
+      </Tip>
+      <AnimatePresence>
+        {open && (
+          <motion.div className="autofill-menu" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }} transition={{ duration: 0.15 }}>
+            <button onClick={() => pick('polls')}><b>Polling averages</b><small>Fills every open race with the polling favourite</small></button>
+            <button onClick={() => pick('market')}><b>Polymarket odds</b><small>Fills every open race with the market favourite</small></button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
