@@ -32,7 +32,10 @@ function Cell({ n, name, note, children, card }: { n: string; name: string; note
   if (ONLY && !ONLY.split(',').includes(n)) return null;
   return (
     <section className="hb-cell">
-      <div className="hb-tag"><b>{n}</b>{name}</div>
+      <div className="hb-tag">
+        <b>{n}</b>{name}
+        <a className="hb-open" href={`?hdr=${Number(n)}`}>See the whole screen <Icon name="arrowRight" size={13} stroke={2} /></a>
+      </div>
       <p className="hb-note">{note}</p>
       <div className="hb-stage">
         {/* the real site nav, dimmed: the header has to be judged against what sits above it */}

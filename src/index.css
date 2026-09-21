@@ -594,6 +594,9 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .hb-cell { width: 1440px; margin: 0 auto 76px; }
 .hb-tag { width: 1376px; margin: 0 auto; display: flex; gap: 12px; font-size: 12px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: #6f6f6f; }
 .hb-tag b { color: var(--fg); }
+.hb-open { margin-left: auto; height: 26px; padding: 0 11px; display: inline-flex; align-items: center; gap: 7px; border-radius: 999px; background: rgba(255, 255, 255, .05); color: var(--muted); font-size: 11px; letter-spacing: .04em; text-transform: none; cursor: pointer; transition: background .2s, color .2s; }
+.hb-open:hover { background: rgba(255, 255, 255, .1); color: var(--fg); }
+.hb-tag { align-items: center; }
 .hb-note { width: 1376px; margin: 8px auto 20px; font-size: 13px; line-height: 1.5; color: #636363; }
 .hb-stage { width: 1440px; }
 .hb-navwrap { opacity: .42; pointer-events: none; }
@@ -726,3 +729,44 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .c12-mid h1 { margin: 0; font-size: 32px; line-height: 1.1; letter-spacing: -.4px; }
 .c12-clock { display: inline-block; margin-top: 11px; font-size: 16px; color: var(--muted); }
 .c12-clock b { margin-left: 7px; font-weight: 500; color: #b8b8b8; font-variant-numeric: tabular-nums; }
+
+/* ---- ?hdr=1..12 — the same studies, live on the real screen ---------------------------------- */
+.vhead { width: 1376px; margin: 0 auto; padding-top: 34px; }
+.vhead .sd, .c8-cardrow .sd { width: 6px; height: 6px; border-radius: 50%; background: var(--R); display: inline-block; }
+.c6-row button, .c12-strip button { display: inline-flex; align-items: center; gap: 6px; color: inherit; font-size: inherit; }
+.c5-clock i.live { background: var(--R); }
+.c10.one { gap: 0; }
+.c10-row > :last-child { justify-self: end; }
+.c10.one .c10-ico, .c10.one .c10-clock { color: #565656; transition: color .2s ease; }
+.c10.one .lbl { opacity: 0; transition: opacity .2s ease; }
+.c10.one:hover .lbl { opacity: 1; }
+.c10.one:hover .c10-ico { color: #c8c8c8; }
+.c10.one:hover .c10-clock { color: var(--muted); }
+.c10.one .c10-clock b { color: inherit; font-weight: 500; }
+.c10.one:hover .c10-clock b { color: #b8b8b8; }
+
+/* 08 — the title as the card's first row */
+.c8-cardrow { display: flex; align-items: baseline; justify-content: space-between; padding: 30px 44px 6px; }
+.c8-cardrow h1 { margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -.3px; }
+.c8-cardrow .c8-r { display: flex; align-items: baseline; gap: 24px; }
+.c8-cardrow .c8-clock { display: inline-flex; align-items: baseline; gap: 7px; font-size: 14px; color: var(--muted); }
+.c8-cardrow .c8-clock b { font-weight: 500; color: #b8b8b8; font-variant-numeric: tabular-nums; }
+.c8-cardrow .c8-help { font-size: 14px; color: var(--muted); transition: color .2s; }
+.c8-cardrow .c8-help:hover { color: var(--fg); }
+
+/* 04 — help moved onto the card */
+.c4-cardhelp { position: absolute; left: calc(50% + 176px); top: 62px; z-index: 6; color: var(--muted); transition: color .2s; }
+.c4-cardhelp:hover { color: var(--fg); }
+
+/* 11 — the deadline next to Save Map */
+.foot-clock { margin: 0 4px 0 6px; font-size: 13px; color: var(--muted); }
+.foot-clock b { margin-left: 5px; font-weight: 500; color: #b8b8b8; font-variant-numeric: tabular-nums; }
+
+/* prototype-only: flip through the studies */
+.hdrswitch { position: fixed; left: 20px; bottom: 22px; z-index: 60; display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 6px; border-radius: 999px; background: #1b1b1b; box-shadow: 0 12px 34px rgba(0, 0, 0, .55); font-size: 12px; }
+.hdrswitch button { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; color: var(--muted); transition: background .2s, color .2s; }
+.hdrswitch button:hover { background: rgba(255, 255, 255, .06); color: var(--fg); }
+.hdrswitch .n { font-weight: 600; font-variant-numeric: tabular-nums; }
+.hdrswitch .nm { color: var(--muted); }
+.hdrswitch .all { height: 26px; padding: 0 10px; display: inline-flex; align-items: center; border-radius: 999px; background: rgba(255, 255, 255, .06); color: var(--muted); font-weight: 500; transition: background .2s, color .2s; }
+.hdrswitch .all:hover { background: rgba(255, 255, 255, .1); color: var(--fg); }

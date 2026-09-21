@@ -12,6 +12,8 @@ import Nav from './components/Nav';
 import Onboarding from './components/Onboarding';
 import Tip from './components/Tip';
 import TitleStudy from './components/TitleStudies';
+import LockLine from './components/LockLine';
+import HeaderVariant, { CardHelp, CardTitleRow, FooterClock, HDR, HeaderSwitch, clockInFooter, helpInCard, titleInCard } from './components/HeaderVariants';
 import { ResetButton, Toast } from './components/Common';
 import Mobile from './mobile/Mobile';
 import { V } from './lib/variants';
@@ -51,7 +53,7 @@ export default function App() {
       {RULE && <div className="page-rule" style={{ top: 64 * scale }} />}
       <div className="app" ref={ref} style={{ transform: `scale(${scale})`, left }}>
         <Nav />
-        {V.title > 0 ? <TitleStudy v={V.title} /> : <GameTitle />}
+        {V.title > 0 ? <TitleStudy v={V.title} /> : HDR > 0 ? <HeaderVariant /> : <GameTitle />}
         {V.intro === 'c' && (
           <div className="v-title">
             <h1>2026 Midterms Prediction Map</h1>
@@ -63,6 +65,7 @@ export default function App() {
         <ViewSwitch />
         <Onboarding />
         <Toast />
+        {HDR > 0 && <HeaderSwitch />}
       </div>
     </div>
   );
@@ -107,6 +110,7 @@ function Card() {
   const live = useStore((s) => s.live);
   return (
     <section className="card">
+      {titleInCard && <CardTitleRow />}
       <div className="stage">
         <DotMap />
 
@@ -121,6 +125,7 @@ function Card() {
           ))}
         </div>
 
+        {helpInCard && <CardHelp />}
         <Palette />
         {V.intro === 'b' && <MapHint />}
         {new URLSearchParams(location.search).get('tally') !== '0' && <Tally />}
@@ -278,19 +283,6 @@ function CardHead() {
   );
 }
 
-function LockLine() {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const h = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(h);
-  }, []);
-  const ms = Math.max(0, LOCK_AT - now);
-  // ticking down to the second, so the deadline feels real
-  const s = Math.floor(ms / 1000), days = Math.floor(s / 86400);
-  const hms = [Math.floor((s % 86400) / 3600), Math.floor((s % 3600) / 60), s % 60].map((v) => String(v).padStart(2, '0')).join(':');
-  const left = days > 0 ? `${days}d ${hms}` : hms;
-  return <p className="sub">{ms === 0 ? 'Picks locked' : <><span>Picks lock in</span><b>{left}</b></>}</p>;
-}
 
 function Actions() {
   const save = useStore((s) => s.save);
@@ -305,6 +297,7 @@ function Actions() {
     <div className="actions">
       <ResetButton />
       <AutofillButton />
+      {clockInFooter && <FooterClock />}
       <Tip text={savedAt ? 'Saved. Keep picking — save again any time before Nov 3.' : 'Save any time. You can keep picking until election day.'}>
       <button
         className={'btn save' + (savedAt ? ' saved' : ' ready')}
