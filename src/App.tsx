@@ -315,7 +315,7 @@ function Actions() {
   );
 }
 
-/** Autofill offers the two sources a reader would recognise: polling averages or prediction-market odds. */
+/** Autofill offers the two sources by name: DDHQ's polling data, or Polymarket. */
 function AutofillButton() {
   const autofill = useStore((s) => s.autofill);
   const say = useStore((s) => s.say);
@@ -329,11 +329,11 @@ function AutofillButton() {
   const pick = (source: 'polls' | 'market') => {
     autofill(source);
     setOpen(false);
-    say(source === 'polls' ? 'Filled from polling averages' : 'Filled from Polymarket odds');
+    say(source === 'polls' ? 'Filled from DDHQ polling data' : 'Filled from Polymarket');
   };
   return (
     <div className="autofill">
-      <Tip text="Fill every open race at once — from polling averages or Polymarket odds.">
+      <Tip text="Fill every open race at once — from DDHQ polling data or from Polymarket.">
         <button className="btn" onClick={() => setOpen(!open)} disabled={isLocked()}>
           <Icon name="wand" size={18} stroke={1.8} />
           Autofill
@@ -343,8 +343,8 @@ function AutofillButton() {
       <AnimatePresence>
         {open && (
           <motion.div className="autofill-menu" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }} transition={{ duration: 0.15 }}>
-            <button onClick={() => pick('polls')}><b>Polling averages</b><small>Fills every open race with the polling favourite</small></button>
-            <button onClick={() => pick('market')}><b>Polymarket odds</b><small>Fills every open race with the market favourite</small></button>
+            <button onClick={() => pick('polls')}><b>Polling data · DDHQ</b><small>Fills every open race with the polling favourite</small></button>
+            <button onClick={() => pick('market')}><b>Polymarket</b><small>Fills every open race with the market favourite</small></button>
           </motion.div>
         )}
       </AnimatePresence>
