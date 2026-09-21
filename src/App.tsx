@@ -11,6 +11,7 @@ import AuthModal from './components/AuthModal';
 import Nav from './components/Nav';
 import Onboarding from './components/Onboarding';
 import Tip from './components/Tip';
+import TitleStudy, { CardTitle } from './components/TitleStudies';
 import { ResetButton, Toast } from './components/Common';
 import Mobile from './mobile/Mobile';
 import { V } from './lib/variants';
@@ -47,6 +48,7 @@ export default function App() {
     <div className="scaler" style={{ height }}>
       <div className="app" ref={ref} style={{ transform: `scale(${scale})`, left }}>
         <Nav />
+        {V.title > 0 && <TitleStudy v={V.title} />}
         {V.intro === 'c' && (
           <div className="v-title">
             <h1>2026 Midterms Prediction Map</h1>
@@ -225,9 +227,13 @@ function CardHead() {
   const live = useStore((s) => s.live);
   const setTour = useStore((s) => s.setTour);
   return (
-    <div className="head">
-      <h1>Your 2026 Map</h1>
-      {live ? <p className="sub">Picks locked · live results</p> : <LockLine />}
+    <div className={'head' + (V.title ? ' ts-head-' + V.title : '')}>
+      {V.title && CardTitle({ v: V.title }) ? <CardTitle v={V.title} /> : (
+        <>
+          <h1>Your 2026 Map</h1>
+          {live ? <p className="sub">Picks locked · live results</p> : <LockLine />}
+        </>
+      )}
       <div className="head-actions">
         {!live && <button className="quiet" onClick={() => setTour(0)}><Icon name="help" size={15} stroke={1.8} /> How it works</button>}
       </div>

@@ -1,0 +1,10 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+body{margin:0;background:#232323;font:600 15px/1.2 system-ui;color:#ddd;padding:24px;display:grid;grid-template-columns:repeat(2,auto);gap:26px 24px}
+.w{width:893px}.lbl{margin-bottom:8px}
+.fr{width:893px;height:192px;overflow:hidden;border-radius:10px;background:#0a0909}
+iframe{width:1440px;height:310px;border:0;transform:scale(.62);transform-origin:0 0}
+</style></head><body>
+<script>
+const NAMES=['1 · Acima do cartão, à esquerda','2 · Acima do cartão, centralizado','3 · Sobretítulo dentro do cartão','4 · Título + prazo em etiqueta','5 · Seção + nome, em linha','6 · Nome com gradiente R→D','7 · Título com régua e prazo à direita','8 · Caminho (The Midterms › Pick Em)','9 · Manchete editorial','10 · Pílula centralizada'];
+document.write(NAMES.map((n,i)=>`<div class=w><div class=lbl>${n}</div><div class=fr><iframe src="http://localhost:5195/?fill=1&title=${i+1}"></iframe></div></div>`).join(''));
+</script></body></html>

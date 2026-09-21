@@ -513,3 +513,40 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .vs-seg button.on { color: var(--fg); font-weight: 600; }
 .vs-seg .hl { position: absolute; inset: 0; border-radius: 999px; background: var(--pill); z-index: -1; }
 .vs-seg .live-dot { width: 6px; height: 6px; }
+
+/* ---- title studies (?title=1..10) ---------------------------------------------------------------- */
+.ts { position: relative; }
+.ts h1 { margin: 0; font-weight: 600; letter-spacing: -.5px; }
+.ts p { margin: 10px 0 0; font-size: 15px; line-height: 1.45; color: var(--muted); }
+.ts-1 { margin: 26px 0 -6px 83px; }
+.ts-1 h1 { font-size: 34px; }
+.ts-2 { margin: 26px 0 -6px; text-align: center; }
+.ts-2 h1 { font-size: 34px; }
+.ts-2 p { max-width: 520px; margin-inline: auto; }
+.ts-5 { margin: 24px 0 -6px 83px; display: flex; align-items: baseline; gap: 14px; }
+.ts-5 .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); }
+.ts-5 h1 { font-size: 30px; }
+.ts-5 .deadline { font-size: 13px; color: var(--muted); }
+.ts-7 { margin: 24px 83px -10px; }
+.ts-7 .row { display: flex; align-items: baseline; justify-content: space-between; }
+.ts-7 h1 { font-size: 30px; }
+.ts-7 .deadline { font-size: 13px; color: var(--muted); }
+.ts-7 .deadline b { color: var(--fg); }
+.ts-7 .rule { height: 1px; margin-top: 14px; background: rgba(255, 255, 255, .1); }
+.ts-8 { margin: 20px 0 -8px 83px; }
+.ts-8 .crumb { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+.ts-8 .crumb b { color: var(--fg); font-weight: 600; }
+.ts-9 { margin: 28px 83px -4px; max-width: 760px; }
+.ts-9 h1 { font-size: 38px; line-height: 1.15; }
+.ts-9 .grad { background: linear-gradient(95deg, var(--R) 10%, #8f6bff 55%, var(--D) 95%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.ts-10 { margin: 22px 0 -10px; display: flex; justify-content: center; }
+.ts-10 .pill { display: flex; align-items: center; gap: 12px; height: 40px; padding: 0 18px; border-radius: 999px; background: rgba(255, 255, 255, .05); font-size: 14px; color: var(--muted); }
+.ts-10 .pill b { color: var(--fg); font-size: 15px; font-weight: 600; }
+.ts-10 .dot { width: 4px; height: 4px; border-radius: 50%; background: #444; }
+.ts-eyebrow { display: block; margin-bottom: 8px; font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); }
+.ts-row { display: flex; align-items: center; gap: 12px; }
+.ts-chip { height: 24px; padding: 0 10px; border-radius: 999px; background: rgba(255, 255, 255, .06); font-size: 12px; font-weight: 600; color: #cfcfcf; display: inline-flex; align-items: center; }
+.ts-grad { font-size: 24px !important; }
+.ts-grad span { color: var(--muted); font-weight: 500; }
+.head .ts-grad { background: linear-gradient(95deg, var(--R), #8f6bff 60%, var(--D)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.head .ts-grad span { -webkit-text-fill-color: var(--muted); }

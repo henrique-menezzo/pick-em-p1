@@ -9,6 +9,7 @@ export const V = {
   en: Q.get('en') as 'a' | 'b' | 'c' | null,
   mobile: Q.get('mobile') as '1' | '2' | '3' | null,
   empty: Q.has('empty'),
-  more: Q.has('more'), // placeholder blocks where future content under the map will go
+  more: Q.has('more'),
+  title: +(Q.get('title') || 0), // 1..10 — title studies (see components/TitleStudies.tsx) // placeholder blocks where future content under the map will go
 };
 export const PURPOSE = 'Call every race. See how you did on Nov 3.';
