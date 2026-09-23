@@ -17,8 +17,8 @@ const UNIT = 92; // a full-size circle is 92px across
 const W = WAVE.reduce((s, d) => s + d.r * UNIT, 0);
 const H = UNIT;
 
-/** When the map takes over. The waveform stays on screen a moment longer, fading through it. */
-export const INTRO_MS = 900;
+/** When the map takes over: the wave has crossed the row once and everything is back to rest. */
+export const INTRO_MS = 950;
 
 export default function Intro({ onDone }: { onDone: () => void }) {
   useEffect(() => {
@@ -46,8 +46,15 @@ export default function Intro({ onDone }: { onDone: () => void }) {
               cy={H / 2}
               r={r}
               fill={d.c}
-              // out from the middle, and nothing else: a loader should read at a glance
-              style={{ ['--in' as string]: Math.round(Math.abs(i - mid) * 26) + 'ms' }}
+              style={{
+                // fades in from the middle out, while the wave is already running through it —
+                // bigger circles swing further, as in the reference loop
+                // appear from the middle out, then one wave crosses the row left to right,
+                // stretching each circle the way the reference loop does — bigger, further
+                ['--in' as string]: Math.round(Math.abs(i - mid) * 20) + 'ms',
+                ['--ph' as string]: Math.round(120 + i * 28) + 'ms',
+                ['--amp' as string]: (2.2 + d.r * 2).toFixed(2),
+              }}
             />
           );
         })}

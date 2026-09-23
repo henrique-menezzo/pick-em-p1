@@ -69,10 +69,14 @@ function MapIntro({ svg, vb, onDone }: { svg: React.RefObject<SVGSVGElement | nu
     const g = el.getContext('2d')!;
     const k = (bw / vw) * dpr; // viewBox units to canvas pixels
     // each state's colour as the browser resolved it, so the canvas and the svg agree
+    // colour and group opacity exactly as the svg resolves them, so the swap at the end is invisible
     const fill: Record<string, string> = {};
+    const fade: Record<string, number> = {};
     for (const st of ORDER) {
-      const c = s.querySelector(`g[data-st="${st}"] circle:not(.sm)`);
+      const g0 = s.querySelector(`g[data-st="${st}"]`);
+      const c = g0?.querySelector('circle:not(.sm)');
       fill[st] = c ? getComputedStyle(c).fill : '#515151';
+      fade[st] = g0 ? Number(getComputedStyle(g0).opacity) || 1 : 1;
     }
     const DUR = 520, SPAN = 700;
     const delay = CELLS.map((d, i) => ((d.y / H) * SPAN) + (d.x / W) * 70 + (((i * 2654435761) % 1000) / 1000) * 45);
@@ -88,18 +92,20 @@ function MapIntro({ svg, vb, onDone }: { svg: React.RefObject<SVGSVGElement | nu
         const p = (t - delay[i]) / DUR;
         if (p <= 0) continue;
         const e = p >= 1 ? 1 : ease(p);
+        g.globalAlpha = fade[d.st];
         g.beginPath();
         g.arc((d.x - vx) * k, (d.y - vy) * k, d.r * k * e, 0, 6.2832);
         g.fillStyle = fill[d.st];
         g.fill();
       }
-      if (t < SPAN + DUR + 60) raf = requestAnimationFrame(frame);
+      if (t < SPAN + DUR + 40) raf = requestAnimationFrame(frame);
       else { setDone(true); end.current(); }
     };
     raf = requestAnimationFrame(frame);
     return () => cancelAnimationFrame(raf);
   }, [svg, vb]);
-  return <canvas ref={cvs} className={'mapfx' + (done ? ' out' : '')} aria-hidden />;
+  if (done) return null; // the svg takes over in the same commit — no cross-fade to give it away
+  return <canvas ref={cvs} className="mapfx" aria-hidden />;
 }
 
 export default function DotMap() {
