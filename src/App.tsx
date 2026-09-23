@@ -245,6 +245,18 @@ function ViewSwitch() {
   );
 }
 
+/** Text that arrives letter by letter, each one out of its own blur (Election Hub's opening). */
+function Letters({ text, base, step = 26 }: { text: string; base: number; step?: number }) {
+  let i = 0;
+  return (
+    <>
+      {text.split('').map((ch, k) =>
+        ch === ' ' ? ' ' : <span key={k} className="letter" style={{ ['--d' as string]: base + i++ * step + 'ms' }}>{ch}</span>,
+      )}
+    </>
+  );
+}
+
 function GameTitle() {
   const live = useStore((s) => s.live);
   const setTour = useStore((s) => s.setTour);
@@ -255,7 +267,7 @@ function GameTitle() {
         <Icon name="arrowLeft" size={16} stroke={1.8} /> The Midterms
       </a>
       <div className="gtitle">
-        <h1>Midterms Pick Em</h1>
+        <h1><Letters text="Midterms Pick Em" base={110} /></h1>
         {live ? <p className="sub"><i className="sd live-dot" />Live results</p> : <LockLine />}
       </div>
       <span className="ghead-r">

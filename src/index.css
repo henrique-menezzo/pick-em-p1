@@ -776,41 +776,45 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .intro { position: fixed; inset: 0; z-index: 200; background: var(--bg); display: grid; place-items: center; }
 .intro img { width: min(820px, 62vw); height: auto; display: block; }
 
-/* every piece comes out of a blur, top of the page first. The 200ms head start lets the waveform
-   clear the screen before anything moves, so the reveal is actually seen. */
-@keyframes entIn {
-  from { opacity: 0; filter: blur(12px); transform: translateY(-12px); }
+/* The opening language of the Election Hub prototype: letters out of a blur, everything else
+   rising, and the dots dropping in row by row with a little overshoot. */
+:root {
+  --intro-ease: cubic-bezier(.22, .61, .36, 1);
+  --dot-ease: cubic-bezier(.32, 1.5, .5, 1);
+}
+@keyframes letter-in {
+  from { opacity: 0; filter: blur(.14em); transform: translateY(.3em); }
   to { opacity: 1; filter: blur(0); transform: none; }
 }
-@keyframes entUp {
-  from { opacity: 0; transform: translateY(16px); }
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(.42em); }
   to { opacity: 1; transform: none; }
 }
-.app.enter .nav, .app.enter .gtitle, .app.enter .head, .app.enter .tabs, .app.enter .pal-anchor,
-.app.enter .legend, .app.enter .tally {
-  animation: entIn .85s cubic-bezier(.16, 1, .3, 1) both;
-  animation-delay: calc(200ms + var(--i, 0) * 70ms);
+@keyframes dot-in {
+  0% { opacity: 0; transform: translateY(-5px) scale(.3); }
+  60% { opacity: 1; }
+  to { opacity: 1; transform: none; }
 }
-/* the wide pieces skip the blur — filtering a 1275px strip costs more than it gives */
-.app.enter .progress, .app.enter .foot {
-  animation: entUp .85s cubic-bezier(.16, 1, .3, 1) both;
-  animation-delay: calc(200ms + var(--i, 0) * 70ms);
-}
-.app.enter .nav { --i: 0; }
-.app.enter .gtitle { --i: 1; }
-.app.enter .head, .app.enter .tabs { --i: 3; }
-.app.enter .pal-anchor { --i: 4; }
-.app.enter .legend, .app.enter .tally { --i: 6; }
-.app.enter .progress, .app.enter .foot { --i: 7; }
-/* the card's surface arrives first, without blurring the map inside it */
-.app.enter .card { animation: cardIn .7s ease both; }
-@keyframes cardIn { from { opacity: 0; } to { opacity: 1; } }
 
-/* the map grows state by state, from the top of the country down — 52 groups, not 4000 circles */
-.map.enter { animation: cardIn .5s ease both; animation-delay: 200ms; }
-.map.enter .st {
-  transform-box: fill-box; transform-origin: center;
-  animation: stIn .6s cubic-bezier(.16, 1, .3, 1) both;
-  animation-delay: calc(260ms + var(--in, 0ms));
+.letter { display: inline-block; }
+.app.enter .letter { animation: letter-in .52s var(--intro-ease) backwards; animation-delay: var(--d, 0ms); }
+.app.enter .nav, .app.enter .gtitle .sub, .app.enter .head, .app.enter .tabs, .app.enter .pal-anchor,
+.app.enter .legend, .app.enter .tally, .app.enter .progress, .app.enter .foot {
+  animation: rise-in .44s var(--intro-ease) backwards;
+  animation-delay: var(--d, 0ms);
 }
-@keyframes stIn { from { transform: scale(.35); } to { transform: scale(1); } }
+.app.enter .nav { --d: 40ms; }
+.app.enter .gtitle .sub { --d: 360ms; }
+.app.enter .head { --d: 260ms; }
+.app.enter .tabs { --d: 300ms; }
+.app.enter .pal-anchor { --d: 430ms; }
+.app.enter .legend, .app.enter .tally { --d: 520ms; }
+.app.enter .progress { --d: 560ms; }
+.app.enter .foot { --d: 600ms; }
+.app.enter .card { animation: rise-in .5s var(--intro-ease) backwards; }
+
+/* the map: every dot drops in, row by row from the top, with a small left-to-right lean */
+.map.enter .st circle {
+  animation: dot-in .52s var(--dot-ease) backwards;
+  animation-delay: calc(240ms + var(--d, 0ms));
+}
