@@ -25,17 +25,18 @@ export default function Intro({ onDone }: { onDone: () => void }) {
       className="intro"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1, transition: { duration: 0.25 } }}
-      exit={{ opacity: 0, filter: 'blur(16px)', transition: { duration: 0.55, ease: [0.4, 0, 0.2, 1] } }}
+      exit={{ opacity: 0, filter: 'blur(12px)', transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] } }}
     >
-      {/* the frame crops the 1920x1080 loop to the band the waveform lives in, as in Figma */}
-      <motion.span
-        className="win"
-        initial={{ opacity: 0, scale: 1.04 }}
+      {/* the whole frame, centred: cropping it cut the shapes in half at the loud part of the loop */}
+      <motion.img
+        src={asset('intro.gif')}
+        alt=""
+        draggable={false}
+        onLoad={() => setReady(true)}
+        initial={{ opacity: 0, scale: 1.03 }}
         animate={{ opacity: ready ? 1 : 0, scale: 1 }}
-        transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
-      >
-        <img src={asset('intro.gif')} alt="" draggable={false} onLoad={() => setReady(true)} />
-      </motion.span>
+        transition={{ duration: 0.45, ease: [0.2, 0.8, 0.2, 1] }}
+      />
     </motion.div>
   );
 }

@@ -49,7 +49,7 @@ export default function App() {
   useEffect(() => { if (SKIP_INTRO) setPhase('live'); }, [setPhase]);
   useEffect(() => {
     if (phase !== 'enter') return;
-    const h = setTimeout(() => setPhase('live'), 1500);
+    const h = setTimeout(() => setPhase('live'), 1800);
     return () => clearTimeout(h);
   }, [phase, setPhase]);
   if (V.mobile || isPhone) return (

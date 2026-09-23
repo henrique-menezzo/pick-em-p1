@@ -774,30 +774,43 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 
 /* ---- the opening: the waveform, then the screen assembling itself --------------------------- */
 .intro { position: fixed; inset: 0; z-index: 200; background: var(--bg); display: grid; place-items: center; }
-.intro .win { position: relative; width: min(450px, 44vw); aspect-ratio: 450 / 108; overflow: hidden; }
-.intro img { position: absolute; width: 139.85%; height: 327.8%; left: -18.49%; top: -113.86%; }
+.intro img { width: min(820px, 62vw); height: auto; display: block; }
 
-/* every piece comes out of a blur, top of the page first */
+/* every piece comes out of a blur, top of the page first. The 200ms head start lets the waveform
+   clear the screen before anything moves, so the reveal is actually seen. */
 @keyframes entIn {
-  from { opacity: 0; filter: blur(14px); transform: translateY(-14px); }
+  from { opacity: 0; filter: blur(12px); transform: translateY(-12px); }
   to { opacity: 1; filter: blur(0); transform: none; }
 }
+@keyframes entUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
 .app.enter .nav, .app.enter .gtitle, .app.enter .head, .app.enter .tabs, .app.enter .pal-anchor,
-.app.enter .legend, .app.enter .progress, .app.enter .tally, .app.enter .foot {
-  animation: entIn .75s cubic-bezier(.2, .8, .2, 1) both;
-  animation-delay: calc(var(--i, 0) * 90ms);
+.app.enter .legend, .app.enter .tally {
+  animation: entIn .85s cubic-bezier(.16, 1, .3, 1) both;
+  animation-delay: calc(200ms + var(--i, 0) * 70ms);
+}
+/* the wide pieces skip the blur — filtering a 1275px strip costs more than it gives */
+.app.enter .progress, .app.enter .foot {
+  animation: entUp .85s cubic-bezier(.16, 1, .3, 1) both;
+  animation-delay: calc(200ms + var(--i, 0) * 70ms);
 }
 .app.enter .nav { --i: 0; }
 .app.enter .gtitle { --i: 1; }
 .app.enter .head, .app.enter .tabs { --i: 3; }
 .app.enter .pal-anchor { --i: 4; }
-.app.enter .legend, .app.enter .tally, .app.enter .progress { --i: 6; }
-.app.enter .foot { --i: 7; }
+.app.enter .legend, .app.enter .tally { --i: 6; }
+.app.enter .progress, .app.enter .foot { --i: 7; }
 /* the card's surface arrives first, without blurring the map inside it */
-.app.enter .card { animation: cardIn .6s ease both; }
+.app.enter .card { animation: cardIn .7s ease both; }
 @keyframes cardIn { from { opacity: 0; } to { opacity: 1; } }
-.app.enter .page-rule, .app.enter + .page-rule { animation: entIn .75s cubic-bezier(.2, .8, .2, 1) both; }
 
-/* the map grows dot by dot, from the top of the country down */
-@keyframes dotIn { from { transform: scale(0); } to { transform: scale(1); } }
-.map.enter .st circle { animation: dotIn .5s cubic-bezier(.2, .8, .2, 1) both; animation-delay: var(--in, 0ms); }
+/* the map grows state by state, from the top of the country down — 52 groups, not 4000 circles */
+.map.enter { animation: cardIn .5s ease both; animation-delay: 200ms; }
+.map.enter .st {
+  transform-box: fill-box; transform-origin: center;
+  animation: stIn .6s cubic-bezier(.16, 1, .3, 1) both;
+  animation-delay: calc(260ms + var(--in, 0ms));
+}
+@keyframes stIn { from { transform: scale(.35); } to { transform: scale(1); } }
