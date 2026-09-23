@@ -5,17 +5,18 @@
 import { useEffect, useLayoutEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 
-/** Widths as a share of the biggest, and the colour each one carries. */
+/** The branding team's row, measured off their frame: diameters as a share of the biggest, and the
+    colour each one carries. They touch, so the row's length is just the sum of them. */
 const WAVE: { r: number; c: string }[] = [
-  { r: 0.10, c: '#0d1442' }, { r: 0.15, c: '#12277e' }, { r: 0.30, c: '#1f5eff' }, { r: 0.62, c: '#55c8f0' },
-  { r: 0.26, c: '#fc002c' }, { r: 0.60, c: '#c3223f' }, { r: 0.13, c: '#7e1f3a' }, { r: 0.24, c: '#5a1030' },
-  { r: 0.21, c: '#2c0a2e' }, { r: 0.72, c: '#0e1450' }, { r: 0.52, c: '#12277e' }, { r: 0.22, c: '#0f2fa8' },
-  { r: 0.12, c: '#1f5eff' }, { r: 0.26, c: '#55c8f0' }, { r: 0.50, c: '#fc002c' }, { r: 0.12, c: '#8e2340' },
-  { r: 0.09, c: '#5a1030' },
+  { r: 0.13, c: '#16165e' }, { r: 0.17, c: '#1a1e7a' }, { r: 0.41, c: '#2b5ce0' }, { r: 0.84, c: '#55c8f0' },
+  { r: 0.38, c: '#ef3b34' }, { r: 0.97, c: '#c3304e' }, { r: 0.22, c: '#8e2340' }, { r: 0.39, c: '#5e1236' },
+  { r: 0.37, c: '#3a0a2e' }, { r: 1.00, c: '#1a0f52' }, { r: 0.72, c: '#12277e' }, { r: 0.34, c: '#0f2fa8' },
+  { r: 0.17, c: '#2b5ce0' }, { r: 0.38, c: '#55c8f0' }, { r: 0.70, c: '#ef3b34' }, { r: 0.17, c: '#a02440' },
+  { r: 0.13, c: '#7a1a38' },
 ];
-const UNIT = 92;                                    // the biggest circle is 92px across
+const UNIT = 150;                                   // the biggest circle is 150px across
 const W = WAVE.reduce((s, d) => s + d.r * UNIT, 0); // the row at its natural size
-const H = UNIT * 4.2;                               // headroom for the tallest bar
+const H = UNIT * 3.6;                               // headroom for the tallest bar
 
 const FADE = 300;  // each capsule fades in
 const RISE = 520;  // the wave takes this long to pass through one of them
@@ -44,7 +45,7 @@ export default function Intro({ onDone }: { onDone: () => void }) {
     let x = 0;
     const bars = WAVE.map((d, i) => {
       const w = d.r * UNIT;
-      const b = { x: (x + w / 2) * k, w: w * k, c: d.c, amp: 2.4 + d.r * 2.6, in: Math.abs(i - mid) * 22, up: 120 + i * STEP };
+      const b = { x: (x + w / 2) * k, w: w * k, c: d.c, amp: 2.5 + (1 - d.r) * 1.4, in: Math.abs(i - mid) * 22, up: 120 + i * STEP };
       x += w;
       return b;
     });
@@ -79,7 +80,7 @@ export default function Intro({ onDone }: { onDone: () => void }) {
       initial={{ opacity: 1 }}
       exit={{ opacity: 0, scale: 1.08, transition: { duration: 0.28, ease: [0.4, 0, 0.2, 1] } }}
     >
-      <canvas ref={cvs} style={{ width: `min(${Math.round(W)}px, 60vw)`, aspectRatio: `${W} / ${H}` }} aria-hidden />
+      <canvas ref={cvs} style={{ width: `min(760px, 58vw)`, aspectRatio: `${W} / ${H}` }} aria-hidden />
     </motion.div>
   );
 }

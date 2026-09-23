@@ -62,12 +62,17 @@ function MapIntro({ svg, vb, onDone }: { svg: React.RefObject<SVGSVGElement | nu
     if (!el || !s) return;
     // the layout box, not the painted one: the whole page sits inside a scaled wrapper
     const bw = s.clientWidth, bh = s.clientHeight;
-    const [vx, vy, vw] = vb.split(' ').map(Number);
+    const [vx, vy, vw, vh] = vb.split(' ').map(Number);
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     el.width = Math.round(bw * dpr);
     el.height = Math.round(bh * dpr);
     const g = el.getContext('2d')!;
-    const k = (bw / vw) * dpr; // viewBox units to canvas pixels
+    // the svg letterboxes its viewBox (xMidYMid meet) and the stage is wider than the map's box, so
+    // the canvas has to fit and centre exactly the same way — otherwise the map shifts and resizes
+    // by a few percent the moment the svg takes over, which is the 'reset' you see
+    const sc = Math.min(bw / vw, bh / vh);
+    const ox = (bw - vw * sc) / 2, oy = (bh - vh * sc) / 2;
+    const k = sc * dpr;
     // each state's colour as the browser resolved it, so the canvas and the svg agree
     // colour and group opacity exactly as the svg resolves them, so the swap at the end is invisible
     const fill: Record<string, string> = {};
@@ -97,7 +102,7 @@ function MapIntro({ svg, vb, onDone }: { svg: React.RefObject<SVGSVGElement | nu
         const e = p >= 1 ? 1 : ease(p);
         g.globalAlpha = fade[d.st];
         g.beginPath();
-        g.arc((d.x - vx) * k, (d.y - vy) * k, d.r * k * e, 0, 6.2832);
+        g.arc((ox + (d.x - vx) * sc) * dpr, (oy + (d.y - vy) * sc) * dpr, d.r * k * e, 0, 6.2832);
         g.fillStyle = fill[d.st];
         g.fill();
       }

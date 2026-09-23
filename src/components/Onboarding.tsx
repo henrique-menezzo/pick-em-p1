@@ -123,6 +123,19 @@ export default function Onboarding({ ready = true }: { ready?: boolean }) {
   const authOpen = useStore((st) => !!st.auth);
   useEffect(() => { if (authOpen && step !== null) setTour(null); }, [authOpen, step, setTour]);
 
+  // the tour owns the viewport: the spotlight and its card stay put, and only the tour itself moves
+  // the page, when a step points at something below the fold
+  useEffect(() => {
+    if (step === null) return;
+    const stop = (e: Event) => e.preventDefault();
+    window.addEventListener('wheel', stop, { passive: false });
+    window.addEventListener('touchmove', stop, { passive: false });
+    return () => {
+      window.removeEventListener('wheel', stop);
+      window.removeEventListener('touchmove', stop);
+    };
+  }, [step]);
+
   useEffect(() => {
     if (step === null) return;
     const onKey = (e: KeyboardEvent) => {
