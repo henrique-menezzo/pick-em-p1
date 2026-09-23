@@ -36,9 +36,10 @@ const STEPS: Step[] = [
   },
   {
     title: 'Click a state to pick',
-    body: 'Try it now: click any grey state on the map and it becomes your Republican pick.',
-    aim: '.mapbox',
-    dock: 'bottom',
+    // the lesson is "click a state", so the spotlight closes in on one — Texas: big, central, and
+    // impossible to miss — and the card comes to sit beside it
+    body: 'Try it now: click Texas — or any grey state — and it becomes your Republican pick.',
+    aim: '.map g[data-st="TX"]',
     ask: 'Click a state to continue',
     wait: (done) => {
       const before = Object.keys(picksOf()).length;
@@ -48,8 +49,7 @@ const STEPS: Step[] = [
   {
     title: 'Click again to switch',
     body: 'A second click on the same state switches it to the Democrat, a third clears it.',
-    aim: '.mapbox',
-    dock: 'bottom',
+    aim: '.map g[data-st="TX"]', // the same state, so the spotlight holds still while the colour changes
     ask: 'Switch one of your picks',
     wait: (done) => {
       const before = { ...picksOf() };
@@ -188,25 +188,17 @@ export default function Onboarding({ ready = true }: { ready?: boolean }) {
             exit={{ opacity: 0, scale: 0.97, transition: { duration: 0.18 } }}
             transition={spring}
           >
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={step}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.18 }}
-              >
-                <div className="tour-step">Step {(step ?? 0) + 1} of {STEPS.length}</div>
-                <h3>{s.title}</h3>
-                <p>{s.body}</p>
-                {/* doing it moves you on, but Next is always there for anyone who just wants to read */}
-                {s.ask && (
-                  <div className={'tour-ask' + (ok ? ' ok' : '')}>
-                    {ok ? <><Icon name="check" size={13} stroke={2.6} /> Nice</> : <><span className="pulse" /> {s.ask}</>}
-                  </div>
-                )}
-              </motion.div>
-            </AnimatePresence>
+            {/* the words change on the spot: the card is already travelling, and fading them out
+                and back in left it empty for a beat */}
+            <div className="tour-step">Step {(step ?? 0) + 1} of {STEPS.length}</div>
+            <h3>{s.title}</h3>
+            <p>{s.body}</p>
+            {/* doing it moves you on, but Next is always there for anyone who just wants to read */}
+            {s.ask && (
+              <div className={'tour-ask' + (ok ? ' ok' : '')}>
+                {ok ? <><Icon name="check" size={13} stroke={2.6} /> Nice</> : <><span className="pulse" /> {s.ask}</>}
+              </div>
+            )}
             <div className="tour-foot">
               <div className="tour-dots">{STEPS.map((_, i) => <i key={i} className={i === step ? 'on' : i < step! ? 'past' : ''} />)}</div>
               <div className="tour-btns">
