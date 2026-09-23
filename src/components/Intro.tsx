@@ -54,11 +54,14 @@ const SHIFT = FRAME_W / 2 - (ROW[0][0] - ROW[0][1] / 2 + (ROW[16][0] + ROW[16][1
 
 export default function Intro({ onDone }: { onDone: () => void }) {
   const cvs = useRef<HTMLCanvasElement>(null);
+  const end = useRef(onDone);
+  end.current = onDone;
 
+  // if animation frames stop coming at all — a background tab — hand over anyway
   useEffect(() => {
-    const h = setTimeout(onDone, INTRO_MS);
+    const h = setTimeout(() => end.current(), INTRO_MS + 3000);
     return () => clearTimeout(h);
-  }, [onDone]);
+  }, []);
 
   useLayoutEffect(() => {
     const el = cvs.current;
@@ -71,9 +74,13 @@ export default function Intro({ onDone }: { onDone: () => void }) {
     const last = HEIGHTS.length - 1;
 
     let raf = 0;
-    const t0 = performance.now();
+    // the loop is driven by the frames it actually gets, not by the clock: building the rest of the
+    // screen blocks the main thread for over a second, and a wall clock would run the whole opening
+    // out during that pause and show none of it. A gap longer than a few frames counts as a few.
+    let prev = performance.now(), t = 0, over = false;
     const frame = (now: number) => {
-      const t = now - t0;
+      t += Math.min(now - prev, 64);
+      prev = now;
       // read the loop between its own frames, so it plays smooth at whatever the screen refreshes at
       const f = Math.min(last, t / STEP);
       const i = Math.floor(f), j = Math.min(last, i + 1), u = f - i;
@@ -87,6 +94,7 @@ export default function Intro({ onDone }: { onDone: () => void }) {
         g.roundRect((cx + SHIFT - w / 2) * k, (MID - h / 2) * k, w * k, h * k, (w / 2) * k);
         g.fill();
       }
+      if (t >= INTRO_MS && !over) { over = true; end.current(); }
       raf = requestAnimationFrame(frame);
     };
     raf = requestAnimationFrame(frame);
