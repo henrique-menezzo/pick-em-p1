@@ -1,6 +1,6 @@
 // First visit: a hands-on tour. Each step points at one piece and waits for you to actually do it —
 // the app stays clickable underneath. Replayable from "How it works" in the card header.
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { useStore } from '../lib/store';
@@ -124,6 +124,21 @@ export default function Onboarding() {
   }, [step, setTour]);
 
   const spot = useSpot(s?.aim, step);
+  const card = useRef<HTMLDivElement>(null);
+  const [size, setSize] = useState({ w: 340, h: 250 });
+  // the card's own size decides where it fits, so measure it instead of guessing
+  useLayoutEffect(() => {
+    const el = card.current;
+    if (!el) return;
+    const m = () => {
+      const b = el.getBoundingClientRect();
+      setSize((o) => (Math.abs(o.w - b.width) < 1 && Math.abs(o.h - b.height) < 1 ? o : { w: b.width, h: b.height }));
+    };
+    m();
+    const ro = new ResizeObserver(m);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [step, s]);
 
   return createPortal(
     <AnimatePresence>
@@ -133,8 +148,9 @@ export default function Onboarding() {
           <div className="tour-mask" style={spot ? { clipPath: `path(evenodd, '${maskPath(spot)}')` } : undefined} />
           {spot && <div className="tour-ring" style={{ left: spot.x, top: spot.y, width: spot.w, height: spot.h }} />}
           <motion.div
+            ref={card}
             className="tour-card"
-            style={spot ? cardPos(spot) : { left: '50%', top: '40%', transform: 'translate(-50%,-50%)' }}
+            style={spot ? place(spot, size) : { left: '50%', top: '40%', transform: 'translate(-50%,-50%)' }}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 8 }}
@@ -170,9 +186,23 @@ type Spot = { x: number; y: number; w: number; h: number };
 /** Measures the element this step points at, after paint, and keeps up with resizes and scrolling. */
 function useSpot(sel: string | undefined, step: number | null): Spot | null {
   const [spot, setSpot] = useState<Spot | null>(null);
+  const brought = useRef<string | null>(null);
   useEffect(() => {
     if (!sel) { setSpot(null); return; }
     let raf = 0;
+    // a step can point at something below the fold: bring it into view once, then track it.
+    // scrollIntoView misbehaves inside the scaled page wrapper, so work out the offset ourselves.
+    const key = sel + ':' + step;
+    if (brought.current !== key) {
+      brought.current = key;
+      const el = document.querySelector(sel);
+      if (el) {
+        const b = el.getBoundingClientRect();
+        if (b.top < 64 || b.bottom > innerHeight - 24) {
+          scrollTo({ top: Math.max(0, scrollY + b.top - Math.max(24, (innerHeight - b.height) / 2)), behavior: 'smooth' });
+        }
+      }
+    }
     const measure = () => {
       const el = document.querySelector(sel);
       if (!el) return setSpot(null);
@@ -194,10 +224,27 @@ function maskPath(s: Spot) {
   const { x, y, w, h } = s;
   return `M0 0H${innerWidth}V${innerHeight}H0Z M${x + r} ${y} H${x + w - r} A${r} ${r} 0 0 1 ${x + w} ${y + r} V${y + h - r} A${r} ${r} 0 0 1 ${x + w - r} ${y + h} H${x + r} A${r} ${r} 0 0 1 ${x} ${y + h - r} V${y + r} A${r} ${r} 0 0 1 ${x + r} ${y}Z`;
 }
-function cardPos(s: Spot) {
-  const W = 340, H = 220, gap = 16;
-  const below = s.y + s.h + gap + H < innerHeight;
-  const top = below ? s.y + s.h + gap : Math.max(gap, s.y - gap - H);
-  const left = Math.min(Math.max(gap, s.x + s.w / 2 - W / 2), innerWidth - W - gap);
-  return { left, top, width: W };
+/**
+ * Where the step card sits. It never covers the thing it points at and it never leaves the screen:
+ * the four sides are tried in order of how much room each one has, and only when the spotlight is
+ * so large that nothing fits beside it does the card come inside, docked low and centred — the same
+ * place for every step that points at the map, so it doesn't hop about between steps.
+ */
+function place(s: Spot, c: { w: number; h: number }) {
+  const M = 20, G = 14;
+  const vw = innerWidth, vh = innerHeight;
+  const cx = s.x + s.w / 2, cy = s.y + s.h / 2;
+  const clampX = (l: number) => Math.min(Math.max(M, l), vw - c.w - M);
+  const clampY = (t: number) => Math.min(Math.max(M, t), vh - c.h - M);
+  // under it first, then over it, then beside it — a card below what it explains reads as its caption
+  const sides = [
+    { room: vh - (s.y + s.h), need: c.h + G + M, left: clampX(cx - c.w / 2), top: s.y + s.h + G },
+    { room: s.y, need: c.h + G + M, left: clampX(cx - c.w / 2), top: s.y - G - c.h },
+    { room: vw - (s.x + s.w), need: c.w + G + M, left: s.x + s.w + G, top: clampY(cy - c.h / 2) },
+    { room: s.x, need: c.w + G + M, left: s.x - G - c.w, top: clampY(cy - c.h / 2) },
+  ];
+  const fit = sides.find((p) => p.room >= p.need);
+  if (fit) return { left: fit.left, top: fit.top };
+  // 76px of clearance so the card never lands on the prototype switch at the bottom of the window
+  return { left: clampX(cx - c.w / 2), top: clampY(vh - c.h - M - 76) };
 }
