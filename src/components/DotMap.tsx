@@ -80,6 +80,9 @@ function MapIntro({ svg, vb, onDone }: { svg: React.RefObject<SVGSVGElement | nu
     }
     const DUR = 520, SPAN = 700;
     const delay = CELLS.map((d, i) => ((d.y / H) * SPAN) + (d.x / W) * 70 + (((i * 2654435761) % 1000) / 1000) * 45);
+    // run until the very last dot has finished: stopping at SPAN+DUR cut the bottom-right corner
+    // mid-growth, and handing over there is exactly what looked like the map resetting itself
+    const END = Math.max(...delay) + DUR + 30;
     const ease = (p: number) => 1 - Math.pow(1 - p, 3);
     let raf = 0;
     const t0 = performance.now();
@@ -98,7 +101,7 @@ function MapIntro({ svg, vb, onDone }: { svg: React.RefObject<SVGSVGElement | nu
         g.fillStyle = fill[d.st];
         g.fill();
       }
-      if (t < SPAN + DUR + 40) raf = requestAnimationFrame(frame);
+      if (t < END) raf = requestAnimationFrame(frame);
       else { setDone(true); end.current(); }
     };
     raf = requestAnimationFrame(frame);

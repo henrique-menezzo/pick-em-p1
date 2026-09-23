@@ -149,30 +149,51 @@ export default function Onboarding({ ready = true }: { ready?: boolean }) {
     return () => ro.disconnect();
   }, [step, s]);
 
+  const at = spot ? place(spot, size, s?.align, s?.dock) : null;
+  const spring = { type: 'spring' as const, stiffness: 260, damping: 32, mass: 0.9 };
+
   return createPortal(
     <AnimatePresence>
-      {s && (
-        <motion.div className="tour" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
-          {/* the dim never blocks the app: the whole point is that you try it while the tour talks */}
-          <div className="tour-mask" style={spot ? { clipPath: `path(evenodd, '${maskPath(spot)}')` } : undefined} />
+      {s && spot && (
+        <motion.div className="tour" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.22 }}>
+          {/* one spotlight for the whole tour: it opens onto the map and then travels and resizes
+              from step to step, instead of blinking out and back in. The dim is its own shadow, so
+              there is nothing to keep in sync and nothing to clip per frame. */}
+          <motion.div
+            className="tour-hole"
+            initial={{ left: spot.x + spot.w * 0.12, top: spot.y + spot.h * 0.12, width: spot.w * 0.76, height: spot.h * 0.76, opacity: 0 }}
+            animate={{ left: spot.x, top: spot.y, width: spot.w, height: spot.h, opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.2 } }}
+            transition={spring}
+          />
+          {/* and one card, which travels with it */}
           <motion.div
             ref={card}
             className="tour-card"
-            style={spot ? place(spot, size, s.align, s.dock) : { left: '50%', top: '40%', transform: 'translate(-50%,-50%)' }}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 8 }}
-            key={step}
+            initial={{ left: at?.left, top: at?.top, opacity: 0, scale: 0.96 }}
+            animate={{ left: at?.left, top: at?.top, opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.97, transition: { duration: 0.18 } }}
+            transition={spring}
           >
-            <div className="tour-step">Step {(step ?? 0) + 1} of {STEPS.length}</div>
-            <h3>{s.title}</h3>
-            <p>{s.body}</p>
-            {/* doing it moves you on, but Next is always there for anyone who just wants to read */}
-            {s.ask && (
-              <div className={'tour-ask' + (ok ? ' ok' : '')}>
-                {ok ? <><Icon name="check" size={13} stroke={2.6} /> Nice</> : <><span className="pulse" /> {s.ask}</>}
-              </div>
-            )}
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={step}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.18 }}
+              >
+                <div className="tour-step">Step {(step ?? 0) + 1} of {STEPS.length}</div>
+                <h3>{s.title}</h3>
+                <p>{s.body}</p>
+                {/* doing it moves you on, but Next is always there for anyone who just wants to read */}
+                {s.ask && (
+                  <div className={'tour-ask' + (ok ? ' ok' : '')}>
+                    {ok ? <><Icon name="check" size={13} stroke={2.6} /> Nice</> : <><span className="pulse" /> {s.ask}</>}
+                  </div>
+                )}
+              </motion.div>
+            </AnimatePresence>
             <div className="tour-foot">
               <div className="tour-dots">{STEPS.map((_, i) => <i key={i} className={i === step ? 'on' : i < step! ? 'past' : ''} />)}</div>
               <div className="tour-btns">
@@ -226,11 +247,6 @@ function useSpot(sel: string | undefined, step: number | null): Spot | null {
     return () => cancelAnimationFrame(raf);
   }, [sel, step]);
   return spot;
-}
-function maskPath(s: Spot) {
-  const r = 16;
-  const { x, y, w, h } = s;
-  return `M0 0H${innerWidth}V${innerHeight}H0Z M${x + r} ${y} H${x + w - r} A${r} ${r} 0 0 1 ${x + w} ${y + r} V${y + h - r} A${r} ${r} 0 0 1 ${x + w - r} ${y + h} H${x + r} A${r} ${r} 0 0 1 ${x} ${y + h - r} V${y + r} A${r} ${r} 0 0 1 ${x + r} ${y}Z`;
 }
 /**
  * Where the step card sits. It never covers the thing it points at and it never leaves the screen:
