@@ -1,5 +1,6 @@
-// First visit: a hands-on tour. Each step points at one piece and waits for you to actually do it —
-// the app stays clickable underneath. Replayable from "How it works" in the card header.
+// First visit: a hands-on tour. Each step points at one piece and waits for you to actually do it.
+// Only that one piece answers while the step is up — everything else is quiet, so there is no way to
+// wander off mid-lesson. Replayable from "How it works" in the card header.
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
@@ -19,6 +20,9 @@ type Step = {
   align?: 'start' | 'end';
   /** hang the card from the target's lower edge instead of looking for room beside it */
   dock?: 'bottom';
+  /** what stays live while this step is up; absent = whatever the light is on, or nothing if the
+      step has nothing to do */
+  live?: string;
 };
 
 const picksOf = () => useStore.getState().picks;
@@ -39,9 +43,10 @@ const STEPS: Step[] = [
     title: 'Click a state to pick',
     // the lesson is "click a state", so the spotlight closes in on one — Texas: big, central, and
     // impossible to miss — and the card comes to sit beside it
-    body: 'Try it now: click Texas — or any grey state — and it becomes your Republican pick.',
+    body: 'Try it now: click Texas, lit below, and it becomes your Republican pick.',
     aim: '.map g[data-st="TX"]',
-    ask: 'Click a state to continue',
+    live: '.map', // the map works out the state itself, so let the click through and lock it to Texas
+    ask: 'Click Texas to continue',
     wait: (done) => {
       const before = Object.keys(picksOf()).length;
       return useStore.subscribe((s) => { if (Object.keys(s.picks).length > before) setTimeout(done, 320); });
@@ -51,7 +56,8 @@ const STEPS: Step[] = [
     title: 'Click again to switch',
     body: 'A second click on the same state switches it to the Democrat, a third clears it.',
     aim: '.map g[data-st="TX"]', // the same state, so the spotlight holds still while the colour changes
-    ask: 'Switch one of your picks',
+    live: '.map',
+    ask: 'Click Texas again',
     wait: (done) => {
       const before = { ...picksOf() };
       return useStore.subscribe((s) => {
@@ -137,10 +143,31 @@ export default function Onboarding({ ready = true }: { ready?: boolean }) {
     };
   }, [step]);
 
+  // …and the tour owns the input, too: while a step is up, the only thing that answers is the piece
+  // it is pointing at (and the card itself). Clicking a different state, or reaching for the
+  // keyboard shortcuts, would take the lesson somewhere it cannot follow.
+  const liveSel = s ? (s.live ?? (s.ask ? s.aim : null)) : null;
+  useEffect(() => {
+    if (step === null) return;
+    const gate = (e: Event) => {
+      const t = e.target as HTMLElement | null;
+      if (!t?.closest) return;
+      if (t.closest('.tour-card') || t.closest('.auth')) return;
+      if (liveSel && t.closest(liveSel)) return;
+      e.stopPropagation();
+      if (e.cancelable) e.preventDefault();
+    };
+    const kinds = ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click', 'dblclick', 'contextmenu'];
+    for (const k of kinds) window.addEventListener(k, gate, true);
+    return () => { for (const k of kinds) window.removeEventListener(k, gate, true); };
+  }, [step, liveSel]);
+
   useEffect(() => {
     if (step === null) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') { e.stopImmediatePropagation(); setTour(null); }
+      // arrows and the r/d shortcuts move the selection out from under the spotlight
+      else if (['ArrowRight', 'ArrowLeft', 'r', 'd', '1', '2'].includes(e.key)) e.stopImmediatePropagation();
     };
     window.addEventListener('keydown', onKey, true);
     return () => window.removeEventListener('keydown', onKey, true);
@@ -149,6 +176,12 @@ export default function Onboarding({ ready = true }: { ready?: boolean }) {
   const spot = useSpot(s?.aim, step);
   // when a step points at a state, the light takes the shape of the state instead of a box
   const st = s?.aim.match(/data-st="([A-Z]+)"/)?.[1] ?? null;
+  // and the map only answers for that state while the step is up — '' while the tour points
+  // somewhere else, so a stray click on the map does nothing at all
+  useEffect(() => {
+    useStore.setState({ tourLock: step === null ? null : st ?? '' });
+    return () => { useStore.setState({ tourLock: null }); };
+  }, [step, st]);
   const [dots, setDots] = useState<{ cx: number; cy: number; r: number }[] | null>(null);
   useLayoutEffect(() => {
     if (!st) { setDots(null); return; }

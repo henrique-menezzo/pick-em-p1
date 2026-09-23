@@ -39,6 +39,8 @@ interface State {
   /** the opening transition: the waveform, then the screen assembling itself, then the game */
   phase: 'intro' | 'enter' | 'live';
   tour: number | null;
+  /** while a tour step is up, the only state the map answers for ('' = none at all) */
+  tourLock: string | null;
   // transient
   auth: { mode: 'signup' | 'login'; reason: AuthReason } | null;
   toast: { msg: string; n: number } | null;
@@ -94,6 +96,7 @@ export const useStore = create<State>()(
       tourDone: false,
       phase: 'intro',
       tour: null,
+      tourLock: null,
       auth: null,
       toast: null,
       hoverId: null,

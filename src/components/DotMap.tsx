@@ -223,6 +223,7 @@ export default function DotMap() {
   }
   function onMove(e: React.PointerEvent) {
     if (e.pointerType !== 'mouse') return;
+    if (useStore.getState().tourLock !== null) return; // the tour is pointing at one thing
     // the pointer is on the map itself: any spotlight borrowed from the list/matrix is over
     if (useStore.getState().hoverId) useStore.getState().setHover(null);
     const cx = e.clientX, cy = e.clientY;
@@ -238,6 +239,9 @@ export default function DotMap() {
   }
   function onUp(e: React.PointerEvent) {
     const st = stateAt(toSvg(e));
+    // during the tour the map answers for the state under the light, and for nothing else
+    const lock = useStore.getState().tourLock;
+    if (lock !== null && st !== lock) return;
     const race = st && raceIn(tab, st);
     if (!race) return;
     tap(race.id);
