@@ -1,8 +1,8 @@
 // The opening. A row of capsules with a swell running through them, the way the reference loop
-// behaves: a broad wave is already alive when the row appears, so at any instant some are stretching
-// tall and narrow while their neighbours are settling back — one body of liquid being squeezed
-// along its length. Painted on a canvas so the caps stay perfectly round at any height, and so the
-// whole thing costs one draw call per frame.
+// behaves: the wave is already alive when the row appears, so at any instant some are stretching up
+// while their neighbours are settling back. The row itself holds still — each capsule keeps its
+// place and its width, and all the softness is in how it grows and lets go. Painted on a canvas so
+// the caps stay perfectly round at any height, and so the whole thing costs one draw call per frame.
 import { useEffect, useLayoutEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 
@@ -15,13 +15,14 @@ const WAVE: { r: number; c: string }[] = [
   { r: 0.17, c: '#2b5ce0' }, { r: 0.38, c: '#55c8f0' }, { r: 0.70, c: '#ef3b34' }, { r: 0.17, c: '#a02440' },
   { r: 0.13, c: '#7a1a38' },
 ];
-const UNIT = 150;                                   // the biggest circle is 150px across
-const W = WAVE.reduce((s, d) => s + d.r * UNIT, 0); // the row at its natural size
-const H = UNIT * 3.6;                               // headroom for the tallest bar
+const UNIT = 150;                  // the biggest circle is 150px across
+const GAP = 7;                     // and they sit on the line with a little air between them, as in the loop
+const W = WAVE.reduce((s, d) => s + d.r * UNIT, 0) + GAP * (WAVE.length - 1);
+const H = UNIT * 3.6;              // headroom for the tallest bar
 
-const FADE = 240;    // the row fades in, centre first — the swell is already running underneath
-const PERIOD = 780;  // one full breath
-const WL = 1.05;     // one wave spans the row, so a crest and a trough are on screen together
+const FADE = 200;   // the circles are simply there, and the first one is already moving
+const SPREAD = 430; // the swell takes this long to travel from the left end to the right one
+const RISE = 520;   // and this long to lift one circle and set it back down
 export const INTRO_MS = 950;
 
 export default function Intro({ onDone }: { onDone: () => void }) {
@@ -40,14 +41,13 @@ export default function Intro({ onDone }: { onDone: () => void }) {
     el.width = Math.round(W * k);
     el.height = Math.round(H * k);
     const g = el.getContext('2d')!;
-    const mid = (WAVE.length - 1) / 2;
 
-    // each capsule's resting size, its place along the row (0..1) and how far it can stretch
+    // lay the row out once — fixed centres, fixed widths — then only the heights move
     let acc = 0;
-    const bars = WAVE.map((d, i) => {
+    const bars = WAVE.map((d) => {
       const w = d.r * UNIT;
-      const b = { w, u: (acc + w / 2) / W, c: d.c, amp: 1.6 + (1 - d.r) * 1.3, in: Math.abs(i - mid) * 20 };
-      acc += w;
+      const b = { w, x: acc + w / 2, u: (acc + w / 2) / W, c: d.c, amp: 1.7 + (1 - d.r) * 1.3 };
+      acc += w + GAP;
       return b;
     });
     const cy = (H / 2) * k;
@@ -56,29 +56,20 @@ export default function Intro({ onDone }: { onDone: () => void }) {
     const t0 = performance.now();
     const frame = (now: number) => {
       const t = now - t0;
-
-      // stretch tall, and give the width back: the row keeps its mass, so it reads as one body of
-      // liquid being squeezed rather than seventeen meters reacting to a beat. The wave runs from
-      // the first frame, so nothing waits its turn — each capsule is already on its way up or down.
-      const shape = bars.map((b) => {
-        const s = 1 + b.amp * (0.5 + 0.5 * Math.cos(2 * Math.PI * (t / PERIOD - b.u / WL)));
-        return { ...b, h: b.w * s, ww: b.w / Math.sqrt(s) };
-      });
-
-      // relay the row out from its live widths, centred, so the capsules stay touching as they move
-      const total = shape.reduce((s, b) => s + b.ww, 0);
-      let x = (W - total) / 2;
-
       g.clearRect(0, 0, el.width, el.height);
-      for (const b of shape) {
-        const a = Math.min(1, Math.max(0, (t - b.in) / FADE));
-        const cx = x + b.ww / 2;
-        x += b.ww;
+      for (const b of bars) {
+        const a = Math.min(1, Math.max(0, (t - b.u * 60) / FADE));
         if (a <= 0) continue;
+        // the swell starts on the leftmost circle and runs down the line; each one lifts and settles
+        // on a curve that is flat at both ends, so it eases out of the circle and never snaps back
+        const p = (t - b.u * SPREAD) / RISE;
+        const raw = p <= 0 || p >= 1 ? 0 : Math.sin(p * Math.PI);
+        const e = raw * raw * (3 - 2 * raw);
+        const h = b.w * (1 + b.amp * e);
         g.globalAlpha = a;
         g.fillStyle = b.c;
         g.beginPath();
-        g.roundRect((cx - b.ww / 2) * k, cy - (b.h / 2) * k, b.ww * k, b.h * k, (b.ww / 2) * k);
+        g.roundRect((b.x - b.w / 2) * k, cy - (h / 2) * k, b.w * k, h * k, (b.w / 2) * k);
         g.fill();
       }
       raf = requestAnimationFrame(frame);
