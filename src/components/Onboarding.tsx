@@ -14,6 +14,8 @@ type Step = {
   ask?: string;
   /** returns a cleanup; call done() when the step is satisfied */
   wait?: (done: () => void) => () => void;
+  /** which edge the card lines up with — its own, or the target's left / right edge */
+  align?: 'start' | 'end';
 };
 
 const picksOf = () => useStore.getState().picks;
@@ -56,6 +58,7 @@ const STEPS: Step[] = [
     title: 'Or pick from the panel',
     body: 'The panel shows both candidates for the selected race. Pick one and it jumps to the next open race.',
     aim: '.pal',
+    align: 'end',
     ask: 'Pick a candidate in the panel',
     wait: (done) => onClickOf('.pal .cand', done),
   },
@@ -63,6 +66,7 @@ const STEPS: Step[] = [
     title: 'All 97 races, at a glance',
     body: 'One dot per race. Hover to see who you picked, click to jump straight to that state.',
     aim: '.matrix',
+    align: 'start', // on the same line as the "Senate" label under it
     ask: 'Click any dot down here',
     wait: (done) => onClickOf('.mx-btn', done),
   },
@@ -70,6 +74,7 @@ const STEPS: Step[] = [
     title: 'Save your map',
     body: 'Save any time and keep picking until election day. On election night we compare your map with the live calls.',
     aim: '.btn.save',
+    align: 'end', // its right edge on the button's right edge
     ask: 'Hit Save Map to finish',
     wait: (done) => onClickOf('.btn.save', done),
   },
@@ -146,11 +151,10 @@ export default function Onboarding() {
         <motion.div className="tour" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
           {/* the dim never blocks the app: the whole point is that you try it while the tour talks */}
           <div className="tour-mask" style={spot ? { clipPath: `path(evenodd, '${maskPath(spot)}')` } : undefined} />
-          {spot && <div className="tour-ring" style={{ left: spot.x, top: spot.y, width: spot.w, height: spot.h }} />}
           <motion.div
             ref={card}
             className="tour-card"
-            style={spot ? place(spot, size) : { left: '50%', top: '40%', transform: 'translate(-50%,-50%)' }}
+            style={spot ? place(spot, size, s.align) : { left: '50%', top: '40%', transform: 'translate(-50%,-50%)' }}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 8 }}
@@ -183,6 +187,7 @@ export default function Onboarding() {
 }
 
 type Spot = { x: number; y: number; w: number; h: number };
+const PAD = 10; // how far the lit area reaches past the element it points at
 /** Measures the element this step points at, after paint, and keeps up with resizes and scrolling. */
 function useSpot(sel: string | undefined, step: number | null): Spot | null {
   const [spot, setSpot] = useState<Spot | null>(null);
@@ -207,9 +212,8 @@ function useSpot(sel: string | undefined, step: number | null): Spot | null {
       const el = document.querySelector(sel);
       if (!el) return setSpot(null);
       const b = el.getBoundingClientRect();
-      const pad = 10;
       setSpot((old) => {
-        const next = { x: b.left - pad, y: b.top - pad, w: b.width + pad * 2, h: b.height + pad * 2 };
+        const next = { x: b.left - PAD, y: b.top - PAD, w: b.width + PAD * 2, h: b.height + PAD * 2 };
         return old && old.x === next.x && old.y === next.y && old.w === next.w && old.h === next.h ? old : next;
       });
       raf = requestAnimationFrame(measure); // the panel moves and resizes while you pick
@@ -230,21 +234,24 @@ function maskPath(s: Spot) {
  * so large that nothing fits beside it does the card come inside, docked low and centred — the same
  * place for every step that points at the map, so it doesn't hop about between steps.
  */
-function place(s: Spot, c: { w: number; h: number }) {
+function place(s: Spot, c: { w: number; h: number }, align?: 'start' | 'end') {
   const M = 20, G = 14;
   const vw = innerWidth, vh = innerHeight;
   const cx = s.x + s.w / 2, cy = s.y + s.h / 2;
   const clampX = (l: number) => Math.min(Math.max(M, l), vw - c.w - M);
   const clampY = (t: number) => Math.min(Math.max(M, t), vh - c.h - M);
+  // the spot carries PAD around the element, so line up with the element itself, not with the halo
+  const x = align === 'start' ? clampX(s.x + PAD) : align === 'end' ? clampX(s.x + s.w - PAD - c.w) : clampX(cx - c.w / 2);
   // under it first, then over it, then beside it — a card below what it explains reads as its caption
   const sides = [
-    { room: vh - (s.y + s.h), need: c.h + G + M, left: clampX(cx - c.w / 2), top: s.y + s.h + G },
-    { room: s.y, need: c.h + G + M, left: clampX(cx - c.w / 2), top: s.y - G - c.h },
+    { room: vh - (s.y + s.h), need: c.h + G + M, left: x, top: s.y + s.h + G },
+    { room: s.y, need: c.h + G + M, left: x, top: s.y - G - c.h },
     { room: vw - (s.x + s.w), need: c.w + G + M, left: s.x + s.w + G, top: clampY(cy - c.h / 2) },
     { room: s.x, need: c.w + G + M, left: s.x - G - c.w, top: clampY(cy - c.h / 2) },
   ];
   const fit = sides.find((p) => p.room >= p.need);
   if (fit) return { left: fit.left, top: fit.top };
-  // 76px of clearance so the card never lands on the prototype switch at the bottom of the window
-  return { left: clampX(cx - c.w / 2), top: clampY(vh - c.h - M - 76) };
+  // nothing fits beside it — the map fills the screen — so the card hangs from its lower edge,
+  // with 76px of clearance so it never lands on the prototype switch at the bottom of the window
+  return { left: x, top: clampY(Math.min(s.y + s.h - c.h - G, vh - c.h - M - 76)) };
 }
