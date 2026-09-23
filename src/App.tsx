@@ -54,18 +54,6 @@ export default function App() {
   const setPhase = useStore((s) => s.setPhase);
   // intro → enter → live: the waveform, the screen assembling itself, then the game
   useEffect(() => { if (SKIP_INTRO) setPhase('live'); }, [setPhase]);
-  // the loader has to be on screen before the map is built: those few thousand dots hold the main
-  // thread for well over a second, and anything that has not painted by then is never seen at all.
-  // So the first commit carries the loader alone, and the screen is built behind it a frame later.
-  const [built, setBuilt] = useState(SKIP_INTRO);
-  useEffect(() => {
-    if (built) return;
-    let b = 0;
-    const a = requestAnimationFrame(() => { b = requestAnimationFrame(() => setBuilt(true)); });
-    // a hidden tab is served no frames at all, and the screen can never depend on one arriving
-    const t = setTimeout(() => setBuilt(true), 150);
-    return () => { cancelAnimationFrame(a); cancelAnimationFrame(b); clearTimeout(t); };
-  }, [built]);
   useEffect(() => {
     if (phase !== 'enter') return;
     const h = setTimeout(() => setPhase('live'), 1400);
@@ -83,7 +71,7 @@ export default function App() {
     <div className="scaler" style={{ height }}>
       {/* the nav's rule is the only thing that bleeds past the 1440 frame: it has to reach both screen edges */}
       {RULE && <div className="page-rule" style={{ top: 64 * scale }} />}
-      {built && <div className={'app' + (phase === 'enter' ? ' enter' : phase === 'intro' ? ' pre' : '')} ref={ref} style={{ transform: `scale(${scale})`, left }}>
+      <div className={'app' + (phase === 'enter' ? ' enter' : phase === 'intro' ? ' pre' : '')} ref={ref} style={{ transform: `scale(${scale})`, left }}>
         <Nav />
         {V.title > 0 ? <TitleStudy v={V.title} /> : HDR > 0 ? <HeaderVariant /> : <GameTitle />}
         {V.intro === 'c' && (
@@ -98,7 +86,7 @@ export default function App() {
         <Onboarding ready={phase === 'live'} />
         <Toast />
         {HDR > 0 && <HeaderSwitch />}
-      </div>}
+      </div>
       <AnimatePresence>{phase === 'intro' && <Intro key="intro" onDone={() => setPhase('enter')} />}</AnimatePresence>
     </div>
   );
