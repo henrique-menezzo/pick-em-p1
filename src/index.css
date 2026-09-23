@@ -811,10 +811,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .app.enter .legend, .app.enter .tally { --d: 520ms; }
 .app.enter .progress { --d: 560ms; }
 .app.enter .foot { --d: 600ms; }
-.app.enter .card { animation: rise-in .5s var(--intro-ease) backwards; }
 
 /* the map: every dot drops in, row by row from the top, with a small left-to-right lean */
-.map.enter .st circle {
+.map.enter .st {
+  transform-box: fill-box; transform-origin: center;
   animation: dot-in .52s var(--dot-ease) backwards;
   animation-delay: calc(240ms + var(--d, 0ms));
 }

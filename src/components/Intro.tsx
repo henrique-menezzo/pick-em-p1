@@ -6,11 +6,12 @@ import { asset } from './ui';
 
 export default function Intro({ onDone }: { onDone: () => void }) {
   const [ready, setReady] = useState(false);
+  const [gone, setGone] = useState(false);
 
   // the gif runs 3s; hand over just before it loops
   useEffect(() => {
     if (!ready) return;
-    const h = setTimeout(onDone, 2500);
+    const h = setTimeout(() => { setGone(true); onDone(); }, 2500);
     return () => clearTimeout(h);
   }, [ready, onDone]);
 
@@ -28,7 +29,7 @@ export default function Intro({ onDone }: { onDone: () => void }) {
       exit={{ opacity: 0, filter: 'blur(12px)', transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] } }}
     >
       {/* the whole frame, centred: cropping it cut the shapes in half at the loud part of the loop */}
-      <motion.img
+      {!gone && <motion.img
         src={asset('intro.gif')}
         alt=""
         draggable={false}
@@ -36,7 +37,7 @@ export default function Intro({ onDone }: { onDone: () => void }) {
         initial={{ opacity: 0, scale: 1.03 }}
         animate={{ opacity: ready ? 1 : 0, scale: 1 }}
         transition={{ duration: 0.45, ease: [0.2, 0.8, 0.2, 1] }}
-      />
+      />}
     </motion.div>
   );
 }

@@ -27,11 +27,13 @@ for (const [st, pts] of Object.entries(grid.states as Record<string, number[][]>
   BOX[st] = { x0: Math.min(...xs), y0: Math.min(...ys), x1: Math.max(...xs), y1: Math.max(...ys) };
 }
 const ORDER = Object.keys(BY_ST);
-// every dot drops in when the wave reaches its row, leaning slightly left to right, with a touch of
-// jitter so the front isn't a ruler line (the Election Hub opening, at this grid's scale)
-const DOT_MS: number[] = CELLS.map((d, i) => {
+// the wave reaches each state in turn, top to bottom with a lean to the right and a little jitter,
+// so the map lands in the same rhythm as the hub's dots — per state, because animating all 4129
+// circles at once is what made the entrance stutter
+const IN_MS: Record<string, number> = {};
+ORDER.forEach((st, i) => {
   const jitter = ((i * 2654435761) % 1000) / 1000;
-  return Math.round((d.y / H) * 620 + (d.x / W) * 90 + jitter * 40);
+  IN_MS[st] = Math.round((BOX[st].y0 / H) * 560 + (BOX[st].x0 / W) * 90 + jitter * 50);
 });
 
 type VB = { x: number; y: number; w: number; h: number };
@@ -46,9 +48,9 @@ const COLOR = { R: 'var(--R)', D: 'var(--D)', open: 'var(--dot-open)', none: 'va
 // ---- one state (memoised: circles never re-render, only the group's class/colour changes) ---------
 const StateDots = memo(function StateDots({ st, cls, c, o }: { st: string; cls: string; c: string; o: number }) {
   return (
-    <g className={'st ' + cls} data-st={st} style={{ ['--c' as string]: c, opacity: o }}>
+    <g className={'st ' + cls} data-st={st} style={{ ['--c' as string]: c, ['--d' as string]: IN_MS[st] + 'ms', opacity: o }}>
       {BY_ST[st].map((d) => (
-        <circle key={d.i} data-i={d.i} cx={d.x} cy={d.y} r={d.r} className={d.seam ? 'sm' : undefined} style={{ ['--d' as string]: DOT_MS[d.i] + 'ms' }} />
+        <circle key={d.i} data-i={d.i} cx={d.x} cy={d.y} r={d.r} className={d.seam ? 'sm' : undefined} />
       ))}
     </g>
   );

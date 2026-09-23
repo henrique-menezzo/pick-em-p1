@@ -29,6 +29,13 @@ if (Q.has('reset')) {
   history.replaceState(null, '', location.pathname);
   location.reload();
 } else {
+  // A prototype, not a product: every reload starts the story from the top — empty map, signed out,
+  // onboarding from step one. Nothing carries over from the last visit.
+  useStore.setState({
+    picks: {}, savedAt: null, user: null, live: false, playing: false, tourDone: false, tour: null,
+    panelMin: false, tab: 'senate',
+    cursor: { senate: RACES.senate.find((r) => r.state === 'NM')!.id, gov: RACES.gov[0].id, house: RACES.house[0].id },
+  });
   const s = useStore.getState();
   // ?fill=1 — screenshot helper: a complete map picked like the polls (swaps a few so there are misses)
   if (Q.has('fill')) useStore.setState({ picks: Object.fromEntries(ALL.map((r, i) => [r.id, i % 5 === 2 ? (r.poll === 'R' ? 'D' : 'R') : r.poll])) });
