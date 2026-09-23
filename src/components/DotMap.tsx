@@ -291,6 +291,22 @@ function tipText(id: string, pick: Side | undefined, live: boolean, t: number) {
 }
 
 // ---- where a floating card sits next to a state (right of it, or left when there's no room) ----------
+/** A state's dots in screen coordinates, fattened until they merge — the shape of the state itself,
+    for anything that wants to light it rather than box it. */
+export function stateDotsOnScreen(st: string, grow = 2): { cx: number; cy: number; r: number }[] | null {
+  const svg = document.querySelector('svg.map') as SVGSVGElement | null;
+  if (!svg || !BY_ST[st]) return null;
+  const m = svg.getScreenCTM();
+  if (!m) return null;
+  const k = Math.sqrt(Math.abs(m.a * m.d - m.b * m.c)) || 1; // screen px per map unit
+  return BY_ST[st]
+    .filter((d) => !d.seam)
+    .map((d) => {
+      const p = new DOMPoint(d.x, d.y).matrixTransform(m);
+      return { cx: p.x, cy: p.y, r: d.r * k * grow };
+    });
+}
+
 function anchorTo(svg: SVGSVGElement, st: string, w: number, h: number) {
   const m = svg.getScreenCTM()!;
   const b = BOX[st];

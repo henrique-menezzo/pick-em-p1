@@ -4,6 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { useStore } from '../lib/store';
+import { stateDotsOnScreen } from './DotMap';
 import { Icon } from './ui';
 
 type Step = {
@@ -146,6 +147,14 @@ export default function Onboarding({ ready = true }: { ready?: boolean }) {
   }, [step, setTour]);
 
   const spot = useSpot(s?.aim, step);
+  // when a step points at a state, the light takes the shape of the state instead of a box
+  const st = s?.aim.match(/data-st="([A-Z]+)"/)?.[1] ?? null;
+  const [dots, setDots] = useState<{ cx: number; cy: number; r: number }[] | null>(null);
+  useLayoutEffect(() => {
+    if (!st) { setDots(null); return; }
+    // follow the spot: a step that has to scroll the map into view moves the state under us
+    setDots(stateDotsOnScreen(st));
+  }, [st, step, spot?.x, spot?.y, spot?.w]);
   const card = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 340, h: 250 });
   // the card's own size decides where it fits, so measure it instead of guessing
@@ -172,13 +181,28 @@ export default function Onboarding({ ready = true }: { ready?: boolean }) {
           {/* one spotlight for the whole tour: it opens onto the map and then travels and resizes
               from step to step, instead of blinking out and back in. The dim is its own shadow, so
               there is nothing to keep in sync and nothing to clip per frame. */}
-          <motion.div
-            className="tour-hole"
-            initial={{ left: spot.x + spot.w * 0.12, top: spot.y + spot.h * 0.12, width: spot.w * 0.76, height: spot.h * 0.76, opacity: 0 }}
-            animate={{ left: spot.x, top: spot.y, width: spot.w, height: spot.h, opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: 0.2 } }}
-            transition={spring}
-          />
+          <svg className="tour-dim" aria-hidden>
+            <defs>
+              <mask id="tour-hole">
+                <rect x="0" y="0" width="100%" height="100%" fill="#fff" />
+                {/* the box travels and resizes between steps… */}
+                <motion.rect
+                  rx={18}
+                  fill="#000"
+                  initial={{ x: spot.x + spot.w * 0.12, y: spot.y + spot.h * 0.12, width: spot.w * 0.76, height: spot.h * 0.76, opacity: 0 }}
+                  animate={{ x: spot.x, y: spot.y, width: spot.w, height: spot.h, opacity: dots ? 0 : 1 }}
+                  transition={spring}
+                />
+                {/* …and hands over to the state's own dots when the step is about a state */}
+                {dots && (
+                  <motion.g fill="#000" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.22 }}>
+                    {dots.map((d, i) => <circle key={i} cx={d.cx} cy={d.cy} r={d.r} />)}
+                  </motion.g>
+                )}
+              </mask>
+            </defs>
+            <rect x="0" y="0" width="100%" height="100%" fill="rgba(5,5,5,.82)" mask="url(#tour-hole)" />
+          </svg>
           {/* and one card, which travels with it */}
           <motion.div
             ref={card}
