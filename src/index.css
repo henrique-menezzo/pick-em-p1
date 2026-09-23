@@ -771,3 +771,33 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .hdrswitch .nm { color: var(--muted); }
 .hdrswitch .all { height: 26px; padding: 0 10px; display: inline-flex; align-items: center; border-radius: 999px; background: rgba(255, 255, 255, .06); color: var(--muted); font-weight: 500; transition: background .2s, color .2s; }
 .hdrswitch .all:hover { background: rgba(255, 255, 255, .1); color: var(--fg); }
+
+/* ---- the opening: the waveform, then the screen assembling itself --------------------------- */
+.intro { position: fixed; inset: 0; z-index: 200; background: var(--bg); display: grid; place-items: center; }
+.intro .win { position: relative; width: min(450px, 44vw); aspect-ratio: 450 / 108; overflow: hidden; }
+.intro img { position: absolute; width: 139.85%; height: 327.8%; left: -18.49%; top: -113.86%; }
+
+/* every piece comes out of a blur, top of the page first */
+@keyframes entIn {
+  from { opacity: 0; filter: blur(14px); transform: translateY(-14px); }
+  to { opacity: 1; filter: blur(0); transform: none; }
+}
+.app.enter .nav, .app.enter .gtitle, .app.enter .head, .app.enter .tabs, .app.enter .pal-anchor,
+.app.enter .legend, .app.enter .progress, .app.enter .tally, .app.enter .foot {
+  animation: entIn .75s cubic-bezier(.2, .8, .2, 1) both;
+  animation-delay: calc(var(--i, 0) * 90ms);
+}
+.app.enter .nav { --i: 0; }
+.app.enter .gtitle { --i: 1; }
+.app.enter .head, .app.enter .tabs { --i: 3; }
+.app.enter .pal-anchor { --i: 4; }
+.app.enter .legend, .app.enter .tally, .app.enter .progress { --i: 6; }
+.app.enter .foot { --i: 7; }
+/* the card's surface arrives first, without blurring the map inside it */
+.app.enter .card { animation: cardIn .6s ease both; }
+@keyframes cardIn { from { opacity: 0; } to { opacity: 1; } }
+.app.enter .page-rule, .app.enter + .page-rule { animation: entIn .75s cubic-bezier(.2, .8, .2, 1) both; }
+
+/* the map grows dot by dot, from the top of the country down */
+@keyframes dotIn { from { transform: scale(0); } to { transform: scale(1); } }
+.map.enter .st circle { animation: dotIn .5s cubic-bezier(.2, .8, .2, 1) both; animation-delay: var(--in, 0ms); }

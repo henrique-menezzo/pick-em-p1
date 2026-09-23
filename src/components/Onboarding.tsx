@@ -85,7 +85,7 @@ const STEPS: Step[] = [
   },
 ];
 
-export default function Onboarding() {
+export default function Onboarding({ ready = true }: { ready?: boolean }) {
   const step = useStore((s) => s.tour);
   const tourDone = useStore((s) => s.tourDone);
   const setTour = useStore((s) => s.setTour);
@@ -95,10 +95,10 @@ export default function Onboarding() {
   // every first visit gets the tour: the map arrives with a few races already called, so waiting for
   // an empty map meant it never ran. Only a finished (or skipped) tour, or election night, stops it.
   useEffect(() => {
-    if (tourDone || step !== null || live) return;
-    const h = setTimeout(() => useStore.getState().setTour(0), 700);
+    if (!ready || tourDone || step !== null || live) return;
+    const h = setTimeout(() => useStore.getState().setTour(0), 260);
     return () => clearTimeout(h);
-  }, [tourDone, step, live]);
+  }, [ready, tourDone, step, live]);
 
   const s = step === null ? null : STEPS[step];
   const next = () => (step! >= STEPS.length - 1 ? setTour(null) : setTour(step! + 1));

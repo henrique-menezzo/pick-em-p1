@@ -27,6 +27,9 @@ for (const [st, pts] of Object.entries(grid.states as Record<string, number[][]>
   BOX[st] = { x0: Math.min(...xs), y0: Math.min(...ys), x1: Math.max(...xs), y1: Math.max(...ys) };
 }
 const ORDER = Object.keys(BY_ST);
+// each state starts growing when the wave reaches it, so the map fills from the top down
+const IN_MS: Record<string, number> = {};
+for (const st of ORDER) IN_MS[st] = Math.round((BOX[st].y0 / H) * 620);
 
 type VB = { x: number; y: number; w: number; h: number };
 const FULL: VB = { x: 0, y: 0, w: W, h: H };
@@ -40,7 +43,7 @@ const COLOR = { R: 'var(--R)', D: 'var(--D)', open: 'var(--dot-open)', none: 'va
 // ---- one state (memoised: circles never re-render, only the group's class/colour changes) ---------
 const StateDots = memo(function StateDots({ st, cls, c, o }: { st: string; cls: string; c: string; o: number }) {
   return (
-    <g className={'st ' + cls} data-st={st} style={{ ['--c' as string]: c, opacity: o }}>
+    <g className={'st ' + cls} data-st={st} style={{ ['--c' as string]: c, ['--in' as string]: IN_MS[st] + 'ms', opacity: o }}>
       {BY_ST[st].map((d) => (
         <circle key={d.i} data-i={d.i} cx={d.x} cy={d.y} r={d.r} className={d.seam ? 'sm' : undefined} />
       ))}
@@ -57,6 +60,7 @@ export default function DotMap() {
   const hoverId = useStore((s) => s.hoverId);
   const pulse = useStore((s) => s.pulse);
   const tap = useStore((s) => s.tap);
+  const phase = useStore((s) => s.phase);
 
   const svgRef = useRef<SVGSVGElement>(null);
   const els = useRef<SVGCircleElement[]>([]);
@@ -181,7 +185,7 @@ export default function DotMap() {
       <div className="mapbox">
         <svg
           ref={svgRef}
-          className={'map' + (live ? ' live' : '')}
+          className={'map' + (live ? ' live' : '') + (phase === 'enter' ? ' enter' : '')}
           viewBox={outer}
           onPointerMove={onMove}
           onPointerLeave={onLeave}

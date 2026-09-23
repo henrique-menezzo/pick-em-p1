@@ -10,6 +10,7 @@ import { Icon } from './components/ui';
 import AuthModal from './components/AuthModal';
 import Nav from './components/Nav';
 import Onboarding from './components/Onboarding';
+import Intro from './components/Intro';
 import Tip from './components/Tip';
 import TitleStudy from './components/TitleStudies';
 import LockLine from './components/LockLine';
@@ -22,6 +23,7 @@ import { RACES } from './data/races';
 // ?reset · ?night=1&t=220 · ?fill=1 · ?lock=N — handy for reviews and screenshots
 const Q = new URLSearchParams(location.search);
 const RULE = Q.get('rule') !== '0'; // ?rule=0 — the nav without its hairline, for comparison
+const SKIP_INTRO = Q.get('intro') === '0' || Q.has('tour') || Q.has('board');
 if (Q.has('reset')) {
   localStorage.removeItem('pick-em-p1');
   history.replaceState(null, '', location.pathname);
@@ -41,18 +43,28 @@ export default function App() {
   usePlayback();
   const { ref, scale, height, left } = useScale();
   const isPhone = usePhone();
+  const phase = useStore((s) => s.phase);
+  const setPhase = useStore((s) => s.setPhase);
+  // intro → enter → live: the waveform, the screen assembling itself, then the game
+  useEffect(() => { if (SKIP_INTRO) setPhase('live'); }, [setPhase]);
+  useEffect(() => {
+    if (phase !== 'enter') return;
+    const h = setTimeout(() => setPhase('live'), 1500);
+    return () => clearTimeout(h);
+  }, [phase, setPhase]);
   if (V.mobile || isPhone) return (
     <>
       <Mobile />
       <AuthModal />
       <Toast />
+      <AnimatePresence>{phase === 'intro' && <Intro key="intro" onDone={() => setPhase('enter')} />}</AnimatePresence>
     </>
   );
   return (
     <div className="scaler" style={{ height }}>
       {/* the nav's rule is the only thing that bleeds past the 1440 frame: it has to reach both screen edges */}
       {RULE && <div className="page-rule" style={{ top: 64 * scale }} />}
-      <div className="app" ref={ref} style={{ transform: `scale(${scale})`, left }}>
+      <div className={'app' + (phase === 'enter' ? ' enter' : '')} ref={ref} style={{ transform: `scale(${scale})`, left }}>
         <Nav />
         {V.title > 0 ? <TitleStudy v={V.title} /> : HDR > 0 ? <HeaderVariant /> : <GameTitle />}
         {V.intro === 'c' && (
@@ -64,10 +76,11 @@ export default function App() {
         <Card />
         <AuthModal />
         <ViewSwitch />
-        <Onboarding />
+        <Onboarding ready={phase === 'live'} />
         <Toast />
         {HDR > 0 && <HeaderSwitch />}
       </div>
+      <AnimatePresence>{phase === 'intro' && <Intro key="intro" onDone={() => setPhase('enter')} />}</AnimatePresence>
     </div>
   );
 }
@@ -120,7 +133,7 @@ function Card() {
         <div className="tabs" role="tablist">
           {TABS.map((k) => (
             <button key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)} role="tab" aria-selected={tab === k}>
-              {tab === k && <motion.span layoutId="tab-hl" className="hl" transition={{ type: 'spring', stiffness: 500, damping: 38 }} />}
+              {tab === k && <motion.span layoutId="tab-hl" className="hl" initial={false} transition={{ type: 'spring', stiffness: 500, damping: 38 }} />}
               {TAB_LABEL[k]}
             </button>
           ))}
@@ -219,11 +232,11 @@ function ViewSwitch() {
       <span className="vs-label">Preview</span>
       <div className="vs-seg">
         <button className={!live ? 'on' : ''} onClick={() => setLive(false)}>
-          {!live && <motion.span layoutId="vs-hl" className="hl" transition={{ type: 'spring', stiffness: 500, damping: 38 }} />}
+          {!live && <motion.span layoutId="vs-hl" className="hl" initial={false} transition={{ type: 'spring', stiffness: 500, damping: 38 }} />}
           My picks
         </button>
         <button className={live ? 'on' : ''} onClick={() => goLive(true)}>
-          {live && <motion.span layoutId="vs-hl" className="hl" transition={{ type: 'spring', stiffness: 500, damping: 38 }} />}
+          {live && <motion.span layoutId="vs-hl" className="hl" initial={false} transition={{ type: 'spring', stiffness: 500, damping: 38 }} />}
           <span className="live-dot" /> Election night
         </button>
       </div>

@@ -36,6 +36,8 @@ interface State {
   user: User | null;
   panelMin: boolean;
   tourDone: boolean;
+  /** the opening transition: the waveform, then the screen assembling itself, then the game */
+  phase: 'intro' | 'enter' | 'live';
   tour: number | null;
   // transient
   auth: { mode: 'signup' | 'login'; reason: AuthReason } | null;
@@ -63,6 +65,7 @@ interface State {
   signOut(): void;
   say(msg: string): void;
   setTour(step: number | null): void;
+  setPhase(phase: 'intro' | 'enter' | 'live'): void;
   setPanelMin(min: boolean): void;
   /** Election Night needs an account and a saved map. */
   goLive(on: boolean): void;
@@ -89,6 +92,7 @@ export const useStore = create<State>()(
       user: null,
       panelMin: false,
       tourDone: false,
+      phase: 'intro',
       tour: null,
       auth: null,
       toast: null,
@@ -180,6 +184,7 @@ export const useStore = create<State>()(
       signOut: () => set({ user: null, live: false, playing: false }),
       say: (msg) => set((s) => ({ toast: { msg, n: (s.toast?.n ?? 0) + 1 } })),
       setPanelMin: (panelMin) => set({ panelMin }),
+      setPhase: (phase) => set({ phase }),
       setTour: (tour) => set({ tour, tourDone: tour === null ? true : get().tourDone }),
       goLive: (on) => {
         const s = get();
