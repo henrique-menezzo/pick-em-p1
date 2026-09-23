@@ -187,7 +187,7 @@ export default function Onboarding({ ready = true }: { ready?: boolean }) {
                 <rect x="0" y="0" width="100%" height="100%" fill="#fff" />
                 {/* the box travels and resizes between steps… */}
                 <motion.rect
-                  rx={18}
+                  rx={spot.r}
                   fill="#000"
                   initial={{ x: spot.x + spot.w * 0.12, y: spot.y + spot.h * 0.12, width: spot.w * 0.76, height: spot.h * 0.76, opacity: 0 }}
                   animate={{ x: spot.x, y: spot.y, width: spot.w, height: spot.h, opacity: dots ? 0 : 1 }}
@@ -240,8 +240,8 @@ export default function Onboarding({ ready = true }: { ready?: boolean }) {
   );
 }
 
-type Spot = { x: number; y: number; w: number; h: number };
-const PAD = 10; // how far the lit area reaches past the element it points at
+type Spot = { x: number; y: number; w: number; h: number; r: number };
+const PAD = 6; // how far the lit area reaches past the element it points at
 /** Measures the element this step points at, after paint, and keeps up with resizes and scrolling. */
 function useSpot(sel: string | undefined, step: number | null): Spot | null {
   const [spot, setSpot] = useState<Spot | null>(null);
@@ -266,9 +266,12 @@ function useSpot(sel: string | undefined, step: number | null): Spot | null {
       const el = document.querySelector(sel);
       if (!el) return setSpot(null);
       const b = el.getBoundingClientRect();
+      // take the element's own corner, so a pill is lit as a pill and a card as a card
+      const br = parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0;
+      const r = Math.max(10, Math.min(br, Math.min(b.width, b.height) / 2) + PAD);
       setSpot((old) => {
-        const next = { x: b.left - PAD, y: b.top - PAD, w: b.width + PAD * 2, h: b.height + PAD * 2 };
-        return old && old.x === next.x && old.y === next.y && old.w === next.w && old.h === next.h ? old : next;
+        const next = { x: b.left - PAD, y: b.top - PAD, w: b.width + PAD * 2, h: b.height + PAD * 2, r };
+        return old && old.x === next.x && old.y === next.y && old.w === next.w && old.h === next.h && old.r === next.r ? old : next;
       });
       raf = requestAnimationFrame(measure); // the panel moves and resizes while you pick
     };
