@@ -48,6 +48,9 @@ const HEIGHTS = `
 
 const STEP = 40;                            // the loop runs at 25fps
 export const INTRO_MS = HEIGHTS.length * STEP;
+/** ?intro=slow plays it four times longer, to watch the hand-over frame by frame */
+const SLOW = new URLSearchParams(location.search).get('intro') === 'slow' ? 4 : 1;
+const DUR = INTRO_MS * SLOW;
 const FADE = 160;                           // the row arrives out of the black, already at rest
 // the row sits a little left of centre in the source frame; put it back on the middle
 const SHIFT = FRAME_W / 2 - (ROW[0][0] - ROW[0][1] / 2 + (ROW[16][0] + ROW[16][1] / 2 - (ROW[0][0] - ROW[0][1] / 2)) / 2);
@@ -59,7 +62,7 @@ export default function Intro({ onDone }: { onDone: () => void }) {
 
   // if animation frames stop coming at all — a background tab — hand over anyway
   useEffect(() => {
-    const h = setTimeout(() => end.current(), INTRO_MS + 3000);
+    const h = setTimeout(() => end.current(), DUR + 3000);
     return () => clearTimeout(h);
   }, []);
 
@@ -82,7 +85,7 @@ export default function Intro({ onDone }: { onDone: () => void }) {
       t += Math.min(now - prev, 64);
       prev = now;
       // read the loop between its own frames, so it plays smooth at whatever the screen refreshes at
-      const f = Math.min(last, t / STEP);
+      const f = Math.min(last, t / (STEP * SLOW));
       const i = Math.floor(f), j = Math.min(last, i + 1), u = f - i;
       g.clearRect(0, 0, el.width, el.height);
       g.globalAlpha = Math.min(1, t / FADE);
@@ -94,7 +97,7 @@ export default function Intro({ onDone }: { onDone: () => void }) {
         g.roundRect((cx + SHIFT - w / 2) * k, (MID - h / 2) * k, w * k, h * k, (w / 2) * k);
         g.fill();
       }
-      if (t >= INTRO_MS && !over) { over = true; end.current(); }
+      if (t >= DUR && !over) { over = true; end.current(); }
       raf = requestAnimationFrame(frame);
     };
     raf = requestAnimationFrame(frame);
