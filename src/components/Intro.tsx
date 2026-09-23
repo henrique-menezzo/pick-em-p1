@@ -17,8 +17,8 @@ const UNIT = 92; // a full-size circle is 92px across
 const W = WAVE.reduce((s, d) => s + d.r * UNIT, 0);
 const H = UNIT;
 
-/** When the map takes over. The waveform stays on screen another 400ms, fading through it. */
-export const INTRO_MS = 1250;
+/** When the map takes over. The waveform stays on screen a moment longer, fading through it. */
+export const INTRO_MS = 900;
 
 export default function Intro({ onDone }: { onDone: () => void }) {
   useEffect(() => {
@@ -32,7 +32,7 @@ export default function Intro({ onDone }: { onDone: () => void }) {
     <motion.div
       className="intro"
       initial={{ opacity: 1 }}
-      exit={{ opacity: 0, scale: 1.14, transition: { duration: 0.42, ease: [0.4, 0, 0.2, 1] } }}
+      exit={{ opacity: 0, scale: 1.08, transition: { duration: 0.28, ease: [0.4, 0, 0.2, 1] } }}
     >
       <svg viewBox={`0 0 ${W} ${H}`} style={{ width: `min(${Math.round(W)}px, 60vw)` }} aria-hidden>
         {WAVE.map((d, i) => {
@@ -46,11 +46,8 @@ export default function Intro({ onDone }: { onDone: () => void }) {
               cy={H / 2}
               r={r}
               fill={d.c}
-              style={{
-                // out from the middle, then one wave travelling left to right
-                ['--in' as string]: Math.round(Math.abs(i - mid) * 34) + 'ms',
-                ['--beat' as string]: Math.round(540 + i * 18) + 'ms',
-              }}
+              // out from the middle, and nothing else: a loader should read at a glance
+              style={{ ['--in' as string]: Math.round(Math.abs(i - mid) * 26) + 'ms' }}
             />
           );
         })}

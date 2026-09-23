@@ -71,7 +71,7 @@ export default function App() {
     <div className="scaler" style={{ height }}>
       {/* the nav's rule is the only thing that bleeds past the 1440 frame: it has to reach both screen edges */}
       {RULE && <div className="page-rule" style={{ top: 64 * scale }} />}
-      <div className={'app' + (phase === 'enter' ? ' enter' : '')} ref={ref} style={{ transform: `scale(${scale})`, left }}>
+      <div className={'app' + (phase === 'enter' ? ' enter' : phase === 'intro' ? ' pre' : '')} ref={ref} style={{ transform: `scale(${scale})`, left }}>
         <Nav />
         {V.title > 0 ? <TitleStudy v={V.title} /> : HDR > 0 ? <HeaderVariant /> : <GameTitle />}
         {V.intro === 'c' && (

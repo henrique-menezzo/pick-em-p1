@@ -780,14 +780,16 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   --intro-ease: cubic-bezier(.22, .61, .36, 1);
   --dot-ease: cubic-bezier(.32, 1.5, .5, 1);
 }
+/* the page waits out of sight: without this, adding .enter snaps every element back to its start
+   state in full view, which reads as the page reloading itself */
+.app.pre { opacity: 0; }
 .intro { position: fixed; inset: 0; z-index: 200; background: var(--bg); display: grid; place-items: center; }
 .intro svg { overflow: visible; }
 .intro circle {
   transform-box: fill-box; transform-origin: center;
-  animation: wave-in .58s var(--dot-ease) backwards var(--in, 0ms), wave-beat .72s var(--intro-ease) var(--beat, 0ms) both;
+  animation: wave-in .46s var(--dot-ease) backwards var(--in, 0ms);
 }
-@keyframes wave-in { from { opacity: 0; transform: scale(.2); } to { opacity: 1; transform: none; } }
-@keyframes wave-beat { 0%, 100% { transform: scaleY(1); } 45% { transform: scaleY(1.9); } }
+@keyframes wave-in { from { opacity: 0; transform: scale(.15); } to { opacity: 1; transform: none; } }
 
 @keyframes letter-in {
   from { opacity: 0; filter: blur(.14em); transform: translateY(.3em); }
