@@ -509,8 +509,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 /* first-visit tour */
 .tour { position: fixed; inset: 0; z-index: 95; pointer-events: none; }
 .tour-card { pointer-events: auto; }
-.tour-mask { position: absolute; inset: 0; background: rgba(6, 6, 6, .72); pointer-events: none; }
-.tour-ring { position: absolute; border-radius: 16px; box-shadow: 0 0 0 1.5px rgba(255, 255, 255, .22); pointer-events: none; }
+/* the focus is a lit area, not an outline: the rest of the screen steps back and the piece in
+   question keeps a barely-there wash and a soft halo */
+.tour-mask { position: absolute; inset: 0; background: rgba(6, 6, 6, .66); pointer-events: none; }
+.tour-ring { position: absolute; border-radius: 16px; background: rgba(255, 255, 255, .025); box-shadow: 0 0 60px 18px rgba(255, 255, 255, .035); pointer-events: none; }
 .tour-card { position: absolute; padding: 18px; border-radius: 18px; background: var(--panel); box-shadow: 0 30px 80px rgba(0, 0, 0, .6); }
 .tour-step { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
 .tour-card h3 { margin: 8px 0 6px; font-size: 18px; font-weight: 600; }

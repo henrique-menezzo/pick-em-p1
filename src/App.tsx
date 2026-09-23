@@ -33,6 +33,7 @@ if (Q.has('reset')) {
   if (V.empty) useStore.setState({ picks: {}, savedAt: null, tab: 'senate', cursor: { senate: RACES.senate[0].id, gov: RACES.gov[0].id, house: RACES.house[0].id } });
   if (Q.has('night')) s.setLive(Q.get('night') !== '0');
   if (Q.has('t')) s.setT(+Q.get('t')!);
+  if (Q.has('tour')) setTimeout(() => useStore.getState().setTour(Number(Q.get('tour')) || 0), 100); // ?tour=0..5 — open a step for review
 }
 
 export default function App() {
