@@ -96,7 +96,7 @@ export default function Onboarding({ ready = true }: { ready?: boolean }) {
   // an empty map meant it never ran. Only a finished (or skipped) tour, or election night, stops it.
   useEffect(() => {
     if (!ready || tourDone || step !== null || live) return;
-    const h = setTimeout(() => useStore.getState().setTour(0), 260);
+    const h = setTimeout(() => useStore.getState().setTour(0), 420);
     return () => clearTimeout(h);
   }, [ready, tourDone, step, live]);
 

@@ -27,15 +27,6 @@ for (const [st, pts] of Object.entries(grid.states as Record<string, number[][]>
   BOX[st] = { x0: Math.min(...xs), y0: Math.min(...ys), x1: Math.max(...xs), y1: Math.max(...ys) };
 }
 const ORDER = Object.keys(BY_ST);
-// the wave reaches each state in turn, top to bottom with a lean to the right and a little jitter,
-// so the map lands in the same rhythm as the hub's dots — per state, because animating all 4129
-// circles at once is what made the entrance stutter
-const IN_MS: Record<string, number> = {};
-ORDER.forEach((st, i) => {
-  const jitter = ((i * 2654435761) % 1000) / 1000;
-  IN_MS[st] = Math.round((BOX[st].y0 / H) * 560 + (BOX[st].x0 / W) * 90 + jitter * 50);
-});
-
 type VB = { x: number; y: number; w: number; h: number };
 const FULL: VB = { x: 0, y: 0, w: W, h: H };
 // The map's frame inside the card (Figma: 199,98 · 966×605). The SVG covers the whole card stage and the
@@ -48,7 +39,7 @@ const COLOR = { R: 'var(--R)', D: 'var(--D)', open: 'var(--dot-open)', none: 'va
 // ---- one state (memoised: circles never re-render, only the group's class/colour changes) ---------
 const StateDots = memo(function StateDots({ st, cls, c, o }: { st: string; cls: string; c: string; o: number }) {
   return (
-    <g className={'st ' + cls} data-st={st} style={{ ['--c' as string]: c, ['--d' as string]: IN_MS[st] + 'ms', opacity: o }}>
+    <g className={'st ' + cls} data-st={st} style={{ ['--c' as string]: c, opacity: o }}>
       {BY_ST[st].map((d) => (
         <circle key={d.i} data-i={d.i} cx={d.x} cy={d.y} r={d.r} className={d.seam ? 'sm' : undefined} />
       ))}
@@ -56,7 +47,63 @@ const StateDots = memo(function StateDots({ st, cls, c, o }: { st: string; cls: 
   );
 });
 
+/**
+ * The map's entrance. Every dot grows, in one continuous front from the top of the country down —
+ * all 4129 of them, drawn on a canvas over the real map. Doing it in the DOM meant 4129 css
+ * animations and a stutter; here it is one paint per frame and the front stays smooth.
+ */
+function MapIntro({ svg, vb, onDone }: { svg: React.RefObject<SVGSVGElement | null>; vb: string; onDone: () => void }) {
+  const cvs = useRef<HTMLCanvasElement>(null);
+  const [done, setDone] = useState(false);
+  const end = useRef(onDone);
+  end.current = onDone;
+  useLayoutEffect(() => {
+    const el = cvs.current, s = svg.current;
+    if (!el || !s) return;
+    // the layout box, not the painted one: the whole page sits inside a scaled wrapper
+    const bw = s.clientWidth, bh = s.clientHeight;
+    const [vx, vy, vw] = vb.split(' ').map(Number);
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    el.width = Math.round(bw * dpr);
+    el.height = Math.round(bh * dpr);
+    const g = el.getContext('2d')!;
+    const k = (bw / vw) * dpr; // viewBox units to canvas pixels
+    // each state's colour as the browser resolved it, so the canvas and the svg agree
+    const fill: Record<string, string> = {};
+    for (const st of ORDER) {
+      const c = s.querySelector(`g[data-st="${st}"] circle:not(.sm)`);
+      fill[st] = c ? getComputedStyle(c).fill : '#515151';
+    }
+    const DUR = 520, SPAN = 700;
+    const delay = CELLS.map((d, i) => ((d.y / H) * SPAN) + (d.x / W) * 70 + (((i * 2654435761) % 1000) / 1000) * 45);
+    const ease = (p: number) => 1 - Math.pow(1 - p, 3);
+    let raf = 0;
+    const t0 = performance.now();
+    const frame = (now: number) => {
+      const t = now - t0;
+      g.clearRect(0, 0, el.width, el.height);
+      for (let i = 0; i < CELLS.length; i++) {
+        const d = CELLS[i];
+        if (d.seam) continue;
+        const p = (t - delay[i]) / DUR;
+        if (p <= 0) continue;
+        const e = p >= 1 ? 1 : ease(p);
+        g.beginPath();
+        g.arc((d.x - vx) * k, (d.y - vy) * k, d.r * k * e, 0, 6.2832);
+        g.fillStyle = fill[d.st];
+        g.fill();
+      }
+      if (t < SPAN + DUR + 60) raf = requestAnimationFrame(frame);
+      else { setDone(true); end.current(); }
+    };
+    raf = requestAnimationFrame(frame);
+    return () => cancelAnimationFrame(raf);
+  }, [svg, vb]);
+  return <canvas ref={cvs} className={'mapfx' + (done ? ' out' : '')} aria-hidden />;
+}
+
 export default function DotMap() {
+  const [fxDone, setFxDone] = useState(false);
   const tab = useStore((s) => s.tab);
   const picks = useStore((s) => s.picks);
   const curId = useStore((s) => s.cursor[s.tab]);
@@ -187,10 +234,10 @@ export default function DotMap() {
 
   return (
     <>
-      <div className="mapbox">
+      <div className={'mapbox' + (phase === 'enter' && !fxDone ? ' entering' : '')}>
         <svg
           ref={svgRef}
-          className={'map' + (live ? ' live' : '') + (phase === 'enter' ? ' enter' : '')}
+          className={'map' + (live ? ' live' : '')}
           viewBox={outer}
           onPointerMove={onMove}
           onPointerLeave={onLeave}
@@ -201,6 +248,7 @@ export default function DotMap() {
             <StateDots key={st} st={st} {...looks[st]} />
           ))}
         </svg>
+        {phase === 'enter' && <MapIntro svg={svgRef} vb={outer} onDone={() => setFxDone(true)} />}
       </div>
 
       {hov && !(badge && BY_ID[badge.id].state === hov.st) &&

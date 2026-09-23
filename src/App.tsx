@@ -56,7 +56,7 @@ export default function App() {
   useEffect(() => { if (SKIP_INTRO) setPhase('live'); }, [setPhase]);
   useEffect(() => {
     if (phase !== 'enter') return;
-    const h = setTimeout(() => setPhase('live'), 1800);
+    const h = setTimeout(() => setPhase('live'), 1400);
     return () => clearTimeout(h);
   }, [phase, setPhase]);
   if (V.mobile || isPhone) return (
@@ -274,7 +274,7 @@ function GameTitle() {
         <Icon name="arrowLeft" size={16} stroke={1.8} /> The Midterms
       </a>
       <div className="gtitle">
-        <h1><Letters text="Midterms Pick Em" base={110} /></h1>
+        <h1><Letters text="Midterms Pick Em" base={240} step={24} /></h1>
         {live ? <p className="sub"><i className="sd live-dot" />Live results</p> : <LockLine />}
       </div>
       <span className="ghead-r">

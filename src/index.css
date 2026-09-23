@@ -772,16 +772,23 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .hdrswitch .all { height: 26px; padding: 0 10px; display: inline-flex; align-items: center; border-radius: 999px; background: rgba(255, 255, 255, .06); color: var(--muted); font-weight: 500; transition: background .2s, color .2s; }
 .hdrswitch .all:hover { background: rgba(255, 255, 255, .1); color: var(--fg); }
 
-/* ---- the opening: the waveform, then the screen assembling itself --------------------------- */
-.intro { position: fixed; inset: 0; z-index: 200; background: var(--bg); display: grid; place-items: center; }
-.intro img { width: min(820px, 62vw); height: auto; display: block; }
-
-/* The opening language of the Election Hub prototype: letters out of a blur, everything else
-   rising, and the dots dropping in row by row with a little overshoot. */
+/* ---- the opening ----------------------------------------------------------------------------
+   One movement, not two: the waveform draws itself from the middle out, breathes once, and the map
+   blooms outward from the same line while it fades through. Everything else arrives in the map's
+   wake, heaviest last, and the tour waits for the screen to settle. */
 :root {
   --intro-ease: cubic-bezier(.22, .61, .36, 1);
   --dot-ease: cubic-bezier(.32, 1.5, .5, 1);
 }
+.intro { position: fixed; inset: 0; z-index: 200; background: var(--bg); display: grid; place-items: center; }
+.intro svg { overflow: visible; }
+.intro circle {
+  transform-box: fill-box; transform-origin: center;
+  animation: wave-in .58s var(--dot-ease) backwards var(--in, 0ms), wave-beat .72s var(--intro-ease) var(--beat, 0ms) both;
+}
+@keyframes wave-in { from { opacity: 0; transform: scale(.2); } to { opacity: 1; transform: none; } }
+@keyframes wave-beat { 0%, 100% { transform: scaleY(1); } 45% { transform: scaleY(1.9); } }
+
 @keyframes letter-in {
   from { opacity: 0; filter: blur(.14em); transform: translateY(.3em); }
   to { opacity: 1; filter: blur(0); transform: none; }
@@ -790,31 +797,44 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   from { opacity: 0; transform: translateY(.42em); }
   to { opacity: 1; transform: none; }
 }
+/* the tabs are centred with a transform, so their entrance has to carry it or they slide in from
+   the right — the same trap for anything positioned with translateX(-50%) */
+@keyframes rise-in-cx {
+  from { opacity: 0; transform: translateX(-50%) translateY(.42em); }
+  to { opacity: 1; transform: translateX(-50%); }
+}
 @keyframes dot-in {
-  0% { opacity: 0; transform: translateY(-5px) scale(.3); }
+  0% { opacity: 0; transform: translateY(-5px) scale(.25); }
   60% { opacity: 1; }
   to { opacity: 1; transform: none; }
 }
 
+/* the map leads — it is what the screen is about. Its entrance is painted on a canvas over the top
+   (see MapIntro): one continuous front of growing dots, with the real map held back underneath. */
+.mapbox.entering .map { opacity: 0; }
+.mapfx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; transition: opacity .18s ease; }
+.mapfx.out { opacity: 0; }
+.mapbox.entering .map { transition: opacity .2s ease .1s; }
+
+/* then the furniture, in the map's wake: light things first, the heavy panel and footer last */
 .letter { display: inline-block; }
-.app.enter .letter { animation: letter-in .52s var(--intro-ease) backwards; animation-delay: var(--d, 0ms); }
+.app.enter .letter { animation: letter-in .5s var(--intro-ease) backwards; animation-delay: var(--d, 0ms); }
 .app.enter .nav, .app.enter .gtitle .sub, .app.enter .head, .app.enter .tabs, .app.enter .pal-anchor,
 .app.enter .legend, .app.enter .tally, .app.enter .progress, .app.enter .foot {
-  animation: rise-in .44s var(--intro-ease) backwards;
+  animation: rise-in .46s var(--intro-ease) backwards;
   animation-delay: var(--d, 0ms);
 }
-.app.enter .nav { --d: 40ms; }
-.app.enter .gtitle .sub { --d: 360ms; }
-.app.enter .head { --d: 260ms; }
-.app.enter .tabs { --d: 300ms; }
-.app.enter .pal-anchor { --d: 430ms; }
-.app.enter .legend, .app.enter .tally { --d: 520ms; }
-.app.enter .progress { --d: 560ms; }
-.app.enter .foot { --d: 600ms; }
+.app.enter .nav { --d: 120ms; }
+.app.enter .gtitle .sub { --d: 420ms; }
+.app.enter .head { --d: 520ms; }
+.app.enter .tabs { --d: 560ms; animation-name: rise-in-cx; }
+.app.enter .pal-anchor { --d: 700ms; }
+.app.enter .legend, .app.enter .tally { --d: 780ms; }
+.app.enter .progress { --d: 820ms; }
+.app.enter .foot { --d: 860ms; }
 
-/* the map: every dot drops in, row by row from the top, with a small left-to-right lean */
-.map.enter .st {
-  transform-box: fill-box; transform-origin: center;
-  animation: dot-in .52s var(--dot-ease) backwards;
-  animation-delay: calc(240ms + var(--d, 0ms));
+@media (prefers-reduced-motion: reduce) {
+  .intro circle, .app.enter .letter, .app.enter .nav, .app.enter .gtitle .sub, .app.enter .head,
+  .app.enter .tabs, .app.enter .pal-anchor, .app.enter .legend, .app.enter .tally,
+  .app.enter .progress, .app.enter .foot { animation: none; }
 }
