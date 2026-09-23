@@ -16,6 +16,8 @@ type Step = {
   wait?: (done: () => void) => () => void;
   /** which edge the card lines up with — its own, or the target's left / right edge */
   align?: 'start' | 'end';
+  /** hang the card from the target's lower edge instead of looking for room beside it */
+  dock?: 'bottom';
 };
 
 const picksOf = () => useStore.getState().picks;
@@ -30,11 +32,13 @@ const STEPS: Step[] = [
     title: 'This is your map',
     body: 'Every dot is a state. Grey states still need a pick; the ones you call turn red or blue.',
     aim: '.mapbox',
+    dock: 'bottom',
   },
   {
     title: 'Click a state to pick',
     body: 'Try it now: click any grey state on the map and it becomes your Republican pick.',
     aim: '.mapbox',
+    dock: 'bottom',
     ask: 'Click a state to continue',
     wait: (done) => {
       const before = Object.keys(picksOf()).length;
@@ -45,6 +49,7 @@ const STEPS: Step[] = [
     title: 'Click again to switch',
     body: 'A second click on the same state switches it to the Democrat, a third clears it.',
     aim: '.mapbox',
+    dock: 'bottom',
     ask: 'Switch one of your picks',
     wait: (done) => {
       const before = { ...picksOf() };
@@ -85,16 +90,15 @@ export default function Onboarding() {
   const tourDone = useStore((s) => s.tourDone);
   const setTour = useStore((s) => s.setTour);
   const live = useStore((s) => s.live);
-  const picks = useStore((s) => s.picks);
   const [ok, setOk] = useState(false); // the step's action just happened
 
-  // first visit (nothing picked, tour never finished) starts it on its own
+  // every first visit gets the tour: the map arrives with a few races already called, so waiting for
+  // an empty map meant it never ran. Only a finished (or skipped) tour, or election night, stops it.
   useEffect(() => {
-    if (!tourDone && step === null && !live && Object.keys(picks).length === 0) {
-      const h = setTimeout(() => useStore.getState().setTour(0), 700);
-      return () => clearTimeout(h);
-    }
-  }, [tourDone, step, live, picks]);
+    if (tourDone || step !== null || live) return;
+    const h = setTimeout(() => useStore.getState().setTour(0), 700);
+    return () => clearTimeout(h);
+  }, [tourDone, step, live]);
 
   const s = step === null ? null : STEPS[step];
   const next = () => (step! >= STEPS.length - 1 ? setTour(null) : setTour(step! + 1));
@@ -154,7 +158,7 @@ export default function Onboarding() {
           <motion.div
             ref={card}
             className="tour-card"
-            style={spot ? place(spot, size, s.align) : { left: '50%', top: '40%', transform: 'translate(-50%,-50%)' }}
+            style={spot ? place(spot, size, s.align, s.dock) : { left: '50%', top: '40%', transform: 'translate(-50%,-50%)' }}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 8 }}
@@ -234,7 +238,7 @@ function maskPath(s: Spot) {
  * so large that nothing fits beside it does the card come inside, docked low and centred — the same
  * place for every step that points at the map, so it doesn't hop about between steps.
  */
-function place(s: Spot, c: { w: number; h: number }, align?: 'start' | 'end') {
+function place(s: Spot, c: { w: number; h: number }, align?: 'start' | 'end', dock?: 'bottom') {
   const M = 20, G = 14;
   const vw = innerWidth, vh = innerHeight;
   const cx = s.x + s.w / 2, cy = s.y + s.h / 2;
@@ -242,7 +246,12 @@ function place(s: Spot, c: { w: number; h: number }, align?: 'start' | 'end') {
   const clampY = (t: number) => Math.min(Math.max(M, t), vh - c.h - M);
   // the spot carries PAD around the element, so line up with the element itself, not with the halo
   const x = align === 'start' ? clampX(s.x + PAD) : align === 'end' ? clampX(s.x + s.w - PAD - c.w) : clampX(cx - c.w / 2);
-  // under it first, then over it, then beside it — a card below what it explains reads as its caption
+  // hanging from the target's lower edge, with 76px of clearance so the card never lands on the
+  // prototype switch at the bottom of the window
+  const hang = { left: x, top: clampY(Math.min(s.y + s.h - c.h - G, vh - c.h - M - 76)) };
+  if (dock === 'bottom') return hang;
+  // otherwise: under it first, then over it, then beside it — a card below what it explains reads
+  // as its caption
   const sides = [
     { room: vh - (s.y + s.h), need: c.h + G + M, left: x, top: s.y + s.h + G },
     { room: s.y, need: c.h + G + M, left: x, top: s.y - G - c.h },
@@ -251,7 +260,5 @@ function place(s: Spot, c: { w: number; h: number }, align?: 'start' | 'end') {
   ];
   const fit = sides.find((p) => p.room >= p.need);
   if (fit) return { left: fit.left, top: fit.top };
-  // nothing fits beside it — the map fills the screen — so the card hangs from its lower edge,
-  // with 76px of clearance so it never lands on the prototype switch at the bottom of the window
-  return { left: x, top: clampY(Math.min(s.y + s.h - c.h - G, vh - c.h - M - 76)) };
+  return hang; // nothing fits beside it: hang the card from the target's lower edge
 }
