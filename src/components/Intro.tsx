@@ -1,7 +1,8 @@
-// The opening. A row of capsules — circles at rest — with a wave running through them, the way the
-// reference loop behaves: each one stretches into a bar as the wave passes and settles back into a
-// circle. Painted on a canvas so the caps stay perfectly round at any height, and so the whole
-// thing costs one draw call per frame.
+// The opening. A row of capsules with a swell running through them, the way the reference loop
+// behaves: a broad wave is already alive when the row appears, so at any instant some are stretching
+// tall and narrow while their neighbours are settling back — one body of liquid being squeezed
+// along its length. Painted on a canvas so the caps stay perfectly round at any height, and so the
+// whole thing costs one draw call per frame.
 import { useEffect, useLayoutEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 
@@ -18,9 +19,9 @@ const UNIT = 150;                                   // the biggest circle is 150
 const W = WAVE.reduce((s, d) => s + d.r * UNIT, 0); // the row at its natural size
 const H = UNIT * 3.6;                               // headroom for the tallest bar
 
-const FADE = 300;  // each capsule fades in
-const RISE = 520;  // the wave takes this long to pass through one of them
-const STEP = 30;   // and this long to move to the next
+const FADE = 240;    // the row fades in, centre first — the swell is already running underneath
+const PERIOD = 780;  // one full breath
+const WL = 1.05;     // one wave spans the row, so a crest and a trough are on screen together
 export const INTRO_MS = 950;
 
 export default function Intro({ onDone }: { onDone: () => void }) {
@@ -41,31 +42,43 @@ export default function Intro({ onDone }: { onDone: () => void }) {
     const g = el.getContext('2d')!;
     const mid = (WAVE.length - 1) / 2;
 
-    // lay the row out once: touching capsules, centred
-    let x = 0;
+    // each capsule's resting size, its place along the row (0..1) and how far it can stretch
+    let acc = 0;
     const bars = WAVE.map((d, i) => {
       const w = d.r * UNIT;
-      const b = { x: (x + w / 2) * k, w: w * k, c: d.c, amp: 2.5 + (1 - d.r) * 1.4, in: Math.abs(i - mid) * 22, up: 120 + i * STEP };
-      x += w;
+      const b = { w, u: (acc + w / 2) / W, c: d.c, amp: 1.6 + (1 - d.r) * 1.3, in: Math.abs(i - mid) * 20 };
+      acc += w;
       return b;
     });
     const cy = (H / 2) * k;
-    // there and back on a sine, so a bar leaves as gently as it arrives
-    const swell = (p: number) => (p <= 0 || p >= 1 ? 0 : Math.sin(p * Math.PI) ** 2);
 
     let raf = 0;
     const t0 = performance.now();
     const frame = (now: number) => {
       const t = now - t0;
+
+      // stretch tall, and give the width back: the row keeps its mass, so it reads as one body of
+      // liquid being squeezed rather than seventeen meters reacting to a beat. The wave runs from
+      // the first frame, so nothing waits its turn — each capsule is already on its way up or down.
+      const shape = bars.map((b) => {
+        const s = 1 + b.amp * (0.5 + 0.5 * Math.cos(2 * Math.PI * (t / PERIOD - b.u / WL)));
+        return { ...b, h: b.w * s, ww: b.w / Math.sqrt(s) };
+      });
+
+      // relay the row out from its live widths, centred, so the capsules stay touching as they move
+      const total = shape.reduce((s, b) => s + b.ww, 0);
+      let x = (W - total) / 2;
+
       g.clearRect(0, 0, el.width, el.height);
-      for (const b of bars) {
+      for (const b of shape) {
         const a = Math.min(1, Math.max(0, (t - b.in) / FADE));
+        const cx = x + b.ww / 2;
+        x += b.ww;
         if (a <= 0) continue;
-        const h = b.w * (1 + (b.amp - 1) * swell((t - b.up) / RISE));
         g.globalAlpha = a;
         g.fillStyle = b.c;
         g.beginPath();
-        g.roundRect(b.x - b.w / 2, cy - h / 2, b.w, h, b.w / 2);
+        g.roundRect((cx - b.ww / 2) * k, cy - (b.h / 2) * k, b.ww * k, b.h * k, (b.ww / 2) * k);
         g.fill();
       }
       raf = requestAnimationFrame(frame);
@@ -80,7 +93,12 @@ export default function Intro({ onDone }: { onDone: () => void }) {
       initial={{ opacity: 1 }}
       exit={{ opacity: 0, scale: 1.08, transition: { duration: 0.28, ease: [0.4, 0, 0.2, 1] } }}
     >
-      <canvas ref={cvs} style={{ width: `min(760px, 58vw)`, aspectRatio: `${W} / ${H}` }} aria-hidden />
+      <motion.canvas
+        ref={cvs}
+        initial={{ scale: 0.94 }}
+        animate={{ scale: 1, transition: { duration: 0.42, ease: [0.2, 0.7, 0.2, 1] } }}        style={{ width: `min(760px, 58vw)`, aspectRatio: `${W} / ${H}` }}
+        aria-hidden
+      />
     </motion.div>
   );
 }
