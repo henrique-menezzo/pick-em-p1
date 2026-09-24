@@ -82,7 +82,10 @@ export default function DotMap() {
       const dim = off ? 0.6 : 1;
       const dimGrey = off ? 0.8 : 1;
       const hv = hov?.st === st || HELD.has(st) ? ' hov' : '';
-      if (!race) { out[st] = { cls: 'nr' + hv, c: COLOR.none, o: off ? 0.85 : 1, label: false }; continue; }
+      // No race here this chamber: the state still looks like any other state on the map — the map
+      // is never a field of greyed-out shapes. It just has nothing to give when you click it, and
+      // the tooltip says so.
+      if (!race) { out[st] = { cls: 'nr' + hv, c: COLOR.open, o: off ? 0.85 : 1, label: false }; continue; }
       const pick = picks[race.id];
       const sel = showSel && race.id === curId;
       if (!live) {

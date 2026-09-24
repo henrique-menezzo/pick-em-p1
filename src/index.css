@@ -18,7 +18,8 @@
   /* ---- the map, straight off the design system (Semantics/Color) ---------------------------- */
   --dot-open: #292929;      /* background/neutral/subtlest/default — a race still to call */
   --dot-open-hv: #424242;   /* background/neutral/subtlest/hovered — the DS's own hover fill */
-  --dot-none: #5c5c5c;      /* on-background/neutral/subtle/disabled — the one disabled state */
+  --dot-none: #5c5c5c;      /* on-background/neutral/subtle/disabled — kept for a single state that
+                               is genuinely disabled (a locked race); never a whole region of them */
   --map-seam: #151515;      /* background/neutral/subtle/default — the gap between states */
   --map-label: #8f8f8f;     /* text/neutral/subtlest/default */
   --map-label-off: #424242; /* text/neutral/subtlest/disabled */
@@ -318,11 +319,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 /* a state with no race in this chamber is not a thing you can act on: it keeps no seam of its
    own, so the whole set reads as one quiet landmass instead of fifty dead buttons — and it
    answers nothing, not even the pointer */
-.map .st.nr path { stroke: var(--map-seam); }
-.map .st.nr .lb { fill: var(--map-label-off); }
-/* out of play: the one disabled state. It answers nothing — no light, no pointer */
-.map .st.nr, .map .st.nr .lb { pointer-events: none; }
-.map .st.nr .hi, .map .st.nr.hov .hi { opacity: 0; }
+/* A state with no race this chamber is not painted as disabled: it carries the same fill as any
+   other, answers the pointer the same way, and the tooltip is what tells you there is nothing to
+   call here. Disabled is a state of one element, never a field of grey shapes across the map. */
+.map .st.nr .lb { fill: var(--map-label); }
 
 /* pick badge: the candidate you just picked by clicking the map, next to the state */
 .pick-badge { position: fixed; z-index: 62; pointer-events: none; min-width: 200px; border-radius: 14px; background: var(--panel); padding: 10px 12px; box-shadow: 0 18px 50px rgba(0, 0, 0, .55); overflow: hidden; }
