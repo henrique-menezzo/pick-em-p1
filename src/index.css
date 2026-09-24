@@ -16,8 +16,10 @@
   --R-face: #d71e28;
   --D-face: #0044c9;
   /* ---- the map, straight off the design system (Semantics/Color) ---------------------------- */
-  --dot-open: #292929;      /* background/neutral/subtlest/default — a race still to call */
-  --dot-open-hv: #424242;   /* background/neutral/subtlest/hovered — the DS's own hover fill */
+  --bg-subtlest: #292929;    /* background/neutral/subtlest/default */
+  --bg-subtlest-hi: #424242; /* background/neutral/subtlest/hovered */
+  --dot-open: var(--bg-subtlest);      /* a race still to call */
+  --dot-open-hv: var(--bg-subtlest-hi);
   --dot-none: #5c5c5c;      /* on-background/neutral/subtle/disabled — kept for a single state that
                                is genuinely disabled (a locked race); never a whole region of them */
   --map-seam: #151515;      /* background/neutral/subtle/default — the gap between states */
@@ -78,17 +80,17 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .back svg, .help svg { opacity: .8; }
 .back:hover svg, .help:hover svg { opacity: 1; }
 .gtitle { text-align: center; }
-.gtitle h1 { margin: 0; font-size: 30px; line-height: 1.1; font-weight: 600; letter-spacing: -.4px; }
+.gtitle h1 { margin: 0; font-size: 32px; line-height: 1.1; font-weight: 600; letter-spacing: -.4px; }
 .gtitle .sub { margin: 5px 0 0; display: flex; align-items: center; justify-content: center; gap: 7px; font-size: 16px; line-height: 1; color: var(--muted); }
-.gtitle .sub b { color: #b8b8b8; font-weight: 500; font-variant-numeric: tabular-nums; letter-spacing: .01em; }
+.gtitle .sub b { color: var(--muted); font-weight: 400; font-variant-numeric: tabular-nums; letter-spacing: .01em; }
 .gtitle .sub .sd { width: 7px; height: 7px; border-radius: 50%; background: var(--R); }
 
 /* the identity block sits on the same centre line as the tabs, so the card's top reads as one row */
 .head { position: absolute; left: 44px; top: 51px; height: 43px; display: flex; align-items: center; z-index: 5; }
 .head .who-btn { display: flex; gap: 12px; align-items: center; text-align: left; padding: 0 12px 0 0; border-radius: 999px; }
-.head .av { width: 40px; height: 40px; border-radius: 999px; background: #2e2e2e; color: #d6d6d6; display: grid; place-items: center; flex: none; transition: background .2s, color .2s; }
-.head .av.me { background: #3a3a3a; color: var(--fg); font-size: 14px; font-weight: 600; letter-spacing: .04em; }
-.head .who-btn:hover .av { background: #404040; color: var(--fg); }
+.head .av { width: 54px; height: 54px; border-radius: 999px; background: var(--bg-subtlest); color: var(--muted); display: grid; place-items: center; flex: none; transition: background .2s, color .2s; }
+.head .av.me { background: var(--bg-subtlest-hi); color: var(--fg); font-size: 15px; font-weight: 600; letter-spacing: .04em; }
+.head .who-btn:hover .av { background: var(--bg-subtlest-hi); color: var(--fg); }
 .head .tx { display: flex; flex-direction: column; gap: 6px; }
 .head .t1 { font-size: 15px; font-weight: 600; line-height: 1; }
 .head .t2 { display: flex; align-items: center; gap: 5px; font-size: 13px; line-height: 1; color: #b0b0b0; }
@@ -120,11 +122,11 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .who-menu .em { padding: 10px 10px 8px; font-size: 12px; color: var(--muted); }
 .who-menu button { width: 100%; text-align: left; height: 36px; padding: 0 10px; border-radius: 9px; font-size: 13px; font-weight: 500; }
 .who-menu button:hover { background: var(--pill); }
-.tabs { position: absolute; left: 50%; top: 51px; transform: translateX(-50%); display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: rgba(255, 255, 255, .04); }
-.tabs button { position: relative; height: 37px; padding: 0 18px; border-radius: 999px; font-size: 14px; font-weight: 500; color: var(--muted); z-index: 0; transition: color .2s; }
+.tabs { position: absolute; left: 50%; top: 51px; transform: translateX(-50%); display: flex; gap: 2px; padding: 4px; border-radius: 999px; background: var(--bg-subtlest); }
+.tabs button { position: relative; height: 46px; padding: 0 18px; border-radius: 999px; font-size: 14px; font-weight: 500; color: var(--muted); z-index: 0; transition: color .2s; }
 .tabs button:hover { color: var(--fg); }
-.tabs button.on { color: var(--fg); font-weight: 600; }
-.tabs .hl { position: absolute; inset: 0; border-radius: 999px; background: var(--pill); z-index: -1; }
+.tabs button.on { color: var(--fg); }
+.tabs .hl { position: absolute; inset: 0; border-radius: 999px; background: var(--bg-subtlest-hi); z-index: -1; }
 
 .mapbox { position: absolute; inset: 0; border-radius: 24px 24px 0 0; overflow: hidden;
   /* the map dissolves into the card instead of ending on a hard edge */
@@ -831,8 +833,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   --muted: #5c5c5c;
   --dim: #8f8f8f;
   --line: #dfdfdf;
-  --dot-open: #dfdfdf;
-  --dot-open-hv: #d1d1d1;
+  --bg-subtlest: #dfdfdf;
+  --bg-subtlest-hi: #d1d1d1;
+  --dot-open: var(--bg-subtlest);
+  --dot-open-hv: var(--bg-subtlest-hi);
   --dot-none: #d1d1d1;
   --map-seam: #f0f0f0;
   --map-label: #5c5c5c;
