@@ -25,6 +25,9 @@ for (const st of ORDER) DELAY[st] = ((BOX[st].y0 - TOP) / (BOTTOM - TOP)) * 620;
 type VB = { x: number; y: number; w: number; h: number };
 const FULL: VB = { x: 0, y: 0, w: 1067, h: 566 };
 
+/** ?hover=fill — try the DS's own hovered fill instead of the lift */
+const HOVER_FILL = new URLSearchParams(location.search).get('hover') === 'fill';
+
 const COLOR = { R: 'var(--R)', D: 'var(--D)', open: 'var(--dot-open)', none: 'var(--dot-none)', pending: 'var(--dot-pending)' };
 
 // ---- one state: its shape, and its abbreviation on top -------------------------------------------
@@ -154,7 +157,7 @@ export default function DotMap() {
       <div className={'mapbox' + (phase === 'enter' ? ' entering' : '')}>
         <svg
           ref={svgRef}
-          className={'map' + (live ? ' live' : '')}
+          className={'map' + (live ? ' live' : '') + (HOVER_FILL ? ' hv-fill' : '')}
           viewBox={FRAME_VB}
           onPointerMove={onMove}
           onPointerLeave={onLeave}

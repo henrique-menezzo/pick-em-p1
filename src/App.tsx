@@ -23,6 +23,10 @@ import { RACES } from './data/races';
 // ?reset · ?night=1&t=220 · ?fill=1 · ?lock=N — handy for reviews and screenshots
 const Q = new URLSearchParams(location.search);
 const RULE = Q.get('rule') !== '0'; // ?rule=0 — the nav without its hairline, for comparison
+// ?theme=light — the same design-system tokens in Light mode
+if (Q.get('theme') === 'light') document.documentElement.dataset.theme = 'light';
+// ?off=quiet — out of play dissolves into the card instead of taking the DS's disabled grey
+if (Q.get('off')) document.documentElement.dataset.off = Q.get('off')!;
 const SKIP_INTRO = Q.get('intro') === '0' || Q.has('tour') || Q.has('board');
 if (Q.has('reset')) {
   localStorage.removeItem('pick-em-p1');

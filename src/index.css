@@ -4,20 +4,31 @@
 :root {
   --bg: #0a0909;
   --card: #151515;
-  --panel: #1e1e1e;
+  --panel: #1e1e1e;   /* the raised surface over the map */
   --pill: #292929;
   --avatar: #303030;
   --fg: #fafafa;
   --muted: #8f8f8f;
   --dim: #616161;
   --line: #292929;
-  --R: #fc002c;
-  --D: #1f5eff;
+  --R: #fc002c;       /* DS background/rep/bold/default */
+  --D: #0f45db;       /* DS background/dem/bold/default */
   --R-face: #d71e28;
   --D-face: #0044c9;
-  --dot-open: #3a3a3a;   /* map: race still to call — dark, but separated and labelled */
-  --dot-none: #1d1d1d;   /* map: no race in this section — one inert mass just above the card */
-  --dot-pending: #383838; /* election night: not called yet */
+  /* ---- the map, straight off the design system (Semantics/Color) ---------------------------- */
+  --dot-open: #292929;      /* background/neutral/subtlest/default — a race still to call */
+  --dot-open-hv: #424242;   /* background/neutral/subtlest/hovered — the DS's own hover fill */
+  --dot-none: #5c5c5c;      /* on-background/neutral/subtle/disabled — the one disabled state */
+  --map-seam: #151515;      /* background/neutral/subtle/default — the gap between states */
+  --map-label: #8f8f8f;     /* text/neutral/subtlest/default */
+  --map-label-off: #424242; /* text/neutral/subtlest/disabled */
+  --map-label-on: #fafafa;  /* text/always/light */
+  --map-label-hv: #fafafa;  /* text/neutral/bold/default */
+  /* elevation is the only thing the DS has no token for, so it is the only thing invented here:
+     in the dark the state catches light, in the light it casts a shadow. Same gesture either way. */
+  --lift: drop-shadow(0 4px 7px rgba(0, 0, 0, .55)) drop-shadow(0 0 7px rgba(250, 250, 250, .16));
+  --lift-hard: drop-shadow(0 6px 11px rgba(0, 0, 0, .65)) drop-shadow(0 0 10px rgba(250, 250, 250, .26));
+  --dot-pending: #383838;
   --mx-open: #3a3a3a;    /* matrix: open race */
   --ease: cubic-bezier(.2, .8, .2, 1);
 }
@@ -121,10 +132,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .map .st { transition: opacity .35s ease; transform-box: fill-box; transform-origin: center; }
 /* one shape per state. The hairline is the card showing through, so states read as separated
    without anything that looks like a border around them. */
-.map .st path { fill: var(--c); stroke: var(--card); stroke-width: 1.2; stroke-linejoin: round;
-  transform-box: fill-box; transform-origin: center; transition: fill .35s ease; }
-.map .st .lb { fill: var(--muted); font-weight: 600; letter-spacing: .02em; pointer-events: none; user-select: none; transition: fill .3s ease; }
-.map .st .lb.on { fill: #fafafa; }
+.map .st path { fill: var(--c); stroke: var(--map-seam); stroke-width: 1.2; stroke-linejoin: round;
+  transform-box: fill-box; transform-origin: center; transition: fill .35s ease, stroke-width .18s var(--ease); }
+.map .st .lb { fill: var(--map-label); font-weight: 700; letter-spacing: .02em; pointer-events: none; user-select: none; transition: fill .25s ease; }
+.map .st .lb.on { fill: var(--map-label-on); }
 .map .st.counting path { animation: breathe 4s ease-in-out infinite; }
 @keyframes breathe { 50% { opacity: .72; } }
 /* election night: calls ease in slowly instead of popping */
@@ -204,7 +215,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 
 /* ---- right panel ("palette") ------------------------------------------------------------------ */
 .pal-anchor { position: absolute; right: 44px; top: 48px; z-index: 20; } /* same 44px margin as everything else; top aligned with the tabs */
-.pal { position: absolute; right: 0; top: 0; width: 300px; border-radius: 22px; background: linear-gradient(180deg, #212121, #1b1b1b); padding: 18px 16px 14px; box-shadow: 0 30px 80px rgba(0, 0, 0, .4); }
+.pal { position: absolute; right: 0; top: 0; width: 300px; border-radius: 22px; background: var(--panel); padding: 18px 16px 14px; box-shadow: 0 30px 80px rgba(0, 0, 0, .4); }
 .flag { width: 22px; height: 15px; border-radius: 3px; object-fit: cover; flex: none; display: block; }
 .flag.sm { width: 18px; height: 12px; border-radius: 2px; }
 
@@ -278,20 +289,29 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 
 .toast { position: fixed; left: 50%; bottom: 28px; z-index: 80; background: var(--fg); color: #0a0909; padding: 12px 18px; border-radius: 999px; font-size: 14px; font-weight: 600; white-space: nowrap; display: flex; gap: 8px; align-items: center; }
 
-/* One grammar for the whole map: a state's fill says what it IS (open, called, out of play) and
-   never what is happening to it. Attention is always a halo around the shape, so a light grey
-   fill can go on meaning one thing only — and it never means "selected". */
-.map .st:not(.pk).hov { filter: drop-shadow(0 0 9px rgba(250, 250, 250, .32)); }
-.map .st:not(.pk).hov .lb { fill: var(--fg); }
-.map .st.sel:not(.pk) { filter: drop-shadow(0 0 10px rgba(250, 250, 250, .48)); }
-.map .st.sel:not(.pk).hov { filter: drop-shadow(0 0 15px rgba(250, 250, 250, .6)); }
+/* One grammar for the whole map. The fill says what a state IS — in play, out of play, called
+   red, called blue — and nothing else ever touches it. What is under your pointer LIFTS: it rises
+   a couple of pixels, opens its seam, and brightens its label. That gesture survives both modes,
+   where a change of fill does not: in Light the DS's hover grey and its disabled grey are the
+   same value, so a hover that recoloured would read as "disabled". */
+.map .st.hov { filter: var(--lift); transform: translateY(-2px) scale(1.012); }
+.map .st.hov path { stroke-width: 1.8; }
+.map .st.hov .lb { fill: var(--map-label-hv); }
+.map .st.sel { filter: var(--lift); transform: translateY(-1px) scale(1.008); }
+.map .st.sel .lb { fill: var(--map-label-hv); }
+.map .st.sel.hov { filter: var(--lift-hard); transform: translateY(-3px) scale(1.016); }
+/* ?hover=fill — the other option, for comparison: the DS's own hovered fill, no lift */
+.map.hv-fill .st.hov { filter: none; transform: none; }
+.map.hv-fill .st:not(.pk).hov path { fill: var(--dot-open-hv); }
 /* a state with no race in this chamber is not a thing you can act on: it keeps no seam of its
    own, so the whole set reads as one quiet landmass instead of fifty dead buttons — and it
    answers nothing, not even the pointer */
-.map .st.nr path { stroke: var(--dot-none); }
-.map .st.nr .lb { fill: #333; }
-.map .st.nr.hov path { fill: var(--c); }
+.map .st.nr path { stroke: var(--map-seam); }
+.map .st.nr .lb { fill: var(--map-label-off); }
+/* out of play: the one disabled state. It answers nothing — no lift, no pointer, no seam opening */
 .map .st.nr, .map .st.nr .lb { pointer-events: none; }
+.map .st.nr.hov { filter: none; transform: none; }
+.map .st.nr.hov path { fill: var(--c); stroke-width: 1.2; }
 
 /* pick badge: the candidate you just picked by clicking the map, next to the state */
 .pick-badge { position: fixed; z-index: 62; pointer-events: none; min-width: 200px; border-radius: 14px; background: var(--panel); padding: 10px 12px; box-shadow: 0 18px 50px rgba(0, 0, 0, .55); overflow: hidden; }
@@ -358,14 +378,11 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 
 
 
-/* A picked state never changes colour: red is FC002C whether it is resting, hovered or selected.
-   The light comes from around the shape — a halo of its own colour — never mixed into the fill. */
-.map .st.pk.hov { filter: drop-shadow(0 0 10px color-mix(in srgb, var(--c) 55%, transparent)); }
-.map .st.pk.sel { filter: drop-shadow(0 0 8px color-mix(in srgb, var(--c) 70%, transparent)); }
-/* the selected state must still answer the hover (same specificity as .pk.sel, so it has to come after) */
-.map .st.pk.sel.hov { filter: drop-shadow(0 0 14px color-mix(in srgb, var(--c) 85%, transparent)); }
-.map .st.sel .lb { fill: #fafafa; }
-.map .st.sel:not(.pk).hov path { fill: color-mix(in srgb, var(--c) 48%, #fff); }
+/* A called state is its party colour and stays it — FC002C resting, hovered and selected. The DS
+   does have rep/bold/hovered, but it is a button token: on a map it darkens the red to #cc003b,
+   which reads as a different call (lean vs safe), not as a pointer. So colour stays, lift speaks. */
+.map .st.pk.sel .lb, .map .st.pk.hov .lb { fill: var(--map-label-on); }
+.map.hv-fill .st.pk.hov path { fill: color-mix(in srgb, var(--c) 88%, #fff); }
 
 
 /* ---- review variations (?intro, ?en) ------------------------------------------------------------ */
@@ -788,6 +805,36 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
    One movement, not two: the waveform draws itself from the middle out, breathes once, and the map
    blooms outward from the same line while it fades through. Everything else arrives in the map's
    wake, heaviest last, and the tour waits for the screen to settle. */
+/* ?off=quiet — out of play takes the surface token instead of the disabled one, so those states
+   dissolve into the card in both modes rather than becoming the lightest thing on the map. */
+:root[data-off='quiet'] { --dot-none: #151515; }
+:root[data-off='quiet'][data-theme='light'] { --dot-none: #f0f0f0; }
+
+/* The same tokens in the design system's Light mode. ?theme=light sets data-theme on <html>. */
+:root[data-theme='light'] {
+  --bg: #fafafa;            /* background/neutral/bold/default */
+  --card: #ffffff;          /* background/neutral/medium/default */
+  --panel: #ffffff;
+  --pill: #f0f0f0;
+  --avatar: #dfdfdf;
+  --fg: #0a0909;            /* text/neutral/bold/default */
+  --muted: #5c5c5c;
+  --dim: #8f8f8f;
+  --line: #dfdfdf;
+  --dot-open: #dfdfdf;
+  --dot-open-hv: #d1d1d1;
+  --dot-none: #d1d1d1;
+  --map-seam: #f0f0f0;
+  --map-label: #5c5c5c;
+  --map-label-off: #8f8f8f;
+  --map-label-on: #fafafa;
+  --map-label-hv: #0a0909;
+  --dot-pending: #d1d1d1;
+  --mx-open: #d1d1d1;
+  --lift: drop-shadow(0 4px 8px rgba(10, 9, 9, .18));
+  --lift-hard: drop-shadow(0 7px 13px rgba(10, 9, 9, .26));
+}
+
 :root {
   --intro-ease: cubic-bezier(.22, .61, .36, 1);
   --dot-ease: cubic-bezier(.32, 1.5, .5, 1);
