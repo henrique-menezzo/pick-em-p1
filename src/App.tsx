@@ -235,7 +235,7 @@ function Legend() {
         <>
           <span><i style={{ background: 'var(--R)' }} />Republican <b className="num">{a}</b></span>
           <span><i style={{ background: 'var(--D)' }} />Democrat <b className="num">{b}</b></span>
-          <span><i style={{ background: '#6f6f6f' }} />Open <b className="num">{open}</b></span>
+          <span><i style={{ background: 'var(--dot-open)' }} />Open <b className="num">{open}</b></span>
         </>
       )}
     </div>

@@ -15,8 +15,8 @@
   --D: #1f5eff;
   --R-face: #d71e28;
   --D-face: #0044c9;
-  --dot-open: #515151;   /* map: race still to call */
-  --dot-none: #2c2c2c;   /* map: no race in this section — darker, still visible on the card */
+  --dot-open: #3a3a3a;   /* map: race still to call — dark, but separated and labelled */
+  --dot-none: #1d1d1d;   /* map: no race in this section — one inert mass just above the card */
   --dot-pending: #383838; /* election night: not called yet */
   --mx-open: #3a3a3a;    /* matrix: open race */
   --ease: cubic-bezier(.2, .8, .2, 1);
@@ -123,7 +123,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
    without anything that looks like a border around them. */
 .map .st path { fill: var(--c); stroke: var(--card); stroke-width: 1.2; stroke-linejoin: round;
   transform-box: fill-box; transform-origin: center; transition: fill .35s ease; }
-.map .st .lb { fill: var(--dim); font-weight: 600; letter-spacing: .02em; pointer-events: none; user-select: none; transition: fill .3s ease; }
+.map .st .lb { fill: var(--muted); font-weight: 600; letter-spacing: .02em; pointer-events: none; user-select: none; transition: fill .3s ease; }
 .map .st .lb.on { fill: #fafafa; }
 .map .st.counting path { animation: breathe 4s ease-in-out infinite; }
 @keyframes breathe { 50% { opacity: .72; } }
@@ -278,10 +278,20 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 
 .toast { position: fixed; left: 50%; bottom: 28px; z-index: 80; background: var(--fg); color: #0a0909; padding: 12px 18px; border-radius: 999px; font-size: 14px; font-weight: 600; white-space: nowrap; display: flex; gap: 8px; align-items: center; }
 
-/* hover on a state with no pick: grey has no identity to protect, so it simply lifts */
-.map .st:not(.pk).hov path { fill: color-mix(in srgb, var(--c) 58%, #fff); }
-.map .st.nr.hov path { fill: color-mix(in srgb, var(--c) 78%, #fff); }
-.map .st.sel:not(.pk) path { fill: color-mix(in srgb, var(--c) 62%, #fff); }
+/* One grammar for the whole map: a state's fill says what it IS (open, called, out of play) and
+   never what is happening to it. Attention is always a halo around the shape, so a light grey
+   fill can go on meaning one thing only — and it never means "selected". */
+.map .st:not(.pk).hov { filter: drop-shadow(0 0 9px rgba(250, 250, 250, .32)); }
+.map .st:not(.pk).hov .lb { fill: var(--fg); }
+.map .st.sel:not(.pk) { filter: drop-shadow(0 0 10px rgba(250, 250, 250, .48)); }
+.map .st.sel:not(.pk).hov { filter: drop-shadow(0 0 15px rgba(250, 250, 250, .6)); }
+/* a state with no race in this chamber is not a thing you can act on: it keeps no seam of its
+   own, so the whole set reads as one quiet landmass instead of fifty dead buttons — and it
+   answers nothing, not even the pointer */
+.map .st.nr path { stroke: var(--dot-none); }
+.map .st.nr .lb { fill: #333; }
+.map .st.nr.hov path { fill: var(--c); }
+.map .st.nr, .map .st.nr .lb { pointer-events: none; }
 
 /* pick badge: the candidate you just picked by clicking the map, next to the state */
 .pick-badge { position: fixed; z-index: 62; pointer-events: none; min-width: 200px; border-radius: 14px; background: var(--panel); padding: 10px 12px; box-shadow: 0 18px 50px rgba(0, 0, 0, .55); overflow: hidden; }
