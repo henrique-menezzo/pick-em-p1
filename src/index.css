@@ -69,9 +69,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .stage { position: relative; height: 792px; }
 
 /* ---- page header: back · title + deadline · help, inside the 1376 content column -------------- */
-.ghead { width: 1376px; margin: 39px auto 0; display: grid; grid-template-columns: 1fr auto 1fr; align-items: start; }
+/* three zones on one band: where you came from · what this is · how to play. They share one
+   centre line, so the back link and How it works sit on the middle of the whole title block. */
+.ghead { width: 1376px; margin: 39px auto 0; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; }
 /* the side controls centre on the title's cap height, so the three zones read as one band */
-.ghead .back, .ghead .help { margin-top: 1px; }
 .ghead .back { justify-self: start; }
 .ghead .ghead-r { justify-self: end; }
 .back, .help { height: 32px; padding: 0 12px; display: inline-flex; align-items: center; gap: 8px; font-size: 15px; line-height: 1; color: var(--muted); border-radius: 999px; transition: background .2s, color .2s; }
@@ -81,7 +82,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .back:hover svg, .help:hover svg { opacity: 1; }
 .gtitle { text-align: center; }
 .gtitle h1 { margin: 0; font-size: 32px; line-height: 1.1; font-weight: 600; letter-spacing: -.4px; }
-.gtitle .sub { margin: 5px 0 0; display: flex; align-items: center; justify-content: center; gap: 7px; font-size: 16px; line-height: 1; color: var(--muted); }
+.gtitle .sub { margin: 8px 0 0; display: flex; align-items: center; justify-content: center; gap: 7px; font-size: 16px; line-height: 1; color: var(--muted); }
 .gtitle .sub b { color: var(--muted); font-weight: 400; font-variant-numeric: tabular-nums; letter-spacing: .01em; }
 .gtitle .sub .sd { width: 7px; height: 7px; border-radius: 50%; background: var(--R); }
 
