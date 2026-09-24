@@ -26,8 +26,9 @@
   --map-label-hv: #fafafa;  /* text/neutral/bold/default */
   /* elevation is the only thing the DS has no token for, so it is the only thing invented here:
      in the dark the state catches light, in the light it casts a shadow. Same gesture either way. */
-  --lift: drop-shadow(0 4px 7px rgba(0, 0, 0, .55)) drop-shadow(0 0 7px rgba(250, 250, 250, .16));
-  --lift-hard: drop-shadow(0 6px 11px rgba(0, 0, 0, .65)) drop-shadow(0 0 10px rgba(250, 250, 250, .26));
+  --map-hi: #fafafa;     /* the light the map catches: white in the dark theme */
+  --map-hi-hov: .12;     /* over #292929 this lands on #3f3f3f — the DS's own hovered grey */
+  --map-hi-sel: .2;
   --dot-pending: #383838;
   --mx-open: #3a3a3a;    /* matrix: open race */
   --ease: cubic-bezier(.2, .8, .2, 1);
@@ -290,28 +291,38 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .toast { position: fixed; left: 50%; bottom: 28px; z-index: 80; background: var(--fg); color: #0a0909; padding: 12px 18px; border-radius: 999px; font-size: 14px; font-weight: 600; white-space: nowrap; display: flex; gap: 8px; align-items: center; }
 
 /* One grammar for the whole map. The fill says what a state IS — in play, out of play, called
-   red, called blue — and nothing else ever touches it. What is under your pointer LIFTS: it rises
-   a couple of pixels, opens its seam, and brightens its label. That gesture survives both modes,
-   where a change of fill does not: in Light the DS's hover grey and its disabled grey are the
-   same value, so a hover that recoloured would read as "disabled". */
-.map .st.hov { filter: var(--lift); transform: translateY(-2px) scale(1.012); }
-.map .st.hov path { stroke-width: 1.8; }
-.map .st.hov .lb { fill: var(--map-label-hv); }
-.map .st.sel { filter: var(--lift); transform: translateY(-1px) scale(1.008); }
-.map .st.sel .lb { fill: var(--map-label-hv); }
-.map .st.sel.hov { filter: var(--lift-hard); transform: translateY(-3px) scale(1.016); }
-/* ?hover=fill — the other option, for comparison: the DS's own hovered fill, no lift */
-.map.hv-fill .st.hov { filter: none; transform: none; }
-.map.hv-fill .st:not(.pk).hov path { fill: var(--dot-open-hv); }
+   red, called blue — and nothing moves, because a choropleth is a jigsaw: lift one piece and it
+   sits on top of its neighbours. Instead the piece under the pointer CATCHES THE LIGHT: a layer
+   of the theme's own light sits over it at 12%. Over the open grey that lands on #3f3f3f, which
+   is the DS's own hovered grey; over FC002C it stays unmistakably FC002C, just touched. */
+.map .st .hi { fill: var(--map-hi); opacity: 0; pointer-events: none; transition: opacity .16s var(--ease); }
+/* A state in play has no colour to protect, so it takes the DS's own hovered grey. */
+.map .st:not(.pk).hov path { fill: var(--dot-open-hv); }
+/* A called state is never touched: not moved, not lightened, not outlined. It simply casts its
+   own colour onto the card around it — a glow in the dark theme, a coloured shadow in the light
+   one. The jigsaw stays whole and FC002C stays FC002C. */
+.map .st.pk.hov { filter: drop-shadow(0 0 9px color-mix(in srgb, var(--c) 58%, transparent)); }
+.map .st.pk.sel { filter: drop-shadow(0 0 7px color-mix(in srgb, var(--c) 72%, transparent)); }
+.map .st.pk.sel.hov { filter: drop-shadow(0 0 13px color-mix(in srgb, var(--c) 85%, transparent)); }
+.map .st.sel:not(.pk) path { fill: var(--dot-open-hv); }
+.map .st.sel:not(.pk) .hi { opacity: var(--map-hi-sel); }
+.map .st.hov .lb, .map .st.sel .lb { fill: var(--map-label-hv); }
+.map .st.pk.hov .lb, .map .st.pk.sel .lb { fill: var(--map-label-on); }
+/* ?hover=light — the light layer over the fill, for comparison */
+.map.hv-light .st:not(.pk).hov path { fill: var(--c); }
+.map.hv-light .st.hov .hi { opacity: var(--map-hi-hov); }
+.map.hv-light .st.pk.hov, .map.hv-light .st.pk.sel, .map.hv-light .st.pk.sel.hov { filter: none; }
+/* ?hover=fill — the DS's hovered fill token instead of the light layer (greys only)
+   ?hover=seam — the seam opens instead */
+.map.hv-seam .st.hov path { stroke-width: 3.4; }
 /* a state with no race in this chamber is not a thing you can act on: it keeps no seam of its
    own, so the whole set reads as one quiet landmass instead of fifty dead buttons — and it
    answers nothing, not even the pointer */
 .map .st.nr path { stroke: var(--map-seam); }
 .map .st.nr .lb { fill: var(--map-label-off); }
-/* out of play: the one disabled state. It answers nothing — no lift, no pointer, no seam opening */
+/* out of play: the one disabled state. It answers nothing — no light, no pointer */
 .map .st.nr, .map .st.nr .lb { pointer-events: none; }
-.map .st.nr.hov { filter: none; transform: none; }
-.map .st.nr.hov path { fill: var(--c); stroke-width: 1.2; }
+.map .st.nr .hi, .map .st.nr.hov .hi { opacity: 0; }
 
 /* pick badge: the candidate you just picked by clicking the map, next to the state */
 .pick-badge { position: fixed; z-index: 62; pointer-events: none; min-width: 200px; border-radius: 14px; background: var(--panel); padding: 10px 12px; box-shadow: 0 18px 50px rgba(0, 0, 0, .55); overflow: hidden; }
@@ -378,11 +389,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 
 
 
-/* A called state is its party colour and stays it — FC002C resting, hovered and selected. The DS
-   does have rep/bold/hovered, but it is a button token: on a map it darkens the red to #cc003b,
-   which reads as a different call (lean vs safe), not as a pointer. So colour stays, lift speaks. */
-.map .st.pk.sel .lb, .map .st.pk.hov .lb { fill: var(--map-label-on); }
-.map.hv-fill .st.pk.hov path { fill: color-mix(in srgb, var(--c) 88%, #fff); }
+/* The DS does have rep/bold/hovered, but it is a button token: it moves the fill TOWARDS the
+   background (darker on dark, lighter on light), so on a map the hovered red recedes and reads as
+   a different call — lean instead of safe. The light layer moves the other way, which is what a
+   pointer should do, and leaves the token underneath alone. */
 
 
 /* ---- review variations (?intro, ?en) ------------------------------------------------------------ */
@@ -831,8 +841,9 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   --map-label-hv: #0a0909;
   --dot-pending: #d1d1d1;
   --mx-open: #d1d1d1;
-  --lift: drop-shadow(0 4px 8px rgba(10, 9, 9, .18));
-  --lift-hard: drop-shadow(0 7px 13px rgba(10, 9, 9, .26));
+  --map-hi: #0a0909;     /* and black under the light one, so the gesture is the same either way */
+  --map-hi-hov: .1;
+  --map-hi-sel: .17;
 }
 
 :root {

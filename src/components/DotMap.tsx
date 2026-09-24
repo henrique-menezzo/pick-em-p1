@@ -25,8 +25,11 @@ for (const st of ORDER) DELAY[st] = ((BOX[st].y0 - TOP) / (BOTTOM - TOP)) * 620;
 type VB = { x: number; y: number; w: number; h: number };
 const FULL: VB = { x: 0, y: 0, w: 1067, h: 566 };
 
-/** ?hover=fill — try the DS's own hovered fill instead of the lift */
-const HOVER_FILL = new URLSearchParams(location.search).get('hover') === 'fill';
+const Q2 = new URLSearchParams(location.search);
+/** ?hover=fill|seam — alternatives to the default light layer, for comparison */
+const HOVER = Q2.get('hover') || '';
+/** ?hov=TX,KS — hold a state in its hover state, to look at it */
+const HELD = new Set((Q2.get('hov') || '').split(',').filter(Boolean));
 
 const COLOR = { R: 'var(--R)', D: 'var(--D)', open: 'var(--dot-open)', none: 'var(--dot-none)', pending: 'var(--dot-pending)' };
 
@@ -36,6 +39,9 @@ const State = memo(function State({ st, cls, c, o, label }: { st: string; cls: s
   return (
     <g className={'st ' + cls} data-st={st} style={{ ['--c' as string]: c, ['--d' as string]: DELAY[st] + 'ms', opacity: o }}>
       <path d={SHAPES[st]} />
+      {/* the light layer: what the pointer touches catches the light, without the fill below it
+          ever changing. White over the dark theme, black over the light one. */}
+      <path className="hi" d={SHAPES[st]} />
       {at && (
         <text className={'lb' + (label ? ' on' : '')} x={at[0]} y={at[1]} fontSize={LABEL_SIZE} textAnchor="middle" dominantBaseline="central">
           {st}
@@ -75,7 +81,7 @@ export default function DotMap() {
       const off = !!focusSt && focusSt !== st;
       const dim = off ? 0.6 : 1;
       const dimGrey = off ? 0.8 : 1;
-      const hv = hov?.st === st ? ' hov' : '';
+      const hv = hov?.st === st || HELD.has(st) ? ' hov' : '';
       if (!race) { out[st] = { cls: 'nr' + hv, c: COLOR.none, o: off ? 0.85 : 1, label: false }; continue; }
       const pick = picks[race.id];
       const sel = showSel && race.id === curId;
@@ -157,7 +163,7 @@ export default function DotMap() {
       <div className={'mapbox' + (phase === 'enter' ? ' entering' : '')}>
         <svg
           ref={svgRef}
-          className={'map' + (live ? ' live' : '') + (HOVER_FILL ? ' hv-fill' : '')}
+          className={'map' + (live ? ' live' : '') + (HOVER ? ' hv-' + HOVER : '')}
           viewBox={FRAME_VB}
           onPointerMove={onMove}
           onPointerLeave={onLeave}
