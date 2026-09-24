@@ -110,17 +110,32 @@ function useScale() {
   const [s, setS] = useState({ scale: 1, height: 0, left: 0 });
   useLayoutEffect(() => {
     const fit = () => {
+      const h = ref.current?.offsetHeight ?? 0;
+      // a tab that loads in the background is laid out lazily and measures 0. Taking that reading
+      // would collapse the page to its top 90px and cut the map off, so wait for a real one.
+      if (!h) return;
       const scale = Math.min(1, window.innerWidth / 1440);
       // wider than the frame: keep it centred
       const left = Math.max(0, (document.documentElement.clientWidth - 1440 * scale) / 2);
       // room under the card so the floating prototype switch never sits on top of the footer
-      setS({ scale, height: (ref.current?.offsetHeight ?? 0) * scale + 96 * scale, left });
+      setS({ scale, height: h * scale + 96 * scale, left });
     };
     fit();
     const ro = new ResizeObserver(fit);
     if (ref.current) ro.observe(ref.current);
     window.addEventListener('resize', fit);
-    return () => { ro.disconnect(); window.removeEventListener('resize', fit); };
+    // the observer is part of the rendering loop, so a hidden tab is served none of it: measure
+    // again when the page comes back, and a few times on the way in
+    document.addEventListener('visibilitychange', fit);
+    window.addEventListener('load', fit);
+    const again = [60, 250, 800, 2000].map((ms) => window.setTimeout(fit, ms));
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', fit);
+      document.removeEventListener('visibilitychange', fit);
+      window.removeEventListener('load', fit);
+      again.forEach(clearTimeout);
+    };
   }, []);
   return { ref, ...s };
 }
