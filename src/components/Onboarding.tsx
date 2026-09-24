@@ -5,7 +5,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { useStore } from '../lib/store';
-import { stateDotsOnScreen } from './DotMap';
+import { stateShapeOnScreen } from './DotMap';
 import { Icon } from './ui';
 
 type Step = {
@@ -182,11 +182,11 @@ export default function Onboarding({ ready = true }: { ready?: boolean }) {
     useStore.setState({ tourLock: step === null ? null : st ?? '' });
     return () => { useStore.setState({ tourLock: null }); };
   }, [step, st]);
-  const [dots, setDots] = useState<{ cx: number; cy: number; r: number }[] | null>(null);
+  const [shape, setShape] = useState<{ d: string; m: string } | null>(null);
   useLayoutEffect(() => {
-    if (!st) { setDots(null); return; }
+    if (!st) { setShape(null); return; }
     // follow the spot: a step that has to scroll the map into view moves the state under us
-    setDots(stateDotsOnScreen(st));
+    setShape(stateShapeOnScreen(st));
   }, [st, step, spot?.x, spot?.y, spot?.w]);
   const card = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 340, h: 250 });
@@ -223,13 +223,13 @@ export default function Onboarding({ ready = true }: { ready?: boolean }) {
                   rx={spot.r}
                   fill="#000"
                   initial={{ x: spot.x + spot.w * 0.12, y: spot.y + spot.h * 0.12, width: spot.w * 0.76, height: spot.h * 0.76, opacity: 0 }}
-                  animate={{ x: spot.x, y: spot.y, width: spot.w, height: spot.h, opacity: dots ? 0 : 1 }}
+                  animate={{ x: spot.x, y: spot.y, width: spot.w, height: spot.h, opacity: shape ? 0 : 1 }}
                   transition={spring}
                 />
-                {/* …and hands over to the state's own dots when the step is about a state */}
-                {dots && (
-                  <motion.g fill="#000" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.22 }}>
-                    {dots.map((d, i) => <circle key={i} cx={d.cx} cy={d.cy} r={d.r} />)}
+                {/* …and hands over to the state's own outline when the step is about a state */}
+                {shape && (
+                  <motion.g fill="#000" transform={shape.m} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.22 }}>
+                    <path d={shape.d} />
                   </motion.g>
                 )}
               </mask>

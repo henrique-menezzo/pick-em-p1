@@ -118,16 +118,18 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   -webkit-mask-image: linear-gradient(to right, transparent, #000 56px, #000 calc(100% - 56px), transparent), linear-gradient(to bottom, transparent, #000 40px, #000 calc(100% - 28px), transparent);
   -webkit-mask-composite: source-in; mask-composite: intersect; }
 .map { width: 100%; height: 100%; display: block; overflow: hidden; touch-action: none; }
-.map .st { transition: opacity .35s ease; }
-.map .st circle { fill: var(--c); transform-box: fill-box; transform-origin: center; transition: fill .35s ease, stroke .35s ease; }
-/* selected state: a brighter shade of its own colour (grey → light grey, red → brighter red…), no white */
-.map .st.sel circle { fill: color-mix(in srgb, var(--c) 76%, #fff); }
-.map .st.sel { filter: drop-shadow(0 0 5px color-mix(in srgb, var(--c) 55%, transparent)); }
-.map .st.counting circle:not(.sm) { animation: breathe 4s ease-in-out infinite; }
+.map .st { transition: opacity .35s ease; transform-box: fill-box; transform-origin: center; }
+/* one shape per state. The hairline is the card showing through, so states read as separated
+   without anything that looks like a border around them. */
+.map .st path { fill: var(--c); stroke: var(--card); stroke-width: 1.2; stroke-linejoin: round;
+  transform-box: fill-box; transform-origin: center; transition: fill .35s ease; }
+.map .st .lb { fill: var(--dim); font-weight: 600; letter-spacing: .02em; pointer-events: none; user-select: none; transition: fill .3s ease; }
+.map .st .lb.on { fill: #fafafa; }
+.map .st.counting path { animation: breathe 4s ease-in-out infinite; }
 @keyframes breathe { 50% { opacity: .72; } }
 /* election night: calls ease in slowly instead of popping */
 .map.live .st { transition: opacity 1.2s ease; }
-.map.live .st circle { transition: r .22s var(--ease), cx .22s var(--ease), cy .22s var(--ease), fill 1.4s ease; }
+.map.live .st path { transition: fill 1.4s ease; }
 
 .tally { position: absolute; right: 44px; bottom: 16px; text-align: right; } /* number sits on the legend's baseline, just above the bar */
 .tally .lbl { font-size: 12px; line-height: 1; color: var(--muted); margin-bottom: 2px; }
@@ -276,11 +278,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 
 .toast { position: fixed; left: 50%; bottom: 28px; z-index: 80; background: var(--fg); color: #0a0909; padding: 12px 18px; border-radius: 999px; font-size: 14px; font-weight: 600; white-space: nowrap; display: flex; gap: 8px; align-items: center; }
 
-/* State division: the seam row takes the card colour, so states read as separated by a one-dot gap. */
-.map .st circle.sm { opacity: 0; pointer-events: none; }
-.map .st.hov circle { fill: color-mix(in srgb, var(--c) 62%, #fff); }
-.map .st.nr.hov circle { fill: color-mix(in srgb, var(--c) 82%, #fff); }
-.map .st.sel.hov circle { fill: color-mix(in srgb, var(--c) 52%, #fff); }
+/* hover on a state with no pick: grey has no identity to protect, so it simply lifts */
+.map .st:not(.pk).hov path { fill: color-mix(in srgb, var(--c) 58%, #fff); }
+.map .st.nr.hov path { fill: color-mix(in srgb, var(--c) 78%, #fff); }
+.map .st.sel:not(.pk) path { fill: color-mix(in srgb, var(--c) 62%, #fff); }
 
 /* pick badge: the candidate you just picked by clicking the map, next to the state */
 .pick-badge { position: fixed; z-index: 62; pointer-events: none; min-width: 200px; border-radius: 14px; background: var(--panel); padding: 10px 12px; box-shadow: 0 18px 50px rgba(0, 0, 0, .55); overflow: hidden; }
@@ -347,13 +348,14 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 
 
 
-/* coloured (picked / called) states light up in their OWN colour — no white mixed in, so they never look washed out */
-.map .st.pk.sel circle, .map .st.pk.hov circle, .map .st.pk.sel.hov circle { fill: var(--c); }
-.map .st.pk.hov { filter: brightness(1.45); }
-.map .st.pk.sel { filter: brightness(1.28) drop-shadow(0 0 5px color-mix(in srgb, var(--c) 60%, transparent)); }
+/* A picked state never changes colour: red is FC002C whether it is resting, hovered or selected.
+   The light comes from around the shape — a halo of its own colour — never mixed into the fill. */
+.map .st.pk.hov { filter: drop-shadow(0 0 10px color-mix(in srgb, var(--c) 55%, transparent)); }
+.map .st.pk.sel { filter: drop-shadow(0 0 8px color-mix(in srgb, var(--c) 70%, transparent)); }
 /* the selected state must still answer the hover (same specificity as .pk.sel, so it has to come after) */
-.map .st.pk.sel.hov { filter: brightness(1.6) drop-shadow(0 0 7px color-mix(in srgb, var(--c) 70%, transparent)); }
-.map .st.sel.hov { filter: drop-shadow(0 0 7px color-mix(in srgb, var(--c) 70%, transparent)); }
+.map .st.pk.sel.hov { filter: drop-shadow(0 0 14px color-mix(in srgb, var(--c) 85%, transparent)); }
+.map .st.sel .lb { fill: #fafafa; }
+.map .st.sel:not(.pk).hov path { fill: color-mix(in srgb, var(--c) 48%, #fff); }
 
 
 /* ---- review variations (?intro, ?en) ------------------------------------------------------------ */
@@ -816,7 +818,9 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 
 /* the map leads — it is what the screen is about. Its entrance is painted on a canvas over the top
    (see MapIntro): one continuous front of growing dots, with the real map held back underneath. */
-.mapbox.entering .map { opacity: 0; }
+/* the entrance: each state comes up as the front passes its top edge */
+.mapbox.entering .st { animation: st-in .52s var(--intro-ease) both; animation-delay: var(--d); }
+@keyframes st-in { from { opacity: 0; transform: translateY(8px) scale(.99); } to { opacity: 1; transform: none; } }
 .mapfx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
 
 /* then the furniture, in the map's wake: light things first, the heavy panel and footer last */

@@ -1,123 +1,48 @@
 import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
-import grid from '../data/grid.json';
+import us from '../data/usmap.json';
 import { BY_ID, RESULTS, STATES, TAB_LABEL, raceIn, statusAt, type Side } from '../data/races';
 import { useStore } from '../lib/store';
 import { Icon, PARTY, facePhoto } from './ui';
 
 // ---- geometry ------------------------------------------------------------------------------------
-const P = grid.pitch;
-const BASE_R = grid.r;
-const W = grid.w, H = grid.h;
-interface Cell { i: number; st: string; x: number; y: number; r: number; seam: boolean }
-const CELLS: Cell[] = [];
-const BY_ST: Record<string, Cell[]> = {};
-const OWNER = new Map<string, Cell>();
-const BOX: Record<string, { x0: number; y0: number; x1: number; y1: number }> = {};
-for (const [st, pts] of Object.entries(grid.states as Record<string, number[][]>)) {
-  BY_ST[st] = [];
-  for (const [c, r, seam] of pts) {
-    const cell = { i: CELLS.length, st, x: c * P, y: r * P, r: BASE_R, seam: !!seam };
-    CELLS.push(cell);
-    BY_ST[st].push(cell);
-    OWNER.set(c + ',' + r, cell);
-  }
-  const xs = BY_ST[st].map((d) => d.x), ys = BY_ST[st].map((d) => d.y);
-  BOX[st] = { x0: Math.min(...xs), y0: Math.min(...ys), x1: Math.max(...xs), y1: Math.max(...ys) };
-}
-const ORDER = Object.keys(BY_ST);
+// The map is the one from the Figma frame: one path per state, in the frame's own coordinates.
+const SHAPES = us.states as Record<string, string>;
+const LABELS = us.labels as unknown as Record<string, [number, number]>;
+const BOX = Object.fromEntries(
+  Object.entries(us.box as Record<string, number[]>).map(([st, b]) => [st, { x0: b[0], y0: b[1], x1: b[2], y1: b[3] }]),
+) as Record<string, { x0: number; y0: number; x1: number; y1: number }>;
+const ORDER = Object.keys(SHAPES);
+// where the map sits inside the card, exactly as in the frame
+const FRAME_VB = (us.frame as number[]).join(' ');
+const LABEL_SIZE = us.labelSize as number;
+// the front of the entrance runs top to bottom: each state waits for the one above it
+const TOP = Math.min(...Object.values(BOX).map((b) => b.y0));
+const BOTTOM = Math.max(...Object.values(BOX).map((b) => b.y1));
+const DELAY: Record<string, number> = {};
+for (const st of ORDER) DELAY[st] = ((BOX[st].y0 - TOP) / (BOTTOM - TOP)) * 620;
 type VB = { x: number; y: number; w: number; h: number };
-const FULL: VB = { x: 0, y: 0, w: W, h: H };
-// The map's frame inside the card (Figma: 199,98 · 966×605). The SVG covers the whole card stage and the
-// dots are drawn inside that frame — there is no camera: no zoom, no panning.
-const STAGE_W = 1363, STAGE_H = 792;
-const FRAME = { x: 199, y: 98, w: 966 }; // centred, as in Figma; drag it out from under the panel when needed
+const FULL: VB = { x: 0, y: 0, w: 1067, h: 566 };
 
 const COLOR = { R: 'var(--R)', D: 'var(--D)', open: 'var(--dot-open)', none: 'var(--dot-none)', pending: 'var(--dot-pending)' };
 
-// ---- one state (memoised: circles never re-render, only the group's class/colour changes) ---------
-const StateDots = memo(function StateDots({ st, cls, c, o }: { st: string; cls: string; c: string; o: number }) {
+// ---- one state: its shape, and its abbreviation on top -------------------------------------------
+const State = memo(function State({ st, cls, c, o, label }: { st: string; cls: string; c: string; o: number; label: boolean }) {
+  const at = LABELS[st];
   return (
-    <g className={'st ' + cls} data-st={st} style={{ ['--c' as string]: c, opacity: o }}>
-      {BY_ST[st].map((d) => (
-        <circle key={d.i} data-i={d.i} cx={d.x} cy={d.y} r={d.r} className={d.seam ? 'sm' : undefined} />
-      ))}
+    <g className={'st ' + cls} data-st={st} style={{ ['--c' as string]: c, ['--d' as string]: DELAY[st] + 'ms', opacity: o }}>
+      <path d={SHAPES[st]} />
+      {at && (
+        <text className={'lb' + (label ? ' on' : '')} x={at[0]} y={at[1]} fontSize={LABEL_SIZE} textAnchor="middle" dominantBaseline="central">
+          {st}
+        </text>
+      )}
     </g>
   );
 });
 
-/**
- * The map's entrance. Every dot grows, in one continuous front from the top of the country down —
- * all 4129 of them, drawn on a canvas over the real map. Doing it in the DOM meant 4129 css
- * animations and a stutter; here it is one paint per frame and the front stays smooth.
- */
-function MapIntro({ svg, vb, onDone }: { svg: React.RefObject<SVGSVGElement | null>; vb: string; onDone: () => void }) {
-  const cvs = useRef<HTMLCanvasElement>(null);
-  const [done, setDone] = useState(false);
-  const end = useRef(onDone);
-  end.current = onDone;
-  useLayoutEffect(() => {
-    const el = cvs.current, s = svg.current;
-    if (!el || !s) return;
-    // the layout box, not the painted one: the whole page sits inside a scaled wrapper
-    const bw = s.clientWidth, bh = s.clientHeight;
-    const [vx, vy, vw, vh] = vb.split(' ').map(Number);
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
-    el.width = Math.round(bw * dpr);
-    el.height = Math.round(bh * dpr);
-    const g = el.getContext('2d')!;
-    // the svg letterboxes its viewBox (xMidYMid meet) and the stage is wider than the map's box, so
-    // the canvas has to fit and centre exactly the same way — otherwise the map shifts and resizes
-    // by a few percent the moment the svg takes over, which is the 'reset' you see
-    const sc = Math.min(bw / vw, bh / vh);
-    const ox = (bw - vw * sc) / 2, oy = (bh - vh * sc) / 2;
-    const k = sc * dpr;
-    // each state's colour as the browser resolved it, so the canvas and the svg agree
-    // colour and group opacity exactly as the svg resolves them, so the swap at the end is invisible
-    const fill: Record<string, string> = {};
-    const fade: Record<string, number> = {};
-    for (const st of ORDER) {
-      const g0 = s.querySelector(`g[data-st="${st}"]`);
-      const c = g0?.querySelector('circle:not(.sm)');
-      fill[st] = c ? getComputedStyle(c).fill : '#515151';
-      fade[st] = g0 ? Number(getComputedStyle(g0).opacity) || 1 : 1;
-    }
-    const DUR = 520, SPAN = 700;
-    const delay = CELLS.map((d, i) => ((d.y / H) * SPAN) + (d.x / W) * 70 + (((i * 2654435761) % 1000) / 1000) * 45);
-    // run until the very last dot has finished: stopping at SPAN+DUR cut the bottom-right corner
-    // mid-growth, and handing over there is exactly what looked like the map resetting itself
-    const END = Math.max(...delay) + DUR + 30;
-    const ease = (p: number) => 1 - Math.pow(1 - p, 3);
-    let raf = 0;
-    const t0 = performance.now();
-    const frame = (now: number) => {
-      const t = now - t0;
-      g.clearRect(0, 0, el.width, el.height);
-      for (let i = 0; i < CELLS.length; i++) {
-        const d = CELLS[i];
-        if (d.seam) continue;
-        const p = (t - delay[i]) / DUR;
-        if (p <= 0) continue;
-        const e = p >= 1 ? 1 : ease(p);
-        g.globalAlpha = fade[d.st];
-        g.beginPath();
-        g.arc((ox + (d.x - vx) * sc) * dpr, (oy + (d.y - vy) * sc) * dpr, d.r * k * e, 0, 6.2832);
-        g.fillStyle = fill[d.st];
-        g.fill();
-      }
-      if (t < END) raf = requestAnimationFrame(frame);
-      else { setDone(true); end.current(); }
-    };
-    raf = requestAnimationFrame(frame);
-    return () => cancelAnimationFrame(raf);
-  }, [svg, vb]);
-  if (done) return null; // the svg takes over in the same commit — no cross-fade to give it away
-  return <canvas ref={cvs} className="mapfx" aria-hidden />;
-}
-
 export default function DotMap() {
-  const [fxDone, setFxDone] = useState(false);
   const tab = useStore((s) => s.tab);
   const picks = useStore((s) => s.picks);
   const curId = useStore((s) => s.cursor[s.tab]);
@@ -129,16 +54,8 @@ export default function DotMap() {
   const phase = useStore((s) => s.phase);
 
   const svgRef = useRef<SVGSVGElement>(null);
-  const els = useRef<SVGCircleElement[]>([]);
   const vb = FULL;
   const [hov, setHov] = useState<{ st: string; x: number; y: number } | null>(null);
-  const k = FRAME.w / W; // screen px per map unit
-  const outer = `${-FRAME.x / k} ${-FRAME.y / k} ${STAGE_W / k} ${STAGE_H / k}`;
-
-  useLayoutEffect(() => {
-    const list = svgRef.current!.querySelectorAll('circle');
-    list.forEach((el) => { els.current[+el.dataset.i!] = el; });
-  }, []);
 
   // ---- look of every state ----
   const hoverRace = hoverId ? BY_ID[hoverId] : null;
@@ -148,7 +65,7 @@ export default function DotMap() {
   const showSel = true;
 
   const looks = useMemo(() => {
-    const out: Record<string, { cls: string; c: string; o: number }> = {};
+    const out: Record<string, { cls: string; c: string; o: number; label: boolean }> = {};
     for (const st of ORDER) {
       const race = raceIn(tab, st);
       // spotlight: colours step back hard, greys only a little, so the base map never sinks into the card
@@ -156,12 +73,12 @@ export default function DotMap() {
       const dim = off ? 0.6 : 1;
       const dimGrey = off ? 0.8 : 1;
       const hv = hov?.st === st ? ' hov' : '';
-      if (!race) { out[st] = { cls: 'nr' + hv, c: COLOR.none, o: off ? 0.85 : 1 }; continue; }
+      if (!race) { out[st] = { cls: 'nr' + hv, c: COLOR.none, o: off ? 0.85 : 1, label: false }; continue; }
       const pick = picks[race.id];
       const sel = showSel && race.id === curId;
       if (!live) {
         const c = pick ? COLOR[pick] : COLOR.open;
-        out[st] = { cls: (pick ? 'pk ' : '') + (sel ? 'sel' : '') + hv, c, o: pick ? dim : dimGrey };
+        out[st] = { cls: (pick ? 'pk ' : '') + (sel ? 'sel' : '') + hv, c, o: pick ? dim : dimGrey, label: !!pick };
         continue;
       }
       const now = statusAt(race.id, t);
@@ -170,11 +87,11 @@ export default function DotMap() {
         // right = the winner's colour at full strength; missed = the same colour, well faded back
         const miss = !!pick && pick !== w;
         out[st] = miss
-          ? { cls: 'pk miss' + (sel ? ' sel' : '') + hv, c: COLOR[w], o: (sel || hv ? 0.45 : 0.22) * (off ? 0.8 : 1) }
-          : { cls: 'pk ' + (sel ? 'sel' : '') + hv, c: COLOR[w], o: dim };
+          ? { cls: 'pk miss' + (sel ? ' sel' : '') + hv, c: COLOR[w], o: (sel || hv ? 0.45 : 0.22) * (off ? 0.8 : 1), label: false }
+          : { cls: 'pk ' + (sel ? 'sel' : '') + hv, c: COLOR[w], o: dim, label: true };
       } else {
         // not called yet: dark grey, breathing while votes are counted
-        out[st] = { cls: (now.status === 'counting' ? 'counting' : '') + (sel ? ' sel' : '') + hv, c: COLOR.pending, o: dimGrey };
+        out[st] = { cls: (now.status === 'counting' ? 'counting' : '') + (sel ? ' sel' : '') + hv, c: COLOR.pending, o: dimGrey, label: false };
       }
     }
     return out;
@@ -182,14 +99,10 @@ export default function DotMap() {
 
   // ---- pop: a ripple of the state's dots when it gets a pick, or gets called on election night ----
   function ripple(st: string) {
-    const b = BOX[st];
-    const cx = (b.x0 + b.x1) / 2, cy = (b.y0 + b.y1) / 2;
-    for (const d of BY_ST[st]) {
-      const el = els.current[d.i];
-      el?.animate([{ transform: 'scale(.25)' }, { transform: 'scale(1.5)', offset: 0.55 }, { transform: 'scale(1)' }], {
-        duration: 520, easing: 'cubic-bezier(.2,.8,.2,1)', delay: Math.hypot(d.x - cx, d.y - cy) * 0.9,
-      });
-    }
+    const el = svgRef.current?.querySelector(`g[data-st="${st}"] path`) as SVGPathElement | null;
+    el?.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.035)', offset: 0.4 }, { transform: 'scale(1)' }], {
+      duration: 420, easing: 'cubic-bezier(.2,.8,.2,1)',
+    });
   }
   const lastPulse = useRef(pulse);
   useEffect(() => {
@@ -204,23 +117,9 @@ export default function DotMap() {
   const raf = useRef(0);
   const [badge, setBadge] = useState<{ id: string; n: number } | null>(null);
 
-  function toSvg(e: { clientX: number; clientY: number }) {
-    const svg = svgRef.current!;
-    const pt = svg.createSVGPoint();
-    pt.x = e.clientX; pt.y = e.clientY;
-    return pt.matrixTransform(svg.getScreenCTM()!.inverse());
-  }
-  function stateAt(p: { x: number; y: number }) {
-    const c = Math.round(p.x / P), r = Math.round(p.y / P);
-    let best: Cell | null = null, bd = P * 1.1;
-    for (let dc = -1; dc <= 1; dc++) for (let dr = -1; dr <= 1; dr++) {
-      const cell = OWNER.get(c + dc + ',' + (r + dr));
-      if (!cell) continue;
-      const d = Math.hypot(cell.x - p.x, cell.y - p.y);
-      if (d < bd) { bd = d; best = cell; }
-    }
-    return best?.st ?? null;
-  }
+  // the shapes answer for themselves now: whatever is under the pointer names its own state
+  const stateUnder = (e: { clientX: number; clientY: number }) =>
+    (document.elementFromPoint(e.clientX, e.clientY)?.closest('g[data-st]') as SVGGElement | null)?.dataset.st ?? null;
   function onMove(e: React.PointerEvent) {
     if (e.pointerType !== 'mouse') return;
     if (useStore.getState().tourLock !== null) return; // the tour is pointing at one thing
@@ -229,7 +128,7 @@ export default function DotMap() {
     const cx = e.clientX, cy = e.clientY;
     cancelAnimationFrame(raf.current);
     raf.current = requestAnimationFrame(() => {
-      const st = stateAt(toSvg({ clientX: cx, clientY: cy }));
+      const st = stateUnder({ clientX: cx, clientY: cy });
       setHov((h) => (st ? { st, x: cx, y: cy } : h && !st ? null : h));
     });
   }
@@ -238,7 +137,7 @@ export default function DotMap() {
     setHov(null);
   }
   function onUp(e: React.PointerEvent) {
-    const st = stateAt(toSvg(e));
+    const st = stateUnder(e);
     // during the tour the map answers for the state under the light, and for nothing else
     const lock = useStore.getState().tourLock;
     if (lock !== null && st !== lock) return;
@@ -252,21 +151,20 @@ export default function DotMap() {
 
   return (
     <>
-      <div className={'mapbox' + (phase === 'enter' && !fxDone ? ' entering' : '')}>
+      <div className={'mapbox' + (phase === 'enter' ? ' entering' : '')}>
         <svg
           ref={svgRef}
           className={'map' + (live ? ' live' : '')}
-          viewBox={outer}
+          viewBox={FRAME_VB}
           onPointerMove={onMove}
           onPointerLeave={onLeave}
           onPointerUp={onUp}
           style={{ cursor: hovRace ? 'pointer' : undefined }}
         >
           {ORDER.map((st) => (
-            <StateDots key={st} st={st} {...looks[st]} />
+            <State key={st} st={st} {...looks[st]} />
           ))}
         </svg>
-        {phase === 'enter' && <MapIntro svg={svgRef} vb={outer} onDone={() => setFxDone(true)} />}
       </div>
 
       {hov && !(badge && BY_ID[badge.id].state === hov.st) &&
@@ -295,27 +193,21 @@ function tipText(id: string, pick: Side | undefined, live: boolean, t: number) {
 }
 
 // ---- where a floating card sits next to a state (right of it, or left when there's no room) ----------
-/** A state's dots in screen coordinates, fattened until they merge — the shape of the state itself,
-    for anything that wants to light it rather than box it. */
-export function stateDotsOnScreen(st: string, grow = 2): { cx: number; cy: number; r: number }[] | null {
+/** A state's own outline, in screen coordinates — for anything that wants to light the state
+    itself rather than box it. The matrix carries the map's placement and scale. */
+export function stateShapeOnScreen(st: string): { d: string; m: string } | null {
   const svg = document.querySelector('svg.map') as SVGSVGElement | null;
-  if (!svg || !BY_ST[st]) return null;
+  if (!svg || !SHAPES[st]) return null;
   const m = svg.getScreenCTM();
   if (!m) return null;
-  const k = Math.sqrt(Math.abs(m.a * m.d - m.b * m.c)) || 1; // screen px per map unit
-  return BY_ST[st]
-    .filter((d) => !d.seam)
-    .map((d) => {
-      const p = new DOMPoint(d.x, d.y).matrixTransform(m);
-      return { cx: p.x, cy: p.y, r: d.r * k * grow };
-    });
+  return { d: SHAPES[st], m: `matrix(${m.a},${m.b},${m.c},${m.d},${m.e},${m.f})` };
 }
 
 function anchorTo(svg: SVGSVGElement, st: string, w: number, h: number) {
   const m = svg.getScreenCTM()!;
   const b = BOX[st];
-  const tl = new DOMPoint(b.x0 - P, b.y0 - P).matrixTransform(m);
-  const br = new DOMPoint(b.x1 + P, b.y1 + P).matrixTransform(m);
+  const tl = new DOMPoint(b.x0 - 6, b.y0 - 6).matrixTransform(m);
+  const br = new DOMPoint(b.x1 + 6, b.y1 + 6).matrixTransform(m);
   let side: 'l' | 'r' = 'r';
   let left = br.x + 12;
   if (left + w > window.innerWidth - 12) { left = tl.x - 12 - w; side = 'l'; }
