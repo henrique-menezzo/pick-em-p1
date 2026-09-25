@@ -372,6 +372,25 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
    but it does not lift, does not darken and does not offer a hand */
 .map .st.nr.hov path { filter: none; }
 
+/* ---- map 2: the same country as a field of dots --------------------------------------------
+   The shapes' grammar does not transfer — there is no piece to lift out of a grid — so here the
+   state under the light takes the light into the dots themselves: the theme's own white or black
+   mixed into the fill, which is the one move that works on either ground. The seam dots stay
+   invisible; they exist so neighbouring states never touch. */
+.map.dots .st circle, .map.mmap .st circle {
+  fill: var(--c); transform-box: fill-box; transform-origin: center;
+  transition: fill .35s ease, r .25s var(--ease);
+}
+.map.dots .st circle.sm, .map.mmap .st circle.sm { opacity: 0; pointer-events: none; }
+.map.dots .st.counting circle:not(.sm), .map.mmap .st.counting circle:not(.sm) { animation: breathe 4s ease-in-out infinite; }
+.map.dots .st.hov circle { fill: color-mix(in srgb, var(--map-hi) 14%, var(--c)); }
+.map.dots .st.sel circle { fill: color-mix(in srgb, var(--map-hi) 22%, var(--c)); }
+.map.dots .st.sel { filter: drop-shadow(0 0 5px color-mix(in srgb, var(--c) 55%, transparent)); }
+/* out of play answers the pointer only to explain itself */
+.map.dots .st.nr circle { cursor: default; }
+.map.dots .st.nr.hov circle { fill: var(--c); }
+.map.live.dots .st circle { transition: r .22s var(--ease), cx .22s var(--ease), cy .22s var(--ease), fill 1.4s ease; }
+
 /* pick badge: the candidate you just picked by clicking the map, next to the state */
 .pick-badge { position: fixed; z-index: 62; pointer-events: none; min-width: 200px; border-radius: 14px; background: var(--panel); padding: 10px 12px; box-shadow: var(--sh-lg); overflow: hidden; }
 .pb-row { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
@@ -636,6 +655,9 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 /* the two modes, in the same bar as the two states of the product */
 .vs-div { width: 1px; height: 22px; background: var(--wash-2); }
 .vs-theme button { padding: 0 11px; }
+.vs-map button { padding: 0 12px; }
+.vs-map .vs-n { color: var(--dim); font-weight: 500; }
+.vs-map button.on .vs-n { color: var(--muted); }
 .vs-theme button svg { display: block; }
 
 /* ---- title studies (?title=1..10) ---------------------------------------------------------------- */
@@ -968,7 +990,9 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 /* the map leads — it is what the screen is about. Its entrance is painted on a canvas over the top
    (see MapIntro): one continuous front of growing dots, with the real map held back underneath. */
 /* the entrance: each state comes up as the front passes its top edge */
-.mapbox.entering .st { animation: st-in .52s var(--intro-ease) both; animation-delay: var(--d); }
+.mapbox.entering .map:not(.dots) .st { animation: st-in .52s var(--intro-ease) both; animation-delay: var(--d); }
+/* map 2 holds its real dots back and lets the canvas front paint the entrance over the top */
+.mapbox.entering .map.dots { opacity: 0; }
 @keyframes st-in { from { opacity: 0; transform: translateY(8px) scale(.99); } to { opacity: 1; transform: none; } }
 .mapfx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
 
