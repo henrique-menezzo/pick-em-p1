@@ -8,9 +8,9 @@ import { Face, Flag, facePhoto } from './ui';
 const COLS: Record<Tab, number> = { senate: 12, gov: 12, house: 9 };
 
 /**
- * The 97-dot race matrix from the Figma footer. Every dot is a race: hover shows who you picked,
- * click takes you to that state on the map to vote. On election night each dot gets its result
- * underneath, and an × when the call went the other way.
+ * The race matrix from the Figma footer. Every dot is a race: hover brings it up into the panel and
+ * shows who you picked, and clicking it both selects it on the map and casts the pick. On election
+ * night each dot gets its result underneath, and an × when the call went the other way.
  */
 export default function Matrix() {
   const [tip, setTip] = useState<{ id: string; x: number; y: number } | null>(null);
@@ -19,14 +19,16 @@ export default function Matrix() {
   const t = useStore((s) => s.t);
   const picks = useStore((s) => s.picks);
   const curId = useStore((s) => s.cursor[s.tab]);
-  const select = useStore((s) => s.select);
+  const tap = useStore((s) => s.tap);
   const setTab = useStore((s) => s.setTab);
   const setHover = useStore((s) => s.setHover);
 
+  // A dot is the race, so clicking it votes, exactly as clicking the state on the map does: an open
+  // race goes red, clicking the one already selected cycles red → blue → open again. The tooltip is
+  // left up on purpose — it is what shows you the pick you just made, and what you are cycling
+  // through. Election night is read-only, so there a click only takes you to the race.
   function go(id: string) {
-    setTip(null);
-    setHover(null);
-    select(id);
+    tap(id);
     document.querySelector('.mapbox')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
 
@@ -68,7 +70,7 @@ export default function Matrix() {
                       <span className={'mx' + (p ? ' ' + p : '') + (r.id === curId && tab === k ? ' cur' : '') + (lost ? ' lost' : '')} style={live && !called && p ? { opacity: 0.45 } : undefined}>
                         {lost && (
                           <span className="x">
-                            <svg width="9" height="9" viewBox="0 0 10 10"><path d="M2 2l6 6M8 2l-6 6" stroke="#0a0909" strokeWidth="2" strokeLinecap="round" /></svg>
+                            <svg width="9" height="9" viewBox="0 0 10 10"><path d="M2 2l6 6M8 2l-6 6" style={{ stroke: 'var(--bg)' }} strokeWidth="2" strokeLinecap="round" /></svg>
                           </span>
                         )}
                       </span>

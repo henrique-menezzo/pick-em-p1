@@ -59,17 +59,21 @@ const Splash = memo(function Splash({ st, x, y, c, n }: { st: string; x: number;
   );
 });
 
-const Lift = memo(function Lift({ st, c, label, sel, tapX, tapY, tapN }: { st: string; c: string; label: boolean; sel?: boolean; tapX?: number; tapY?: number; tapN?: number }) {
+const Lift = memo(function Lift({ st, c, label, tapX, tapY, tapN }: { st: string; c: string; label: boolean; tapX?: number; tapY?: number; tapN?: number }) {
   const at = LABELS[st];
-  const h = sel ? 0.5 : 1; // the resting piece is half as thick as the one under the pointer
+  const h = 1;
   return (
     <motion.g
-      className={'lift' + (sel ? ' sel' : '')}
+      className="lift"
       aria-hidden
       initial={{ opacity: 0, y: 0, scale: 1 }}
-      animate={{ opacity: 1, y: sel ? -5 : -LIFT_Y, scale: sel ? 1.008 : LIFT_K }}
-      exit={{ opacity: 0, y: 0, scale: 1, transition: { duration: 0.16, ease: [0.4, 0, 1, 1] } }}
-      transition={{ type: 'spring', stiffness: 300, damping: 26, mass: 0.7 }}
+      animate={{ opacity: 1, y: -LIFT_Y, scale: LIFT_K }}
+      // running the pointer along the matrix hands the lift from one state to the next several
+      // times a second, so the handover is what you actually see: the piece going down takes as
+      // long as the one coming up, on the page's own easing, and the spring is softened until
+      // neither end of it reads as a snap
+      exit={{ opacity: 0, y: 0, scale: 1, transition: { duration: 0.26, ease: [0.2, 0.8, 0.2, 1] } }}
+      transition={{ type: 'spring', stiffness: 210, damping: 28, mass: 0.9 }}
     >
       {/* the colour lives on a plain group inside the animated one: a custom property set on a
           motion element is not re-applied when it changes, so a pick made while the piece is up
@@ -130,9 +134,15 @@ export default function DotMap() {
 
   // ---- look of every state ----
   const hoverRace = hoverId ? BY_ID[hoverId] : null;
-  // Spotlight only while hovering a race elsewhere (list row, up next, matrix dot) — never a permanent
-  // focus, so every pick lights up the map as you go.
-  const focusSt = hoverRace && hoverRace.type === tab ? hoverRace.state : null;
+  const curSt = BY_ID[curId]?.state ?? null;
+  // There is always exactly one state under the light, and it is the race the panel on the right is
+  // showing. The pointer only borrows it — a dot in the matrix, a row in "just called", the state
+  // itself — and hands it straight back. So stepping through the order with the panel's arrows
+  // reads the same as running the pointer along the dots: one piece up, everything else stepped
+  // back. While the tour is pointing at a state, that state is the focus and nothing else moves.
+  const focusSt = tourLock !== null
+    ? (tourLock || null)
+    : ((hoverRace && hoverRace.type === tab ? hoverRace.state : null) ?? hov?.st ?? curSt);
   const showSel = true;
 
   const looks = useMemo(() => {
@@ -145,7 +155,7 @@ export default function DotMap() {
       const dimGrey = off ? 0.8 : 1;
       // while the tour points at a state, that state is the one under the light — held there,
       // so the step opens with it already lifted instead of waiting for the pointer
-      const hv = hov?.st === st || HELD.has(st) || tourLock === st ? ' hov' : '';
+      const hv = hov?.st === st || focusSt === st || HELD.has(st) || tourLock === st ? ' hov' : '';
       // No race here this chamber: now that this is a handful of states and not a region, it can
       // carry the design system's disabled colour without the map turning into a field of grey.
       if (!race) { out[st] = { cls: 'nr' + hv, c: COLOR.none, o: off ? 0.85 : 1, label: false }; continue; }
@@ -171,6 +181,7 @@ export default function DotMap() {
     }
     return out;
   }, [tab, picks, curId, live, t, focusSt, showSel, hov?.st, tourLock]);
+
 
   // ---- pop: a ripple of the state's dots when it gets a pick, or gets called on election night ----
   function ripple(st: string) {
@@ -235,14 +246,11 @@ export default function DotMap() {
   }
 
   const hovRace = hov ? raceIn(tab, hov.st) : null;
-  // which piece is up. HELD is the review flag (?hov=TX)
-  const liftCandidate = HOVER === 'halo' ? null : (hov?.st ?? (tourLock || null) ?? [...HELD][0] ?? null);
+  // the piece that is up is the one under the light. HELD is the review flag (?hov=TX)
+  const liftCandidate = HOVER === 'halo' ? null : (focusSt ?? [...HELD][0] ?? null);
   // a state with no race this chamber never comes off the board — it only explains itself
   const lifted = liftCandidate && raceIn(tab, liftCandidate) ? liftCandidate : null;
-  // the race the panel is showing rests a little off the board too, a step below the hover
-  const curSt = BY_ID[curId]?.state ?? null;
-  // during the tour nothing else is raised: one piece up at a time
-  const restLift = HOVER === 'halo' || tourLock !== null || !curSt || curSt === lifted || !looks[curSt] ? null : curSt;
+
 
   return (
     <>
@@ -256,13 +264,15 @@ export default function DotMap() {
           onPointerUp={onUp}
         >
           {ORDER.map((st) => (
-            <State key={st} st={st} {...looks[st]}
+            // `soc` = this state has a copy of itself raised above it, so what is left on the board
+            // is the socket it came out of. Only then does it darken — a state that darkens with
+            // nothing above it is just a blotch, which is what it looked like in Light mode.
+            <State key={st} st={st} {...looks[st]} cls={looks[st].cls + (st === lifted ? ' soc' : '')}
               tapX={splash?.st === st ? splash.x : undefined}
               tapY={splash?.st === st ? splash.y : undefined}
               tapN={splash?.st === st && lifted !== st ? splash.n : undefined} />
           ))}
           <AnimatePresence>
-            {restLift && <Lift key={'s' + restLift} st={restLift} c={looks[restLift].c} label={looks[restLift].label} sel />}
             {lifted && (
               <Lift key={lifted} st={lifted} c={looks[lifted].c} label={looks[lifted].label}
                 tapX={splash?.st === lifted ? splash.x : undefined}

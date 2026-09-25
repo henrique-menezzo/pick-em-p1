@@ -19,7 +19,7 @@ export function Flag({ st, sm }: { st: string; sm?: boolean }) {
   return <img className={'flag' + (sm ? ' sm' : '')} src={asset(`flags/us-${st.toLowerCase()}.png`)} alt="" draggable={false} />;
 }
 
-type IconName = 'arrowLeft' | 'arrowRight' | 'chevDown' | 'chevUp' | 'check' | 'x' | 'list' | 'focus' | 'zoom' | 'play' | 'pause' | 'user' | 'wand' | 'collapse' | 'reset' | 'lock' | 'plus' | 'minus' | 'download' | 'search' | 'help' | 'chevRight' | 'chevLeft';
+type IconName = 'arrowLeft' | 'arrowRight' | 'chevDown' | 'chevUp' | 'check' | 'x' | 'list' | 'focus' | 'zoom' | 'play' | 'pause' | 'user' | 'wand' | 'collapse' | 'reset' | 'lock' | 'plus' | 'minus' | 'download' | 'search' | 'help' | 'chevRight' | 'chevLeft' | 'sun' | 'moon';
 const PATHS: Record<IconName, string> = {
   arrowLeft: 'M19 12H5 M11 6l-6 6 6 6',
   arrowRight: 'M5 12h14 M13 6l6 6-6 6',
@@ -44,6 +44,8 @@ const PATHS: Record<IconName, string> = {
   collapse: 'M4 14h6v6 M20 10h-6V4 M14 10l7-7 M3 21l7-7',
   reset: 'M4.5 12a7.5 7.5 0 1 0 2.2-5.3 M4.5 4.5V9H9',
   lock: 'M6 10.5h12v9H6z M8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3',
+  sun: 'M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z M12 2.8v2.1 M12 19.1v2.1 M4.3 4.3l1.5 1.5 M18.2 18.2l1.5 1.5 M2.8 12h2.1 M19.1 12h2.1 M4.3 19.7l1.5-1.5 M18.2 5.8l1.5-1.5',
+  moon: 'M20 14.2A8.2 8.2 0 0 1 9.8 4a8.4 8.4 0 1 0 10.2 10.2Z',
 };
 export function Icon({ name, size = 16, stroke = 1.8, fill }: { name: IconName; size?: number; stroke?: number; fill?: boolean }) {
   return (

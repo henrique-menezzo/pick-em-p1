@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import { ALL, BY_ID, RACES, RESULTS, T_MAX, TABS, type Side, type Tab } from '../data/races';
 
 export type AuthReason = 'save' | 'play' | 'night';
+export type Theme = 'dark' | 'light';
 export interface User { name: string; email: string; initials: string }
 
 function userFrom(email: string): User {
@@ -36,6 +37,8 @@ interface State {
   user: User | null;
   panelMin: boolean;
   tourDone: boolean;
+  /** the design system has both modes; the switch by "My picks" chooses one */
+  theme: Theme;
   /** the opening transition: the waveform, then the screen assembling itself, then the game */
   phase: 'intro' | 'enter' | 'live';
   tour: number | null;
@@ -69,6 +72,7 @@ interface State {
   setTour(step: number | null): void;
   setPhase(phase: 'intro' | 'enter' | 'live'): void;
   setPanelMin(min: boolean): void;
+  setTheme(theme: Theme): void;
   /** Election Night needs an account and a saved map. */
   goLive(on: boolean): void;
 }
@@ -94,6 +98,7 @@ export const useStore = create<State>()(
       user: null,
       panelMin: false,
       tourDone: false,
+      theme: (new URLSearchParams(location.search).get('theme') as Theme) || 'dark',
       phase: 'intro',
       tour: null,
       tourLock: null,
@@ -187,6 +192,7 @@ export const useStore = create<State>()(
       signOut: () => set({ user: null, live: false, playing: false }),
       say: (msg) => set((s) => ({ toast: { msg, n: (s.toast?.n ?? 0) + 1 } })),
       setPanelMin: (panelMin) => set({ panelMin }),
+      setTheme: (theme) => { applyTheme(theme); set({ theme }); },
       setPhase: (phase) => set({ phase }),
       setTour: (tour) => set({ tour, tourDone: tour === null ? true : get().tourDone }),
       goLive: (on) => {
@@ -199,7 +205,8 @@ export const useStore = create<State>()(
     }),
     {
       name: 'pick-em-p1',
-      partialize: (s) => ({ picks: s.picks, tab: s.tab, cursor: s.cursor, live: s.live, t: s.t, savedAt: s.savedAt, user: s.user, tourDone: s.tourDone, panelMin: s.panelMin }),
+      partialize: (s) => ({ picks: s.picks, tab: s.tab, cursor: s.cursor, live: s.live, t: s.t, savedAt: s.savedAt, user: s.user, tourDone: s.tourDone, panelMin: s.panelMin, theme: s.theme }),
+      onRehydrateStorage: () => (st) => applyTheme(st?.theme ?? 'dark'),
     },
   ),
 );
@@ -221,6 +228,12 @@ export function nextOpen(fromId: string, picks: Record<string, Side>) {
     if (!picks[r.id]) return r.id;
   }
   return null;
+}
+
+/** Dark is the default, so the attribute is only ever present for Light. */
+export function applyTheme(theme: Theme) {
+  if (theme === 'light') document.documentElement.dataset.theme = 'light';
+  else delete document.documentElement.dataset.theme;
 }
 
 export const currentId = (s: State) => s.cursor[s.tab];

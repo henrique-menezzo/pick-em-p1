@@ -2,6 +2,12 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import logo from '../data/logo.svg';
+
+/** The wordmark is one colour of artwork, so it is painted rather than drawn: a mask over the
+ *  theme's own text colour. White on the dark page, black on the light one, from one file. */
+export function Wordmark({ className }: { className: string }) {
+  return <span className={'wordmark ' + className} role="img" aria-label="Daily Wire" style={{ ['--logo' as string]: `url(${logo})` }} />;
+}
 import { useStore } from '../lib/store';
 import { Icon } from './ui';
 
@@ -27,7 +33,7 @@ export default function Nav() {
           <a key={l} className={l === HERE ? 'here' : ''} href="#">{l}</a>
         ))}
       </nav>
-      <img className="nav-logo" src={logo} alt="Daily Wire" />
+      <Wordmark className="nav-logo" />
       <div className="nav-right">
         <a href="#"><Icon name="download" size={20} stroke={1.7} />Download App</a>
         <a href="#"><Icon name="search" size={20} stroke={1.7} />Search</a>

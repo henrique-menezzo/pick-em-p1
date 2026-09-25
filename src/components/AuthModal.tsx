@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Wordmark } from './Nav';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { useStore } from '../lib/store';
@@ -82,7 +83,7 @@ function AuthForm({ auth }: { auth: { mode: 'signup' | 'login'; reason: 'save' |
 
   return (
     <form className="auth-main" onSubmit={submit} noValidate>
-      <img className="auth-logo" src={asset('auth/logo-sm.svg')} alt="Daily Wire" />
+      <Wordmark className="auth-logo" />
       <div className="auth-text">
         <h2 id="auth-title">{signup ? 'Create a free account.' : 'Welcome back.'}</h2>
         <p>{signup ? COPY[auth.reason] : 'Log in to save your map and compare it with the live results on election night.'}</p>
@@ -107,7 +108,6 @@ function AuthForm({ auth }: { auth: { mode: 'signup' | 'login'; reason: 'save' |
           }
         />
       </div>
-      {signup && <img className="auth-captcha" src={asset('auth/captcha.png')} alt="Verification passed" />}
       <div className="auth-foot">
         <button className="auth-btn" type="submit" disabled={busy}>
           {busy ? <span className="spin" aria-label="Loading" /> : signup ? 'CREATE FREE ACCOUNT' : 'LOG IN'}

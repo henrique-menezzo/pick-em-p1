@@ -23,8 +23,8 @@ import { RACES } from './data/races';
 // ?reset · ?night=1&t=220 · ?fill=1 · ?lock=N — handy for reviews and screenshots
 const Q = new URLSearchParams(location.search);
 const RULE = Q.get('rule') !== '0'; // ?rule=0 — the nav without its hairline, for comparison
-// ?theme=light — the same design-system tokens in Light mode
-if (Q.get('theme') === 'light') document.documentElement.dataset.theme = 'light';
+// ?theme=light|dark — pin a mode for a review; otherwise the switch's own choice is remembered
+if (Q.get('theme')) useStore.getState().setTheme(Q.get('theme') === 'light' ? 'light' : 'dark');
 // ?off=quiet — out of play dissolves into the card instead of taking the DS's disabled grey
 if (Q.get('off')) document.documentElement.dataset.off = Q.get('off')!;
 const SKIP_INTRO = Q.get('intro') === '0' || Q.has('tour') || Q.has('board');
@@ -233,7 +233,7 @@ function Legend() {
         <>
           <span><i style={{ background: 'linear-gradient(90deg, var(--R) 50%, var(--D) 50%)' }} />Right <b className="num">{a}</b></span>
           <span><i className="faded" />Missed <b className="num">{b}</b></span>
-          <span><i style={{ background: '#4a4a4a' }} />To call <b className="num">{open}</b></span>
+          <span><i style={{ background: 'var(--dot-pending)' }} />To call <b className="num">{open}</b></span>
         </>
       ) : (
         <>
@@ -266,8 +266,29 @@ function ViewSwitch() {
           <span className="live-dot" /> Election night
         </button>
       </div>
+      <span className="vs-div" />
+      <ThemeSwitch />
     </div>,
     document.body,
+  );
+}
+
+/** Both modes are in the design system, so both are in the prototype: two buttons, the live one
+ *  carrying the same pill as the segment beside it. The choice is remembered. */
+function ThemeSwitch() {
+  const theme = useStore((s) => s.theme);
+  const setTheme = useStore((s) => s.setTheme);
+  return (
+    <div className="vs-seg vs-theme">
+      {(['dark', 'light'] as const).map((k) => (
+        <Tip key={k} text={k === 'dark' ? 'Dark mode' : 'Light mode'}>
+          <button className={theme === k ? 'on' : ''} onClick={() => setTheme(k)} aria-label={k === 'dark' ? 'Dark mode' : 'Light mode'} aria-pressed={theme === k}>
+            {theme === k && <motion.span layoutId="vs-theme-hl" className="hl" initial={false} transition={{ type: 'spring', stiffness: 500, damping: 38 }} />}
+            <Icon name={k === 'dark' ? 'moon' : 'sun'} size={15} stroke={1.7} />
+          </button>
+        </Tip>
+      ))}
+    </div>
   );
 }
 

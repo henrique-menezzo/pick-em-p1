@@ -236,7 +236,7 @@ export default function Onboarding({ ready = true }: { ready?: boolean }) {
                 )}
               </mask>
             </defs>
-            <rect x="0" y="0" width="100%" height="100%" fill="rgba(5,5,5,.6)" mask="url(#tour-hole)" />
+            <rect x="0" y="0" width="100%" height="100%" style={{ fill: 'var(--tour-dim)' }} mask="url(#tour-hole)" />
           </svg>
           {/* and one card, which travels with it */}
           <motion.div

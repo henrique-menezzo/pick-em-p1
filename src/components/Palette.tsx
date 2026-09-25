@@ -6,7 +6,12 @@ import Tip from './Tip';
 
 /** The Figma "palette": always open, one race at a time. */
 export default function Palette() {
-  const race = useStore((s) => BY_ID[s.cursor[s.tab]]);
+  // hovering a dot in the wall of races down below brings that race up here, so the two halves of
+  // the screen are always talking about the same thing. Let go and it falls back to your selection.
+  const race = useStore((s) => {
+    const peek = s.hoverId && BY_ID[s.hoverId]?.type === s.tab ? s.hoverId : null;
+    return BY_ID[peek ?? s.cursor[s.tab]];
+  });
   const min = useStore((s) => s.panelMin);
   const setMin = useStore((s) => s.setPanelMin);
   return (

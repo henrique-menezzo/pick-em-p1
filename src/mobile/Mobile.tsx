@@ -2,7 +2,7 @@
 import { memo, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import grid from '../data/grid.json';
-import logo from '../data/logo.svg';
+import { Wordmark } from '../components/Nav';
 import { ALL, BY_ID, RACES, RESULTS, TAB_LABEL, TABS, T_MAX, clock, raceIn, statusAt, type Race, type Side } from '../data/races';
 import { LOCK_AT, liveScore, useStore } from '../lib/store';
 import { V, PURPOSE } from '../lib/variants';
@@ -91,7 +91,7 @@ function TopBar() {
   return (
     <div className={'m-top' + (scrolled ? ' scrolled' : '')}>
       <button className="m-icon" aria-label="Back"><Icon name="arrowLeft" size={20} /></button>
-      <img src={logo} alt="Daily Wire" className="m-logo" />
+      <Wordmark className="m-logo" />
       <button className="m-av" onClick={() => !user && openAuth('play')} aria-label="Account">
         {user ? user.initials : <Icon name="user" size={18} />}
       </button>
