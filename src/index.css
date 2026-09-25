@@ -376,7 +376,24 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
    The shapes' grammar does not transfer — there is no piece to lift out of a grid — so here the
    state under the light takes the light into the dots themselves: the theme's own white or black
    mixed into the fill, which is the one move that works on either ground. The seam dots stay
-   invisible; they exist so neighbouring states never touch. */
+   invisible; they exist so neighbouring states never touch.
+
+   The greys are this map's own, and only this map's. A state on map 1 is a shape a few hundred
+   pixels across, so the design system's subtlest grey reads fine against the card; here the same
+   value arrives as a 4px dot with card showing through every gap, and it disappears — #dfdfdf on
+   an #f0f0f0 card is nothing at all. So the two greys step away from the surface far enough to
+   survive at that size, keeping the direction the DS gives them: out of play sits on the far side
+   of in play, brighter under the dark theme and darker under the light one. Map 1 is untouched. */
+.map.dots, .map.mmap {
+  --dot-open: #3d3d3d;      /* a race still to call */
+  --dot-none: #6b6b6b;      /* no race here this chamber */
+  --dot-pending: #3d3d3d;   /* election night, counting */
+}
+:root[data-theme='light'] .map.dots, :root[data-theme='light'] .map.mmap {
+  --dot-open: #c9c9c9;
+  --dot-none: #a3a3a3;
+  --dot-pending: #c9c9c9;
+}
 .map.dots .st circle, .map.mmap .st circle {
   fill: var(--c); transform-box: fill-box; transform-origin: center;
   transition: fill .35s ease, r .25s var(--ease);
