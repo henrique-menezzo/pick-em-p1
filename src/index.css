@@ -9,7 +9,11 @@
   --bg: #0a0909;             /* background/neutral/bold/default — the page */
   --card: #151515;           /* background/neutral/subtle/default — the card under the map */
   --modal: #151515;          /* the sign-up sheet, the one surface that sits over everything */
-  --panel: #292929;          /* the raised surface: right panel, tab track, menus, tooltips */
+  --panel: #1c1c1c;          /* the raised surface: right panel, menus, tooltips, the phone sheet.
+                                Darker than the card it floats on rather than lighter — the panel's
+                                job is to hold the candidate buttons, and on #292929 a button that
+                                is only a tint of its party had nothing to stand out against. */
+  --track: #292929;          /* the tab strip, which is a container and not a surface */
   --pill: #292929;           /* a neutral control at rest */
   --pill-on: #424242;        /* ...and the one that is selected (the live tab) */
   --avatar: #292929;
@@ -147,7 +151,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .who-menu .em { padding: 10px 10px 8px; font-size: 12px; color: var(--muted); }
 .who-menu button { width: 100%; text-align: left; height: 36px; padding: 0 10px; border-radius: 9px; font-size: 13px; font-weight: 500; }
 .who-menu button:hover { background: var(--wash); }
-.tabs { position: absolute; left: 50%; top: 51px; transform: translateX(-50%); display: flex; gap: 2px; padding: 4px; border-radius: 999px; background: var(--panel); }
+.tabs { position: absolute; left: 50%; top: 51px; transform: translateX(-50%); display: flex; gap: 2px; padding: 4px; border-radius: 999px; background: var(--track); }
 .tabs button { position: relative; height: 46px; padding: 0 18px; border-radius: 999px; font-size: 14px; font-weight: 500; color: var(--muted); z-index: 0; transition: color .2s; }
 .tabs button:hover { color: var(--fg); }
 .tabs button.on { color: var(--fg); }
@@ -372,6 +376,42 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
    but it does not lift, does not darken and does not offer a hand */
 .map .st.nr.hov path { filter: none; }
 
+/* ---- map 2: the same country as a field of dots --------------------------------------------
+   The shapes' grammar does not transfer — there is no piece to lift out of a grid — so here the
+   state under the light takes the light into the dots themselves: the theme's own white or black
+   mixed into the fill, which is the one move that works on either ground. The seam dots stay
+   invisible; they exist so neighbouring states never touch.
+
+   The greys are this map's own, and only this map's. A state on map 1 is a shape a few hundred
+   pixels across, so the design system's subtlest grey reads fine against the card; here the same
+   value arrives as a 4px dot with card showing through every gap, and it disappears — #dfdfdf on
+   an #f0f0f0 card is nothing at all. So the two greys step away from the surface far enough to
+   survive at that size, keeping the direction the DS gives them: out of play sits on the far side
+   of in play, brighter under the dark theme and darker under the light one. Map 1 is untouched. */
+.map.dots, .map.mmap.dots {
+  --dot-open: #3d3d3d;      /* a race still to call */
+  --dot-none: #6b6b6b;      /* no race here this chamber */
+  --dot-pending: #3d3d3d;   /* election night, counting */
+}
+:root[data-theme='light'] .map.dots, :root[data-theme='light'] .map.mmap.dots {
+  --dot-open: #9e9e9e;
+  --dot-none: #7d7d7d;
+  --dot-pending: #9e9e9e;
+}
+.map.dots .st circle, .map.mmap.dots .st circle {
+  fill: var(--c); transform-box: fill-box; transform-origin: center;
+  transition: fill .35s ease, r .25s var(--ease);
+}
+.map.dots .st circle.sm, .map.mmap.dots .st circle.sm { opacity: 0; pointer-events: none; }
+.map.dots .st.counting circle:not(.sm), .map.mmap.dots .st.counting circle:not(.sm) { animation: breathe 4s ease-in-out infinite; }
+.map.dots .st.hov circle { fill: color-mix(in srgb, var(--map-hi) 14%, var(--c)); }
+.map.dots .st.sel circle { fill: color-mix(in srgb, var(--map-hi) 22%, var(--c)); }
+.map.dots .st.sel { filter: drop-shadow(0 0 5px color-mix(in srgb, var(--c) 55%, transparent)); }
+/* out of play answers the pointer only to explain itself */
+.map.dots .st.nr circle { cursor: default; }
+.map.dots .st.nr.hov circle { fill: var(--c); }
+.map.live.dots .st circle { transition: r .22s var(--ease), cx .22s var(--ease), cy .22s var(--ease), fill 1.4s ease; }
+
 /* pick badge: the candidate you just picked by clicking the map, next to the state */
 .pick-badge { position: fixed; z-index: 62; pointer-events: none; min-width: 200px; border-radius: 14px; background: var(--panel); padding: 10px 12px; box-shadow: var(--sh-lg); overflow: hidden; }
 .pb-row { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
@@ -459,24 +499,40 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .v-lockprev:hover b { color: var(--fg); }
 
 /* ---- phone layouts (?mobile=1|2|3) ---------------------------------------------------------------- */
-.m-page { max-width: 430px; margin: 0 auto; min-height: 100dvh; padding: 0 16px calc(24px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; }
+/* The phone layout is not a 430px column any more — it is the layout for everything up to the
+   desktop frame. It grows with the window, and the map grows with it, so a tablet gets a real map
+   instead of a phone screenshot centred in a sea of background. */
+.m-page { --gut: 16px; width: 100%; max-width: 430px; margin: 0 auto; min-height: 100dvh; padding: 0 var(--gut); display: flex; flex-direction: column; }
+@media (min-width: 560px) { .m-page { --gut: 24px; max-width: 560px; } }
+@media (min-width: 760px) { .m-page { --gut: 32px; max-width: 720px; } }
 .m-top { position: sticky; top: 0; z-index: 30; height: 56px; margin: 0 -16px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; background: var(--bg); box-shadow: 0 1px 0 transparent; transition: box-shadow .2s; }
 .m-top.scrolled { box-shadow: 0 1px 0 var(--wash-2); }
-.m-hero { min-height: calc(100dvh - 56px); display: flex; flex-direction: column; }
+.m-hero { display: flex; flex-direction: column; }
 .m-logo { height: 12px; }
 .m-icon { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; color: var(--fg); }
 .m-icon.sm { width: 30px; height: 30px; color: var(--muted); }
 .m-av { width: 34px; height: 34px; border-radius: 50%; background: var(--bg-subtlest); color: var(--fg-soft); display: grid; place-items: center; font-size: 12px; font-weight: 600; }
-.m-head { margin: 8px 0 16px; text-align: center; }
+/* One rhythm for the whole phone page, so the gaps say what belongs to what:
+     6   a line and the line under it        (title → subtitle, label → its own row)
+     12  a block and its own content         (chamber label → its grid)
+     20  one block and the next in the group (title → tabs → map → progress)
+     32  one section and the next            (the game → every race)
+   Nothing is glued to anything, and nothing floats. */
+.m-head { margin: 20px 0 0; text-align: center; }
 .m-head h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -.2px; }
 .m-head p { margin: 6px 0 0; font-size: 14px; color: var(--muted); }
-.m-tabs { display: flex; align-self: center; padding: 3px; gap: 2px; border-radius: 999px; background: var(--wash); }
+/* the deadline is the same component the desktop uses, so it gets the same shape here, a size down */
+.m-head .sub { margin: 6px 0 0; display: flex; align-items: center; justify-content: center; gap: 7px;
+  font-size: 14px; line-height: 1; color: var(--muted); }
+.m-head .sub b { color: var(--muted); font-weight: 400; font-variant-numeric: tabular-nums; letter-spacing: .01em; }
+.m-head .sub .sd { width: 7px; height: 7px; border-radius: 50%; background: var(--R); }
+.m-tabs { margin-top: 20px; display: flex; align-self: center; padding: 3px; gap: 2px; border-radius: 999px; background: var(--wash); }
 .m-tabs button { position: relative; height: 36px; padding: 0 16px; border-radius: 999px; font-size: 14px; font-weight: 500; color: var(--muted); z-index: 0; }
 .m-tabs button.on { color: var(--fg); font-weight: 600; }
 .m-tabs .hl { position: absolute; inset: 0; border-radius: 999px; background: var(--pill); z-index: -1; }
-.m-stage { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 12px 0 20px; }
-.map.mmap { width: calc(100% + 16px); margin: 0 -8px 10px; height: auto; overflow: visible; touch-action: manipulation; }
-.m-prog { margin-top: 8px; }
+.m-stage { display: flex; flex-direction: column; padding: 20px 0 0; }
+.map.mmap { width: calc(100% + 16px); margin: 0 -8px; height: auto; overflow: visible; touch-action: manipulation; }
+.m-prog { margin-top: 20px; }
 .m-prog-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
 .m-prog-row span { display: flex; align-items: center; gap: 6px; }
 .m-prog-row b { color: var(--fg); font-weight: 600; }
@@ -486,7 +542,9 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .m-bar { position: relative; height: 3px; margin-top: 10px; border-radius: 3px; background: var(--bg-subtlest); }
 .m-bar b { position: absolute; top: 0; bottom: 0; border-radius: 3px; transition: width .5s var(--ease); }
 .m-bar b.R { left: 0; background: var(--R); } .m-bar b.D { right: 0; background: var(--D); }
-.m-sheet { margin: 0 -16px; padding: 18px 16px calc(16px + env(safe-area-inset-bottom)); border-radius: 22px 22px 0 0; background: var(--panel); box-shadow: var(--sh-up); position: sticky; bottom: 0; }
+/* the picker runs the full width of the page, whatever gutter that width brings */
+.m-sheet { margin-inline: calc(var(--gut) * -1); margin-top: 32px; padding: 20px var(--gut) calc(18px + env(safe-area-inset-bottom));
+  border-radius: 22px 22px 0 0; background: var(--panel); box-shadow: var(--sh-up); position: sticky; bottom: 0; z-index: 30; }
 .m-race { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .m-race h3 { margin: 0; font-size: 19px; font-weight: 600; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .m-race .flag { width: 24px; height: 16px; }
@@ -532,7 +590,73 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .m-float .t small { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .m-float .m-actions { grid-column: 1 / -1; }
 .m-page:has(.m-sheet) { padding-bottom: 0; }
-.m-hero .m-sheet { position: sticky; bottom: 0; }
+
+/* ---- the phone's share of the desktop's furniture -------------------------------------------
+   Everything the desktop floats around the map has to live somewhere a thumb can reach, so it
+   goes into the page in the order you need it: the two switches under the game, then the feed on
+   election night, then every race. */
+/* the avatar's menu: the account, and the three choices that are not the game */
+.m-acct { position: relative; }
+.m-av.on { background: var(--bg-subtlest-hi); color: var(--fg); }
+.m-menu-back { position: fixed; inset: 0; z-index: 40; background: none; }
+.m-menu { position: absolute; right: 0; top: 44px; z-index: 41; width: 268px; max-width: calc(100vw - 32px);
+  padding: 6px; border-radius: 18px; background: var(--panel); box-shadow: var(--sh-lg); display: flex; flex-direction: column; gap: 2px; }
+.m-menu-head { padding: 10px 10px 8px; }
+.m-menu-head .em { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.m-menu-cta { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: var(--fg); }
+.m-menu-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 4px 6px 10px; }
+/* two labels as long as "Election night" will not sit beside their own title on a phone */
+.m-menu-row.stack { flex-direction: column; align-items: stretch; gap: 7px; padding: 6px 6px 8px 10px; }
+.m-seg.wide { width: 100%; }
+.m-seg.wide button { flex: 1; justify-content: center; padding: 0 8px; }
+.m-menu-row > span { font-size: 13px; color: var(--muted); }
+.m-menu-item { height: 40px; padding: 0 10px; border-radius: 11px; display: flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 500; color: var(--fg); text-align: left; }
+.m-menu-item:active { background: var(--wash); }
+.m-seg { display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--wash); }
+.m-seg button { height: 30px; padding: 0 11px; border-radius: 999px; display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 500; color: var(--muted); white-space: nowrap; transition: background .2s, color .2s; }
+.m-seg .live-dot { width: 6px; height: 6px; }
+.m-seg button.on { background: var(--pill-on); color: var(--fg); font-weight: 600; }
+.m-seg .n { color: var(--dim); font-weight: 500; }
+.m-seg button.on .n { color: var(--muted); }
+.m-seg button svg { display: block; }
+
+.m-matrix { display: flex; flex-direction: column; gap: 24px; padding: 32px 0 8px; }
+.m-mx-sec { transition: opacity .3s var(--ease); }
+.m-mx-sec:not(.on) { opacity: .55; }
+.m-mx-lbl { display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px; font-size: 13px; font-weight: 600; color: var(--fg); }
+.m-mx-lbl span { font-size: 12px; font-weight: 500; color: var(--dim); }
+.m-mx-lbl span.done { color: var(--ok); }
+/* the grid fills the width it is given: more columns on a wider phone, never a scroll sideways */
+.m-mx-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(18px, 1fr)); gap: 8px 6px; }
+.m-mx-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 3px 0; }
+.m-mx { width: 14px; height: 14px; border-radius: 50%; background: var(--mx-open); transition: background .3s, transform .2s var(--ease); }
+.m-mx.R { background: var(--R); } .m-mx.D { background: var(--D); }
+.m-mx.cur { box-shadow: 0 0 0 2px var(--bg), 0 0 0 3.5px var(--fg); }
+.m-mx.lost { opacity: .5; }
+.m-mx-btn:active .m-mx { transform: scale(1.25); }
+.m-mx-res { width: 7px; height: 7px; border-radius: 50%; background: var(--bg-subtlest); }
+.m-mx-res.R { background: var(--R); } .m-mx-res.D { background: var(--D); }
+.m-mx-res.counting { background: var(--bg-subtlest-hi); animation: breathe 4s ease-in-out infinite; }
+
+.m-called { padding: 32px 0 0; }
+.m-called h4 { margin: 0 0 12px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.m-called button { width: 100%; height: 42px; padding: 0 10px; border-radius: 12px; display: flex; align-items: center; gap: 10px;
+  font-size: 14px; color: var(--fg-soft); }
+.m-called button:active { background: var(--wash); }
+.m-called .nm { flex: 1; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.m-called .r { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--dim); font-variant-numeric: tabular-nums; }
+.m-called .r b { font-weight: 600; }
+
+.m-autofill { position: relative; flex: 1; display: flex; }
+.m-autofill > .m-btn { flex: 1; }
+.m-autofill-menu { position: absolute; left: 0; right: 0; bottom: 56px; z-index: 40; padding: 6px; border-radius: 16px;
+  background: var(--panel); box-shadow: var(--sh-lg); display: flex; flex-direction: column; gap: 2px; }
+.m-autofill-menu button { padding: 10px; border-radius: 11px; display: flex; flex-direction: column; gap: 3px; text-align: left; }
+.m-autofill-menu button:active { background: var(--wash); }
+.m-autofill-menu b { font-size: 13px; font-weight: 600; }
+.m-autofill-menu small { font-size: 11.5px; line-height: 1.35; color: var(--muted); }
 
 /* ?more=1 — neutral placeholders for the content that will live under the map */
 .m-more { padding: 28px 0 40px; }
@@ -601,6 +725,15 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
    everything else — carried by the spotlight's own shadow, so one element does the whole job */
 .tour-dim { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .tour-card { position: absolute; width: 340px; padding: 18px; border-radius: 18px; background: var(--panel); box-shadow: var(--sh-lg); }
+/* on a phone the card is a docked bar: the full width it has, clear of the system bars, and the
+   text has room to breathe because it is no longer squeezed beside whatever it points at */
+.tour.phone .tour-card { width: calc(100vw - 24px); padding: 18px 18px calc(18px + env(safe-area-inset-bottom)); border-radius: 20px; }
+.tour.phone .tour-card h3 { font-size: 19px; }
+.tour.phone .tour-card p { font-size: 14px; }
+.tour.phone .tour-foot { margin-top: 18px; }
+.tour.phone .tour-next { height: 40px; padding: 0 18px; font-size: 14px; }
+.tour.phone .quiet { height: 40px; padding: 0 14px; font-size: 13px; }
+.tour.phone .tour-dots i { width: 7px; height: 7px; }
 .tour-step { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
 .tour-card h3 { margin: 8px 0 6px; font-size: 18px; font-weight: 600; }
 .tour-card p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--muted); }
@@ -636,6 +769,9 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 /* the two modes, in the same bar as the two states of the product */
 .vs-div { width: 1px; height: 22px; background: var(--wash-2); }
 .vs-theme button { padding: 0 11px; }
+.vs-map button { padding: 0 12px; }
+.vs-map .vs-n { color: var(--dim); font-weight: 500; }
+.vs-map button.on .vs-n { color: var(--muted); }
 .vs-theme button svg { display: block; }
 
 /* ---- title studies (?title=1..10) ---------------------------------------------------------------- */
@@ -885,6 +1021,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   --card: #f0f0f0;
   --modal: #ffffff;
   --panel: #ffffff;
+  --track: #ffffff;
   --pill: #dfdfdf;
   --pill-on: #f0f0f0;
   --avatar: #dfdfdf;
@@ -968,7 +1105,9 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 /* the map leads — it is what the screen is about. Its entrance is painted on a canvas over the top
    (see MapIntro): one continuous front of growing dots, with the real map held back underneath. */
 /* the entrance: each state comes up as the front passes its top edge */
-.mapbox.entering .st { animation: st-in .52s var(--intro-ease) both; animation-delay: var(--d); }
+.mapbox.entering .map:not(.dots) .st { animation: st-in .52s var(--intro-ease) both; animation-delay: var(--d); }
+/* map 2 holds its real dots back and lets the canvas front paint the entrance over the top */
+.mapbox.entering .map.dots { opacity: 0; }
 @keyframes st-in { from { opacity: 0; transform: translateY(8px) scale(.99); } to { opacity: 1; transform: none; } }
 .mapfx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
 

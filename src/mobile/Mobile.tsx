@@ -2,9 +2,11 @@
 import { memo, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import grid from '../data/grid.json';
+import us from '../data/usmap.json';
 import { Wordmark } from '../components/Nav';
 import { ALL, BY_ID, RACES, RESULTS, TAB_LABEL, TABS, T_MAX, clock, raceIn, statusAt, type Race, type Side } from '../data/races';
-import { LOCK_AT, liveScore, useStore } from '../lib/store';
+import { liveScore, useStore } from '../lib/store';
+import DeadLine from '../components/LockLine';
 import { V, PURPOSE } from '../lib/variants';
 import { Face, Flag, Icon, PARTY, liveLine } from '../components/ui';
 import { ResetButton } from '../components/Common';
@@ -24,6 +26,27 @@ for (const [st, pts] of Object.entries(grid.states as Record<string, number[][]>
 }
 const ORDER = Object.keys(BY_ST);
 
+// ---- and the same country as shapes, which is map 1 on the desktop ---------------------------
+// The desktop draws this inside its 1440 stage, with the country floating in a lot of empty frame.
+// A phone has no room for that, so here the viewBox is the country itself and nothing else.
+const SHAPES = us.states as Record<string, string>;
+const LABELS = us.labels as unknown as Record<string, [number, number]>;
+const SHAPE_VB = '0 0 1067 566';
+
+const Shape = memo(function Shape({ st, cls, c, o, label }: { st: string; cls: string; c: string; o: number; label: boolean }) {
+  const at = LABELS[st];
+  return (
+    <g className={'st ' + cls} data-st={st} style={{ ['--c' as string]: c, opacity: o }}>
+      <path d={SHAPES[st]} />
+      {at && (
+        <text className={'lb' + (label ? ' on' : '')} x={at[0]} y={at[1]} fontSize={us.labelSize} textAnchor="middle" dominantBaseline="central">
+          {st}
+        </text>
+      )}
+    </g>
+  );
+});
+
 const Dots = memo(function Dots({ st, cls, c, o }: { st: string; cls: string; c: string; o: number }) {
   return (
     <g className={'st ' + cls} style={{ ['--c' as string]: c, opacity: o }}>
@@ -38,8 +61,16 @@ function MobileMap({ onTap }: { onTap: (id: string) => void }) {
   const cur = useStore((s) => s.cursor[s.tab]);
   const live = useStore((s) => s.live);
   const t = useStore((s) => s.t);
+  const kind = useStore((s) => s.mapKind);
   const ref = useRef<SVGSVGElement>(null);
-  function up(e: React.PointerEvent) {
+
+  /** which state a tap landed on. Shapes answer for themselves; the grid needs the nearest cell,
+      with a fat radius because a finger is not a pointer. */
+  function stateAt(e: React.PointerEvent) {
+    if (kind === 'shape') {
+      const g = (document.elementFromPoint(e.clientX, e.clientY) as Element | null)?.closest('g[data-st]');
+      return (g as SVGGElement | null)?.dataset.st ?? null;
+    }
     const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(ref.current!.getScreenCTM()!.inverse());
     const c = Math.round(p.x / P), r = Math.round(p.y / P);
     let best: Cell | null = null, bd = P * 1.6;
@@ -49,37 +80,135 @@ function MobileMap({ onTap }: { onTap: (id: string) => void }) {
       const d = Math.hypot(cell.x - p.x, cell.y - p.y);
       if (d < bd) { bd = d; best = cell; }
     }
-    const race = best && raceIn(tab, best.st);
+    return best?.st ?? null;
+  }
+  function up(e: React.PointerEvent) {
+    const st = stateAt(e);
+    const race = st && raceIn(tab, st);
     if (race) onTap(race.id);
   }
+
+  // one description of how a state looks, whichever way it is drawn
+  function look(st: string) {
+    const race = raceIn(tab, st);
+    const pick = race ? picks[race.id] : undefined;
+    const sel = race?.id === cur;
+    if (!race) return { cls: 'nr', c: 'var(--dot-none)', o: 1, label: false };
+    if (live) {
+      const now = statusAt(race.id, t);
+      if (now.status === 'called') {
+        const w = RESULTS[race.id].winner;
+        const miss = !!pick && pick !== w;
+        return { cls: 'pk' + (sel ? ' sel' : ''), c: `var(--${w})`, o: miss ? (sel ? 0.45 : 0.22) : 1, label: !miss };
+      }
+      return { cls: (now.status === 'counting' ? 'counting' : '') + (sel ? ' sel' : ''), c: 'var(--dot-pending)', o: 1, label: false };
+    }
+    return {
+      cls: (pick ? 'pk ' : '') + (sel ? 'sel' : ''),
+      c: pick ? `var(--${pick})` : 'var(--dot-open)',
+      o: 1,
+      label: !!pick,
+    };
+  }
+
   return (
-    <svg ref={ref} className={'map mmap' + (live ? ' live' : '')} viewBox={`0 0 ${grid.w} ${grid.h}`} onPointerUp={up}>
+    <svg
+      ref={ref}
+      className={'map mmap' + (kind === 'dots' ? ' dots' : ' shapes') + (live ? ' live' : '')}
+      viewBox={kind === 'dots' ? `0 0 ${grid.w} ${grid.h}` : SHAPE_VB}
+      onPointerUp={up}
+    >
       {ORDER.map((st) => {
-        const race = raceIn(tab, st);
-        const pick = race ? picks[race.id] : undefined;
-        const sel = race?.id === cur;
-        if (!race) return <Dots key={st} st={st} cls="nr" c="var(--dot-none)" o={1} />;
-        if (live) {
-          // same language as desktop: right = full colour, missed = faded, not called = dark grey breathing
-          const now = statusAt(race.id, t);
-          if (now.status === 'called') {
-            const w = RESULTS[race.id].winner;
-            const miss = !!pick && pick !== w;
-            return <Dots key={st} st={st} cls={'pk' + (sel ? ' sel' : '')} c={`var(--${w})`} o={miss ? (sel ? 0.45 : 0.22) : 1} />;
-          }
-          return <Dots key={st} st={st} cls={(now.status === 'counting' ? 'counting' : '') + (sel ? ' sel' : '')} c="var(--dot-pending)" o={1} />;
-        }
-        const cls = (pick ? 'pk ' : '') + (sel ? 'sel' : '');
-        return <Dots key={st} st={st} cls={cls} c={pick ? `var(--${pick})` : 'var(--dot-open)'} o={1} />;
+        const l = look(st);
+        return kind === 'dots'
+          ? <Dots key={st} st={st} cls={l.cls} c={l.c} o={l.o} />
+          : <Shape key={st} st={st} cls={l.cls} c={l.c} o={l.o} label={l.label} />;
       })}
     </svg>
   );
 }
 
 // ---- shared bits ----------------------------------------------------------------------------------
-function TopBar() {
+/** Everything that is not "pick a winner" lives behind the avatar: which map, which mode, and the
+ *  way into election night. On a phone those three controls in the page were three rows of chrome
+ *  around a game that only needs one. */
+function ProfileMenu({ onClose }: { onClose: () => void }) {
   const user = useStore((s) => s.user);
   const openAuth = useStore((s) => s.openAuth);
+  const signOut = useStore((s) => s.signOut);
+  const kind = useStore((s) => s.mapKind);
+  const setKind = useStore((s) => s.setMapKind);
+  const theme = useStore((s) => s.theme);
+  const setTheme = useStore((s) => s.setTheme);
+  const live = useStore((s) => s.live);
+  const setLive = useStore((s) => s.setLive);
+  const goLive = useStore((s) => s.goLive);
+  const setTour = useStore((s) => s.setTour);
+  return (
+    <>
+      <button className="m-menu-back" aria-label="Close" onClick={onClose} />
+      <motion.div
+        className="m-menu"
+        initial={{ opacity: 0, y: -8, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: -6, scale: 0.97, transition: { duration: 0.12 } }}
+        transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+        style={{ transformOrigin: 'top right' }}
+      >
+        <div className="m-menu-head">
+          {user ? (
+            <div className="em">{user.email}</div>
+          ) : (
+            <button className="m-menu-cta" onClick={() => { onClose(); openAuth('play'); }}>
+              Sign up to play <Icon name="arrowRight" size={13} stroke={2} />
+            </button>
+          )}
+        </div>
+
+        <div className="m-menu-row">
+          <span>Map</span>
+          <div className="m-seg" role="group" aria-label="Map">
+            {([['shape', '1', 'Map 1 — the states themselves'], ['dots', '2', 'Map 2 — the country in dots']] as const).map(([k, n, label]) => (
+              <button key={k} className={kind === k ? 'on' : ''} aria-pressed={kind === k} aria-label={label} onClick={() => setKind(k)}>
+                <span className="n">Map</span> {n}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="m-menu-row">
+          <span>Mode</span>
+          <div className="m-seg" role="group" aria-label="Theme">
+            {(['dark', 'light'] as const).map((k) => (
+              <button key={k} className={theme === k ? 'on' : ''} aria-pressed={theme === k}
+                aria-label={k === 'dark' ? 'Dark mode' : 'Light mode'} onClick={() => setTheme(k)}>
+                <Icon name={k === 'dark' ? 'moon' : 'sun'} size={15} stroke={1.7} />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="m-menu-row stack">
+          <span>Preview</span>
+          <div className="m-seg wide" role="group" aria-label="Preview">
+            <button className={!live ? 'on' : ''} aria-pressed={!live} onClick={() => setLive(false)}>My picks</button>
+            <button className={live ? 'on' : ''} aria-pressed={live} onClick={() => goLive(true)}>
+              <span className="live-dot" /> Election night
+            </button>
+          </div>
+        </div>
+        <button className="m-menu-item" onClick={() => { onClose(); setTour(0); }}>
+          <Icon name="help" size={16} stroke={1.8} /> How it works
+        </button>
+        {user && <button className="m-menu-item" onClick={() => { onClose(); signOut(); }}>Sign out</button>}
+      </motion.div>
+    </>
+  );
+}
+
+function TopBar() {
+  const user = useStore((s) => s.user);
+  const [menu, setMenu] = useState(false);
   // the hairline only appears once content scrolls under the bar
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
@@ -92,9 +221,12 @@ function TopBar() {
     <div className={'m-top' + (scrolled ? ' scrolled' : '')}>
       <button className="m-icon" aria-label="Back"><Icon name="arrowLeft" size={20} /></button>
       <Wordmark className="m-logo" />
-      <button className="m-av" onClick={() => !user && openAuth('play')} aria-label="Account">
-        {user ? user.initials : <Icon name="user" size={18} />}
-      </button>
+      <div className="m-acct">
+        <button className={'m-av' + (menu ? ' on' : '')} onClick={() => setMenu(!menu)} aria-label="Account and settings" aria-expanded={menu}>
+          {user ? user.initials : <Icon name="user" size={18} />}
+        </button>
+        <AnimatePresence>{menu && <ProfileMenu onClose={() => setMenu(false)} />}</AnimatePresence>
+      </div>
     </div>
   );
 }
@@ -149,8 +281,115 @@ function Progress() {
   );
 }
 
-function Actions() {
+/** Every race at a glance, the phone's version of the desktop footer. Same dots, sized for a
+ *  thumb, and a tap goes to that race instead of only pointing at it. */
+function Matrix() {
+  const tab = useStore((s) => s.tab);
+  const picks = useStore((s) => s.picks);
+  const live = useStore((s) => s.live);
+  const t = useStore((s) => s.t);
+  const cur = useStore((s) => s.cursor[s.tab]);
+  const select = useStore((s) => s.select);
+  const setTab = useStore((s) => s.setTab);
+  return (
+    <section className="m-matrix" aria-label="All races">
+      {TABS.map((k) => {
+        const list = RACES[k];
+        const done = list.filter((r) => picks[r.id]).length;
+        const sc = live ? liveScore(picks, t, k) : null;
+        return (
+          <div key={k} className={'m-mx-sec' + (tab === k ? ' on' : '')}>
+            <div className="m-mx-lbl">
+              {TAB_LABEL[k]}
+              <span className={done === list.length && !live ? 'done' : ''}>
+                {live ? `${sc!.correct} of ${sc!.called} right` : done === list.length ? '✓ Complete' : `${done} of ${list.length}`}
+              </span>
+            </div>
+            <div className="m-mx-grid">
+              {list.map((r) => {
+                const p = picks[r.id];
+                const now = live ? statusAt(r.id, t) : null;
+                const called = now?.status === 'called';
+                const lost = called && !!p && p !== RESULTS[r.id].winner;
+                return (
+                  <button
+                    key={r.id}
+                    className="m-mx-btn"
+                    aria-label={`${r.stateName} ${TAB_LABEL[k]}`}
+                    onClick={() => { if (tab !== k) setTab(k); select(r.id); }}
+                  >
+                    <span className={'m-mx' + (p ? ' ' + p : '') + (r.id === cur && tab === k ? ' cur' : '') + (lost ? ' lost' : '')} />
+                    {live && <span className={'m-mx-res' + (called ? ' ' + RESULTS[r.id].winner : now!.status === 'counting' ? ' counting' : '')} />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+    </section>
+  );
+}
+
+/** Election night's running feed, which the desktop keeps in its right-hand panel. */
+function JustCalled() {
+  const t = useStore((s) => s.t);
+  const tab = useStore((s) => s.tab);
+  const picks = useStore((s) => s.picks);
+  const select = useStore((s) => s.select);
+  const called = RACES[tab].filter((r) => RESULTS[r.id].call <= t).sort((a, b) => RESULTS[b.id].call - RESULTS[a.id].call).slice(0, 6);
+  return (
+    <section className="m-called" aria-label="Just called">
+      <h4>{called.length ? 'Just called' : 'Waiting for the first call'}</h4>
+      {called.map((r) => {
+        const w = RESULTS[r.id].winner, p = picks[r.id];
+        return (
+          <button key={r.id} onClick={() => select(r.id)}>
+            <span className={'sdot ' + w} />
+            <span className="nm">{r.stateName}</span>
+            <span className="r">
+              {clock(RESULTS[r.id].call)}
+              <b style={{ color: !p ? 'var(--dim)' : p === w ? 'var(--fg)' : 'var(--R)' }}>{!p ? '–' : p === w ? '✓' : '✕'}</b>
+            </span>
+          </button>
+        );
+      })}
+    </section>
+  );
+}
+
+/** Autofill, with the same two sources the desktop offers. */
+function AutofillButton() {
   const autofill = useStore((s) => s.autofill);
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="m-autofill">
+      <button className="m-btn" onClick={() => setOpen(!open)} aria-expanded={open}>
+        <Icon name="wand" size={17} /> Autofill
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            className="m-autofill-menu"
+            initial={{ opacity: 0, y: 8, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 6, scale: 0.98, transition: { duration: 0.12 } }}
+            transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+          >
+            {([['polls', 'From the polls', 'Every open race goes the way the averages have it'],
+               ['market', 'From the market', 'Every open race goes the way the betting odds have it']] as const).map(([k, title, note]) => (
+              <button key={k} onClick={() => { autofill(k); setOpen(false); }}>
+                <b>{title}</b><small>{note}</small>
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function Actions() {
   const save = useStore((s) => s.save);
   const user = useStore((s) => s.user);
   const openAuth = useStore((s) => s.openAuth);
@@ -160,7 +399,7 @@ function Actions() {
   return (
     <div className="m-actions">
       <ResetButton className="m-btn m-reset" />
-      <button className="m-btn" onClick={() => autofill('polls')}><Icon name="wand" size={17} /> Autofill</button>
+      <AutofillButton />
       <button className={'m-btn primary' + (ready && !savedAt ? ' ready' : '')} disabled={!ready} onClick={() => (user ? save() : openAuth('save'))}>
         {savedAt ? '✓ Saved' : 'Save Map'}
       </button>
@@ -202,16 +441,6 @@ function CandidateButton({ race, side, big }: { race: Race; side: Side; big?: bo
 }
 
 // ---- election night on the phone -------------------------------------------------------------------
-function NightLink() {
-  const live = useStore((s) => s.live);
-  const setLive = useStore((s) => s.setLive);
-  return (
-    <button className="m-night" onClick={() => setLive(!live)}>
-      {live ? <><Icon name="arrowLeft" size={14} /> Back to my picks</> : <><span className="live-dot" /> Preview Election Night <Icon name="arrowRight" size={14} /></>}
-    </button>
-  );
-}
-
 function LiveBottom({ race }: { race: Race }) {
   const t = useStore((s) => s.t);
   const pick = useStore((s) => s.picks[race.id]);
@@ -231,11 +460,6 @@ function LiveBottom({ race }: { race: Race }) {
       </div>
     </>
   );
-}
-
-function LockLine() {
-  const days = Math.max(0, Math.floor((LOCK_AT - Date.now()) / 86400000));
-  return <div className="m-lock">Picks lock in <b>{days} days</b> · Election Day, Nov 3</div>;
 }
 
 // ---- 1 · map + bottom sheet ----------------------------------------------------------------------
@@ -259,13 +483,14 @@ function Sheet() {
         <CandidateButton race={race} side="R" />
         <CandidateButton race={race} side="D" />
       </div>
-      {live ? <LiveBottom race={race} /> : <><Actions /><LockLine /></>}
+      {live ? <LiveBottom race={race} /> : <Actions />}
     </div>
   );
 }
 
 function LayoutSheet() {
   const tap = useStore((s) => s.tap);
+  const live = useStore((s) => s.live);
   return (
     <div className="m-page">
       <TopBar />
@@ -273,17 +498,23 @@ function LayoutSheet() {
           screen, so whatever content comes below the map later scrolls in free of it */}
       <section className="m-hero">
         <div className="m-head">
-          <h1>Your 2026 Map</h1>
-          <p>{PURPOSE}</p>
-          <NightLink />
+          <h1>Midterms Pick Em</h1>
+          {live ? <p className="sub"><i className="sd live-dot" />Live results</p> : <DeadLine />}
         </div>
         <Tabs />
         <div className="m-stage">
           <MobileMap onTap={tap} />
           <Progress />
         </div>
-        <Sheet />
       </section>
+      {/* everything the desktop keeps around the map, in the order a thumb reaches it */}
+      {live && <JustCalled />}
+      <Matrix />
+      {/* the picker is last in the flow and sticky, so it stays pinned to the bottom of the screen
+          the whole way down and lands in place at the end of the page. Inside the map section it
+          unpinned the moment you scrolled past it — and then tapping a race down in the matrix
+          changed something you could no longer see. */}
+      <Sheet />
       {V.more && (
         <section className="m-more" aria-label="Future content placeholder">
           <h4>More from the midterms</h4>

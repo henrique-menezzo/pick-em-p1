@@ -4,6 +4,8 @@ import { ALL, BY_ID, RACES, RESULTS, T_MAX, TABS, type Side, type Tab } from '..
 
 export type AuthReason = 'save' | 'play' | 'night';
 export type Theme = 'dark' | 'light';
+/** Two ways of drawing the same country: the states themselves, or a field of dots. */
+export type MapKind = 'shape' | 'dots';
 export interface User { name: string; email: string; initials: string }
 
 function userFrom(email: string): User {
@@ -39,6 +41,7 @@ interface State {
   tourDone: boolean;
   /** the design system has both modes; the switch by "My picks" chooses one */
   theme: Theme;
+  mapKind: MapKind;
   /** the opening transition: the waveform, then the screen assembling itself, then the game */
   phase: 'intro' | 'enter' | 'live';
   tour: number | null;
@@ -73,6 +76,7 @@ interface State {
   setPhase(phase: 'intro' | 'enter' | 'live'): void;
   setPanelMin(min: boolean): void;
   setTheme(theme: Theme): void;
+  setMapKind(kind: MapKind): void;
   /** Election Night needs an account and a saved map. */
   goLive(on: boolean): void;
 }
@@ -99,6 +103,7 @@ export const useStore = create<State>()(
       panelMin: false,
       tourDone: false,
       theme: (new URLSearchParams(location.search).get('theme') as Theme) || 'dark',
+      mapKind: (new URLSearchParams(location.search).get('map') === '2' ? 'dots' : 'shape'),
       phase: 'intro',
       tour: null,
       tourLock: null,
@@ -193,6 +198,8 @@ export const useStore = create<State>()(
       say: (msg) => set((s) => ({ toast: { msg, n: (s.toast?.n ?? 0) + 1 } })),
       setPanelMin: (panelMin) => set({ panelMin }),
       setTheme: (theme) => { applyTheme(theme); set({ theme }); },
+      // the spotlight and the tour read the map straight from the DOM, so swapping it ends any hover
+      setMapKind: (mapKind) => set({ mapKind, hoverId: null }),
       setPhase: (phase) => set({ phase }),
       setTour: (tour) => set({ tour, tourDone: tour === null ? true : get().tourDone }),
       goLive: (on) => {
@@ -205,7 +212,7 @@ export const useStore = create<State>()(
     }),
     {
       name: 'pick-em-p1',
-      partialize: (s) => ({ picks: s.picks, tab: s.tab, cursor: s.cursor, live: s.live, t: s.t, savedAt: s.savedAt, user: s.user, tourDone: s.tourDone, panelMin: s.panelMin, theme: s.theme }),
+      partialize: (s) => ({ picks: s.picks, tab: s.tab, cursor: s.cursor, live: s.live, t: s.t, savedAt: s.savedAt, user: s.user, tourDone: s.tourDone, panelMin: s.panelMin, theme: s.theme, mapKind: s.mapKind }),
       onRehydrateStorage: () => (st) => applyTheme(st?.theme ?? 'dark'),
     },
   ),

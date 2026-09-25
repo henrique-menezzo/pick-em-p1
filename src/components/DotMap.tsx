@@ -311,6 +311,10 @@ function tipText(id: string, pick: Side | undefined, live: boolean, t: number) {
 // ---- where a floating card sits next to a state (right of it, or left when there's no room) ----------
 /** A state's own outline, in screen coordinates — for anything that wants to light the state
     itself rather than box it. The matrix carries the map's placement and scale. */
+/** Every state at once, in the map's own screen transform: the country's outline rather than a box
+ *  around it. The tour uses it to light the whole map without drawing a rectangle over it. */
+export const MAP_SHAPES = ORDER.map((st) => SHAPES[st]);
+
 export function stateShapeOnScreen(st: string): { d: string; m: string; mUp: string } | null {
   const svg = document.querySelector('svg.map') as SVGSVGElement | null;
   if (!svg || !SHAPES[st]) return null;
