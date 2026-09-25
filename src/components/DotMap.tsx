@@ -38,6 +38,8 @@ const COLOR = { R: 'var(--R)', D: 'var(--D)', open: 'var(--dot-open)', none: 'va
     stepped down for the extruded side, then the face. The one on the map below darkens, so it
     reads as the hole the piece came out of. Nothing is moved in place, so the jigsaw stays whole. */
 const WALL = [9, 8, 7, 6, 5, 4, 3, 2, 1];
+/** how far the piece under the pointer rises, and how much it swells doing it */
+export const LIFT_Y = 10, LIFT_K = 1.018;
 const Lift = memo(function Lift({ st, c, label, sel }: { st: string; c: string; label: boolean; sel?: boolean }) {
   const at = LABELS[st];
   const h = sel ? 0.5 : 1; // the resting piece is half as thick as the one under the pointer
@@ -47,7 +49,7 @@ const Lift = memo(function Lift({ st, c, label, sel }: { st: string; c: string; 
       aria-hidden
       style={{ ['--c' as string]: c }}
       initial={{ opacity: 0, y: 0, scale: 1 }}
-      animate={{ opacity: 1, y: sel ? -5 : -10, scale: sel ? 1.008 : 1.018 }}
+      animate={{ opacity: 1, y: sel ? -5 : -LIFT_Y, scale: sel ? 1.008 : LIFT_K }}
       exit={{ opacity: 0, y: 0, scale: 1, transition: { duration: 0.16, ease: [0.4, 0, 1, 1] } }}
       transition={{ type: 'spring', stiffness: 300, damping: 26, mass: 0.7 }}
     >
@@ -95,6 +97,7 @@ export default function DotMap() {
   const pulse = useStore((s) => s.pulse);
   const tap = useStore((s) => s.tap);
   const phase = useStore((s) => s.phase);
+  const tourLock = useStore((s) => s.tourLock);
 
   const svgRef = useRef<SVGSVGElement>(null);
   const vb = FULL;
@@ -115,7 +118,9 @@ export default function DotMap() {
       const off = !!focusSt && focusSt !== st;
       const dim = off ? 0.6 : 1;
       const dimGrey = off ? 0.8 : 1;
-      const hv = hov?.st === st || HELD.has(st) ? ' hov' : '';
+      // while the tour points at a state, that state is the one under the light — held there,
+      // so the step opens with it already lifted instead of waiting for the pointer
+      const hv = hov?.st === st || HELD.has(st) || tourLock === st ? ' hov' : '';
       // No race here this chamber: the state still looks like any other state on the map — the map
       // is never a field of greyed-out shapes. It just has nothing to give when you click it, and
       // the tooltip says so.
@@ -141,7 +146,7 @@ export default function DotMap() {
       }
     }
     return out;
-  }, [tab, picks, curId, live, t, focusSt, showSel, hov?.st]);
+  }, [tab, picks, curId, live, t, focusSt, showSel, hov?.st, tourLock]);
 
   // ---- pop: a ripple of the state's dots when it gets a pick, or gets called on election night ----
   function ripple(st: string) {
@@ -197,17 +202,18 @@ export default function DotMap() {
 
   const hovRace = hov ? raceIn(tab, hov.st) : null;
   // which piece is up. HELD is the review flag (?hov=TX)
-  const lifted = HOVER === 'halo' ? null : (hov?.st ?? [...HELD][0] ?? null);
+  const lifted = HOVER === 'halo' ? null : (hov?.st ?? (tourLock || null) ?? [...HELD][0] ?? null);
   // the race the panel is showing rests a little off the board too, a step below the hover
   const curSt = BY_ID[curId]?.state ?? null;
-  const restLift = HOVER === 'halo' || !curSt || curSt === lifted || !looks[curSt] ? null : curSt;
+  // during the tour nothing else is raised: one piece up at a time
+  const restLift = HOVER === 'halo' || tourLock !== null || !curSt || curSt === lifted || !looks[curSt] ? null : curSt;
 
   return (
     <>
       <div className={'mapbox' + (phase === 'enter' ? ' entering' : '')}>
         <svg
           ref={svgRef}
-          className={'map' + (live ? ' live' : '') + (HOVER ? ' hv-' + HOVER : '')}
+          className={'map' + (live ? ' live' : '') + (HOVER ? ' hv-' + HOVER : '') + (tourLock !== null ? ' tour' : '')}
           viewBox={FRAME_VB}
           onPointerMove={onMove}
           onPointerLeave={onLeave}
@@ -252,13 +258,23 @@ function tipText(id: string, pick: Side | undefined, live: boolean, t: number) {
 // ---- where a floating card sits next to a state (right of it, or left when there's no room) ----------
 /** A state's own outline, in screen coordinates — for anything that wants to light the state
     itself rather than box it. The matrix carries the map's placement and scale. */
-export function stateShapeOnScreen(st: string): { d: string; m: string } | null {
+export function stateShapeOnScreen(st: string): { d: string; m: string; mUp: string } | null {
   const svg = document.querySelector('svg.map') as SVGSVGElement | null;
   if (!svg || !SHAPES[st]) return null;
   const m = svg.getScreenCTM();
   if (!m) return null;
-  return { d: SHAPES[st], m: `matrix(${m.a},${m.b},${m.c},${m.d},${m.e},${m.f})` };
+  const b = BOX[st];
+  const cx = (b.x0 + b.x1) / 2, cy = (b.y0 + b.y1) / 2;
+  const base = `matrix(${m.a},${m.b},${m.c},${m.d},${m.e},${m.f})`;
+  // the raised piece AND the hole it came out of: together they are exactly the piece and its
+  // wall, with none of the neighbours caught in between
+  return {
+    d: SHAPES[st],
+    m: base,
+    mUp: `${base} translate(0 ${-LIFT_Y}) translate(${cx} ${cy}) scale(${LIFT_K}) translate(${-cx} ${-cy})`,
+  };
 }
+
 
 function anchorTo(svg: SVGSVGElement, st: string, w: number, h: number) {
   const m = svg.getScreenCTM()!;

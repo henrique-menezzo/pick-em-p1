@@ -182,7 +182,7 @@ export default function Onboarding({ ready = true }: { ready?: boolean }) {
     useStore.setState({ tourLock: step === null ? null : st ?? '' });
     return () => { useStore.setState({ tourLock: null }); };
   }, [step, st]);
-  const [shape, setShape] = useState<{ d: string; m: string } | null>(null);
+  const [shape, setShape] = useState<{ d: string; m: string; mUp: string } | null>(null);
   useLayoutEffect(() => {
     if (!st) { setShape(null); return; }
     // follow the spot: a step that has to scroll the map into view moves the state under us
@@ -228,8 +228,9 @@ export default function Onboarding({ ready = true }: { ready?: boolean }) {
                 />
                 {/* …and hands over to the state's own outline when the step is about a state */}
                 {shape && (
-                  <motion.g fill="#000" transform={shape.m} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.22 }}>
-                    <path d={shape.d} />
+                  <motion.g fill="#000" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.22 }}>
+                    <path d={shape.d} transform={shape.m} />
+                    <path d={shape.d} transform={shape.mUp} />
                   </motion.g>
                 )}
               </mask>
