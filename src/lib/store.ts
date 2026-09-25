@@ -204,11 +204,20 @@ export const useStore = create<State>()(
   ),
 );
 
-/** Next race without a pick: rest of this section first, then the following sections. */
+/** Next race without a pick. It stays inside the chamber you are working through and wraps around
+ *  it — you leave the Senate when the Senate is finished, or when you choose to, never because you
+ *  happened to reach the bottom of the list. */
 export function nextOpen(fromId: string, picks: Record<string, Side>) {
-  const i = ALL.findIndex((r) => r.id === fromId);
+  const list = RACES[BY_ID[fromId].type];
+  const i = list.findIndex((r) => r.id === fromId);
+  for (let k = 1; k <= list.length; k++) {
+    const r = list[(i + k) % list.length];
+    if (!picks[r.id]) return r.id;
+  }
+  // this chamber is done: carry on into the next one that still has something open
+  const j = ALL.findIndex((r) => r.id === fromId);
   for (let k = 1; k <= ALL.length; k++) {
-    const r = ALL[(i + k) % ALL.length];
+    const r = ALL[(j + k) % ALL.length];
     if (!picks[r.id]) return r.id;
   }
   return null;

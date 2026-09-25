@@ -236,7 +236,9 @@ export default function DotMap() {
 
   const hovRace = hov ? raceIn(tab, hov.st) : null;
   // which piece is up. HELD is the review flag (?hov=TX)
-  const lifted = HOVER === 'halo' ? null : (hov?.st ?? (tourLock || null) ?? [...HELD][0] ?? null);
+  const liftCandidate = HOVER === 'halo' ? null : (hov?.st ?? (tourLock || null) ?? [...HELD][0] ?? null);
+  // a state with no race this chamber never comes off the board — it only explains itself
+  const lifted = liftCandidate && raceIn(tab, liftCandidate) ? liftCandidate : null;
   // the race the panel is showing rests a little off the board too, a step below the hover
   const curSt = BY_ID[curId]?.state ?? null;
   // during the tour nothing else is raised: one piece up at a time
@@ -275,7 +277,7 @@ export default function DotMap() {
         createPortal(
           <div className="maptip" style={{ left: hov.x + 16, top: hov.y + 16 }}>
             {STATES[hov.st]}
-            <em>{hovRace ? tipText(hovRace.id, picks[hovRace.id], live, t) : `· No ${TAB_LABEL[tab]} race`}</em>
+            <em>{hovRace ? tipText(hovRace.id, picks[hovRace.id], live, t) : `· No ${TAB_LABEL[tab]} race this year — nothing to call`}</em>
           </div>,
           document.body,
         )}
