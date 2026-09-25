@@ -40,37 +40,61 @@ const COLOR = { R: 'var(--R)', D: 'var(--D)', open: 'var(--dot-open)', none: 'va
 const WALL = [9, 8, 7, 6, 5, 4, 3, 2, 1];
 /** how far the piece under the pointer rises, and how much it swells doing it */
 export const LIFT_Y = 10, LIFT_K = 1.018;
-const Lift = memo(function Lift({ st, c, label, sel }: { st: string; c: string; label: boolean; sel?: boolean }) {
+/** The colour arriving from under your finger: a disc of it growing inside the state's own
+    outline, so a pick reads as a touch landing rather than a fill quietly swapping. */
+const Splash = memo(function Splash({ st, x, y, c, n }: { st: string; x: number; y: number; c: string; n: number }) {
+  const b = BOX[st];
+  const r = Math.hypot(b.x1 - b.x0, b.y1 - b.y0);
+  const id = `tap-${st}-${n}`;
+  return (
+    <g className="splash" aria-hidden>
+      <clipPath id={id}><path d={SHAPES[st]} /></clipPath>
+      <motion.circle
+        clipPath={`url(#${id})`} cx={x} cy={y} fill={c}
+        initial={{ r: 0, opacity: 0.9 }}
+        animate={{ r, opacity: 0 }}
+        transition={{ r: { duration: 0.52, ease: [0.2, 0.8, 0.2, 1] }, opacity: { duration: 0.52, ease: 'easeIn' } }}
+      />
+    </g>
+  );
+});
+
+const Lift = memo(function Lift({ st, c, label, sel, tapX, tapY, tapN }: { st: string; c: string; label: boolean; sel?: boolean; tapX?: number; tapY?: number; tapN?: number }) {
   const at = LABELS[st];
   const h = sel ? 0.5 : 1; // the resting piece is half as thick as the one under the pointer
   return (
     <motion.g
       className={'lift' + (sel ? ' sel' : '')}
       aria-hidden
-      style={{ ['--c' as string]: c }}
       initial={{ opacity: 0, y: 0, scale: 1 }}
       animate={{ opacity: 1, y: sel ? -5 : -LIFT_Y, scale: sel ? 1.008 : LIFT_K }}
       exit={{ opacity: 0, y: 0, scale: 1, transition: { duration: 0.16, ease: [0.4, 0, 1, 1] } }}
       transition={{ type: 'spring', stiffness: 300, damping: 26, mass: 0.7 }}
     >
-      {/* the wall: the same shape stepped down and to the side, each course darker than the one
-          above it, so the piece has a lit top and a face falling away from the light */}
-      {WALL.map((i) => (
-        <path key={i} className="lift-side" d={SHAPES[st]}
-          transform={`translate(${i * 0.3 * h} ${i * 1.25 * h})`}
-          style={{ filter: `brightness(${(0.82 - i * 0.055).toFixed(3)})` }} />
-      ))}
-      <path className="lift-top" d={SHAPES[st]} />
-      {at && (
-        <text className={'lb' + (label ? ' on' : '')} x={at[0]} y={at[1]} fontSize={LABEL_SIZE} textAnchor="middle" dominantBaseline="central">
-          {st}
-        </text>
-      )}
+      {/* the colour lives on a plain group inside the animated one: a custom property set on a
+          motion element is not re-applied when it changes, so a pick made while the piece is up
+          would leave it holding the colour it had when it rose */}
+      <g style={{ ['--c' as string]: c }}>
+        {/* the wall: the same shape stepped down and to the side, each course darker than the one
+            above it, so the piece has a lit top and a face falling away from the light */}
+        {WALL.map((i) => (
+          <path key={i} className="lift-side" d={SHAPES[st]}
+            transform={`translate(${i * 0.3 * h} ${i * 1.25 * h})`}
+            style={{ filter: `brightness(${(0.82 - i * 0.055).toFixed(3)})` }} />
+        ))}
+        <path className="lift-top" d={SHAPES[st]} />
+        {tapN ? <Splash st={st} x={tapX!} y={tapY!} c={c} n={tapN} /> : null}
+        {at && (
+          <text className={'lb' + (label ? ' on' : '')} x={at[0]} y={at[1]} fontSize={LABEL_SIZE} textAnchor="middle" dominantBaseline="central">
+            {st}
+          </text>
+        )}
+      </g>
     </motion.g>
   );
 });
 
-const State = memo(function State({ st, cls, c, o, label }: { st: string; cls: string; c: string; o: number; label: boolean }) {
+const State = memo(function State({ st, cls, c, o, label, tapX, tapY, tapN }: { st: string; cls: string; c: string; o: number; label: boolean; tapX?: number; tapY?: number; tapN?: number }) {
   const at = LABELS[st];
   return (
     <g className={'st ' + cls} data-st={st} style={{ ['--c' as string]: c, ['--d' as string]: DELAY[st] + 'ms', opacity: o }}>
@@ -78,6 +102,7 @@ const State = memo(function State({ st, cls, c, o, label }: { st: string; cls: s
       {/* the light layer: what the pointer touches catches the light, without the fill below it
           ever changing. White over the dark theme, black over the light one. */}
       <path className="hi" d={SHAPES[st]} />
+      {tapN ? <Splash st={st} x={tapX!} y={tapY!} c={c} n={tapN} /> : null}
       {at && (
         <text className={'lb' + (label ? ' on' : '')} x={at[0]} y={at[1]} fontSize={LABEL_SIZE} textAnchor="middle" dominantBaseline="central">
           {st}
@@ -167,6 +192,7 @@ export default function DotMap() {
   // ---- pointer: hit-test only ----
   const raf = useRef(0);
   const [badge, setBadge] = useState<{ id: string; n: number } | null>(null);
+  const [splash, setSplash] = useState<{ st: string; x: number; y: number; n: number } | null>(null);
 
   // the shapes answer for themselves now: whatever is under the pointer names its own state
   const stateUnder = (e: { clientX: number; clientY: number }) =>
@@ -198,6 +224,15 @@ export default function DotMap() {
     if (!race) return;
     tap(race.id);
     setBadge({ id: race.id, n: Date.now() });
+    // where the touch landed, in the map's own coordinates, for the colour to grow from
+    const svg = svgRef.current;
+    if (svg) {
+      const m = svg.getScreenCTM();
+      if (m) {
+        const pt = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse());
+        setSplash({ st, x: pt.x, y: pt.y, n: Date.now() });
+      }
+    }
   }
 
   const hovRace = hov ? raceIn(tab, hov.st) : null;
@@ -213,19 +248,26 @@ export default function DotMap() {
       <div className={'mapbox' + (phase === 'enter' ? ' entering' : '')}>
         <svg
           ref={svgRef}
-          className={'map' + (live ? ' live' : '') + (HOVER ? ' hv-' + HOVER : '') + (tourLock !== null ? ' tour' : '')}
+          className={'map' + (live ? ' live' : '') + (HOVER ? ' hv-' + HOVER : '') + (tourLock !== null ? ' lit' : '')}
           viewBox={FRAME_VB}
           onPointerMove={onMove}
           onPointerLeave={onLeave}
           onPointerUp={onUp}
-          style={{ cursor: hovRace ? 'pointer' : undefined }}
         >
           {ORDER.map((st) => (
-            <State key={st} st={st} {...looks[st]} />
+            <State key={st} st={st} {...looks[st]}
+              tapX={splash?.st === st ? splash.x : undefined}
+              tapY={splash?.st === st ? splash.y : undefined}
+              tapN={splash?.st === st && lifted !== st ? splash.n : undefined} />
           ))}
           <AnimatePresence>
             {restLift && <Lift key={'s' + restLift} st={restLift} c={looks[restLift].c} label={looks[restLift].label} sel />}
-            {lifted && <Lift key={lifted} st={lifted} c={looks[lifted].c} label={looks[lifted].label} />}
+            {lifted && (
+              <Lift key={lifted} st={lifted} c={looks[lifted].c} label={looks[lifted].label}
+                tapX={splash?.st === lifted ? splash.x : undefined}
+                tapY={splash?.st === lifted ? splash.y : undefined}
+                tapN={splash?.st === lifted ? splash.n : undefined} />
+            )}
           </AnimatePresence>
         </svg>
       </div>

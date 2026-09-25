@@ -137,6 +137,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .map .st { transition: opacity .35s ease; transform-box: fill-box; transform-origin: center; }
 /* one shape per state. The hairline is the card showing through, so states read as separated
    without anything that looks like a border around them. */
+/* the cursor comes from the shapes themselves, not from a hover the script has to notice first */
+.map .st:not(.nr) path { cursor: pointer; }
+.map.lit .st path { cursor: default; }
+.map.lit .st.hov:not(.nr) path { cursor: pointer; }
 .map .st path { fill: var(--c); stroke: var(--map-seam); stroke-width: 1.2; stroke-linejoin: round;
   transform-box: fill-box; transform-origin: center; transition: fill .35s ease, stroke-width .18s var(--ease); }
 .map .st .lb { fill: var(--map-label); font-weight: 700; letter-spacing: .02em; pointer-events: none; user-select: none; transition: fill .25s ease; }
@@ -299,6 +303,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
    sits on top of its neighbours. Instead the piece under the pointer CATCHES THE LIGHT: a layer
    of the theme's own light sits over it at 12%. Over the open grey that lands on #3f3f3f, which
    is the DS's own hovered grey; over FC002C it stays unmistakably FC002C, just touched. */
+.map .splash { pointer-events: none; }
 .map .st .hi { fill: var(--map-hi); opacity: 0; pointer-events: none; transition: opacity .16s var(--ease); }
 /* Hover lifts the piece. Not by moving it — a choropleth is a jigsaw and a piece moved in place
    goes under its neighbours — but by drawing it again on top of the whole map: the extruded side,
@@ -317,7 +322,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   stroke-linejoin: round; vector-effect: non-scaling-stroke; }
 /* the one that merely rests there keeps its ordinary seam — and so does the one the tour is
    pointing at, where a white line around the lit state reads as a ring drawn on top of it */
-.map .lift.sel .lift-top, .map.tour .lift .lift-top { stroke: var(--map-seam); stroke-width: 1.2; }
+.map .lift.sel .lift-top, .map.lit .lift .lift-top { stroke: var(--map-seam); stroke-width: 1.2; }
 .map .lift .lb { fill: var(--map-label); }
 .map .lift .lb.on { fill: var(--map-label-on); }
 /* ?hover=halo — the previous one, for comparison */
