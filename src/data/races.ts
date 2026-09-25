@@ -39,7 +39,9 @@ const REGION: Record<string, string> = {
 const regionOf: Record<string, string> = {};
 for (const [r, list] of Object.entries(REGION)) for (const st of list.split(' ')) regionOf[st] = r;
 
-const SENATE = 'AL AK AR CO DE FL GA ID IL IA KS KY LA ME MA MI MN MS MT NE NH NJ NM NC OH OK OR RI SC SD TN TX VA WV WY'.split(' ');
+// Every state has a Senate seat up except these two, so the map shows the out-of-play state as
+// the rare thing it is rather than as a field of grey: CO, MO
+const SENATE = 'AL AK AZ AR CA CT DE FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY'.split(' ');
 const GOVERNOR = 'AL AK AZ AR CA CO CT FL GA HI ID IL IA KS ME MD MA MI MN NE NV NH NM NY OH OK OR PA RI SC SD TN TX VT WI WY'.split(' ');
 const HOUSE = 'AZ CA CO FL GA IA IL KS ME MI MN MT NE NV NJ NM NY NC OH OR PA TN TX VA WA WI'.split(' ');
 const LEAN: Record<string, number> = { AL: 30, AK: 13, AZ: 5, AR: 30, CA: -20, CO: -11, CT: -14, DE: -15, FL: 13, GA: 2, HI: -23, ID: 36, IL: -11, IN: 19, IA: 13, KS: 16, KY: 30, LA: 22, ME: -7, MD: -28, MA: -25, MI: 1, MN: -4, MS: 23, MO: 18, MT: 20, NE: 20, NV: 3, NH: -3, NJ: -6, NM: -6, NY: -13, NC: 3, ND: 36, OH: 11, OK: 34, OR: -14, PA: 2, RI: -14, SC: 18, SD: 29, TN: 29, TX: 14, UT: 22, VT: -32, VA: -6, WA: -18, WV: 42, WI: 1, WY: 46 };

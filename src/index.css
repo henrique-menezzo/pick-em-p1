@@ -342,10 +342,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 /* a state with no race in this chamber is not a thing you can act on: it keeps no seam of its
    own, so the whole set reads as one quiet landmass instead of fifty dead buttons — and it
    answers nothing, not even the pointer */
-/* A state with no race this chamber is not painted as disabled: it carries the same fill as any
-   other, answers the pointer the same way, and the tooltip is what tells you there is nothing to
-   call here. Disabled is a state of one element, never a field of grey shapes across the map. */
-.map .st.nr .lb { fill: var(--map-label); }
+/* A state with no race this chamber takes the design system's disabled colour. It is a couple of
+   states, never a region, and it answers nothing: no lift, no pointer, no light. */
+.map .st.nr .lb { fill: var(--map-label-off); }
+.map .st.nr { pointer-events: none; }
 
 /* pick badge: the candidate you just picked by clicking the map, next to the state */
 .pick-badge { position: fixed; z-index: 62; pointer-events: none; min-width: 200px; border-radius: 14px; background: var(--panel); padding: 10px 12px; box-shadow: 0 18px 50px rgba(0, 0, 0, .55); overflow: hidden; }

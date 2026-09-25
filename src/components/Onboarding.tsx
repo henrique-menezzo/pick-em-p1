@@ -4,6 +4,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
+import { ALL } from '../data/races';
 import { useStore } from '../lib/store';
 import { stateShapeOnScreen } from './DotMap';
 import { Icon } from './ui';
@@ -75,7 +76,7 @@ const STEPS: Step[] = [
     wait: (done) => onClickOf('.pal .cand', done),
   },
   {
-    title: 'All 97 races, at a glance',
+    title: `All ${ALL.length} races, at a glance`,
     body: 'One dot per race. Hover to see who you picked, click to jump straight to that state.',
     aim: '.matrix',
     align: 'start', // on the same line as the "Senate" label under it

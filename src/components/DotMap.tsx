@@ -146,10 +146,9 @@ export default function DotMap() {
       // while the tour points at a state, that state is the one under the light — held there,
       // so the step opens with it already lifted instead of waiting for the pointer
       const hv = hov?.st === st || HELD.has(st) || tourLock === st ? ' hov' : '';
-      // No race here this chamber: the state still looks like any other state on the map — the map
-      // is never a field of greyed-out shapes. It just has nothing to give when you click it, and
-      // the tooltip says so.
-      if (!race) { out[st] = { cls: 'nr' + hv, c: COLOR.open, o: off ? 0.85 : 1, label: false }; continue; }
+      // No race here this chamber: now that this is a handful of states and not a region, it can
+      // carry the design system's disabled colour without the map turning into a field of grey.
+      if (!race) { out[st] = { cls: 'nr' + hv, c: COLOR.none, o: off ? 0.85 : 1, label: false }; continue; }
       const pick = picks[race.id];
       const sel = showSel && race.id === curId;
       if (!live) {

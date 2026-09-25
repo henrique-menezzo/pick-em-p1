@@ -4,7 +4,7 @@ import { LOCK_AT } from '../lib/store';
 import { Icon } from './ui';
 
 export const NAME = 'Midterms Pick Em';
-export const LEDE = 'Call all 97 races. On election night, see how many you got right.';
+export const LEDE = 'Call every race. On election night, see how many you got right.';
 
 function useCountdown() {
   const [now, setNow] = useState(() => Date.now());
