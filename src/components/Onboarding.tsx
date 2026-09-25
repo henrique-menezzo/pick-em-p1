@@ -7,7 +7,6 @@ import { AnimatePresence, motion } from 'motion/react';
 import { ALL } from '../data/races';
 import { useStore } from '../lib/store';
 import { stateShapeOnScreen } from './DotMap';
-import { stateDotsOnScreen } from './DotGrid';
 import { Icon } from './ui';
 
 type Step = {
@@ -37,7 +36,7 @@ const onClickOf = (sel: string, done: () => void) => {
 const STEPS: Step[] = [
   {
     title: 'This is your map',
-    body: 'Every state on it is a race. The grey ones are still open — the ones you call turn red or blue.',
+    body: 'Every dot is a state. Grey states still need a pick; the ones you call turn red or blue.',
     aim: '.mapbox',
     dock: 'bottom',
   },
@@ -176,27 +175,6 @@ export default function Onboarding({ ready = true }: { ready?: boolean }) {
   }, [step, setTour]);
 
   const spot = useSpot(s?.aim, step);
-  // The tour dims the map, not the page. Blacking out the whole product to point at one state said
-  // "stop everything", which is not what a first visit needs; confining the dim to the map's own
-  // region says "this is the part we are talking about" and leaves the nav, the panel and the
-  // footer legible. Both maps live in the same box, so this is one measurement for either of them.
-  const [box, setBox] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
-  useLayoutEffect(() => {
-    if (step === null) return;
-    const read = () => {
-      const el = document.querySelector('.mapbox');
-      if (!el) return setBox(null);
-      const r = el.getBoundingClientRect();
-      setBox({ x: r.left, y: r.top, w: r.width, h: r.height });
-    };
-    read();
-    const ro = new ResizeObserver(read);
-    const el = document.querySelector('.mapbox');
-    if (el) ro.observe(el);
-    window.addEventListener('resize', read);
-    window.addEventListener('scroll', read, true);
-    return () => { ro.disconnect(); window.removeEventListener('resize', read); window.removeEventListener('scroll', read, true); };
-  }, [step]);
   // when a step points at a state, the light takes the shape of the state instead of a box
   const st = s?.aim.match(/data-st="([A-Z]+)"/)?.[1] ?? null;
   // and the map only answers for that state while the step is up — '' while the tour points
@@ -205,17 +183,12 @@ export default function Onboarding({ ready = true }: { ready?: boolean }) {
     useStore.setState({ tourLock: step === null ? null : st ?? '' });
     return () => { useStore.setState({ tourLock: null }); };
   }, [step, st]);
-  // the hole takes the shape of the state, whichever map is drawing it: an outline for the shapes,
-  // the state's own dots fattened until they merge for the grid
-  const mapKind = useStore((x) => x.mapKind);
   const [shape, setShape] = useState<{ d: string; m: string; mUp: string } | null>(null);
-  const [dots, setDots] = useState<{ cx: number; cy: number; r: number }[] | null>(null);
   useLayoutEffect(() => {
-    if (!st) { setShape(null); setDots(null); return; }
+    if (!st) { setShape(null); return; }
     // follow the spot: a step that has to scroll the map into view moves the state under us
-    setShape(mapKind === 'dots' ? null : stateShapeOnScreen(st));
-    setDots(mapKind === 'dots' ? stateDotsOnScreen(st) : null);
-  }, [st, step, mapKind, spot?.x, spot?.y, spot?.w]);
+    setShape(stateShapeOnScreen(st));
+  }, [st, step, spot?.x, spot?.y, spot?.w]);
   const card = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 340, h: 250 });
   // the card's own size decides where it fits, so measure it instead of guessing
@@ -251,7 +224,7 @@ export default function Onboarding({ ready = true }: { ready?: boolean }) {
                   rx={spot.r}
                   fill="#000"
                   initial={{ x: spot.x + spot.w * 0.12, y: spot.y + spot.h * 0.12, width: spot.w * 0.76, height: spot.h * 0.76, opacity: 0 }}
-                  animate={{ x: spot.x, y: spot.y, width: spot.w, height: spot.h, opacity: shape || dots ? 0 : 1 }}
+                  animate={{ x: spot.x, y: spot.y, width: spot.w, height: spot.h, opacity: shape ? 0 : 1 }}
                   transition={spring}
                 />
                 {/* …and hands over to the state's own outline when the step is about a state */}
@@ -261,23 +234,9 @@ export default function Onboarding({ ready = true }: { ready?: boolean }) {
                     <path d={shape.d} transform={shape.mUp} />
                   </motion.g>
                 )}
-                {dots && (
-                  <motion.g fill="#000" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.22 }}>
-                    {dots.map((d, i) => <circle key={i} cx={d.cx} cy={d.cy} r={d.r} />)}
-                  </motion.g>
-                )}
               </mask>
             </defs>
-            {box && (
-              <motion.rect
-                rx="24"
-                style={{ fill: 'var(--tour-dim)' }}
-                mask="url(#tour-hole)"
-                initial={false}
-                animate={{ x: box.x, y: box.y, width: box.w, height: box.h }}
-                transition={spring}
-              />
-            )}
+            <rect x="0" y="0" width="100%" height="100%" style={{ fill: 'var(--tour-dim)' }} mask="url(#tour-hole)" />
           </svg>
           {/* and one card, which travels with it */}
           <motion.div

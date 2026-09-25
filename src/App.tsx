@@ -4,7 +4,6 @@ import { AnimatePresence, motion } from 'motion/react';
 import { ALL, TAB_LABEL, TABS, T_MAX, clock, statusAt } from './data/races';
 import { LOCK_AT, isLocked, liveScore, useStore } from './lib/store';
 import DotMap from './components/DotMap';
-import DotGrid from './components/DotGrid';
 import Palette from './components/Palette';
 import Matrix from './components/Matrix';
 import { Icon } from './components/ui';
@@ -26,9 +25,6 @@ const Q = new URLSearchParams(location.search);
 const RULE = Q.get('rule') !== '0'; // ?rule=0 — the nav without its hairline, for comparison
 // ?theme=light|dark — pin a mode for a review; otherwise the switch's own choice is remembered
 if (Q.get('theme')) useStore.getState().setTheme(Q.get('theme') === 'light' ? 'light' : 'dark');
-// ?map=1|2 — pin a map for a review; the store's own default is whatever you last switched to.
-// It has to be set here, after persist has rehydrated, or the remembered value wins.
-if (Q.get('map')) useStore.getState().setMapKind(Q.get('map') === '2' ? 'dots' : 'shape');
 // ?off=quiet — out of play dissolves into the card instead of taking the DS's disabled grey
 if (Q.get('off')) document.documentElement.dataset.off = Q.get('off')!;
 const SKIP_INTRO = Q.get('intro') === '0' || Q.has('tour') || Q.has('board');
@@ -156,7 +152,7 @@ function Card() {
     <section className="card">
       {titleInCard && <CardTitleRow />}
       <div className="stage">
-        <TheMap />
+        <DotMap />
 
         <CardHead />
 
@@ -251,12 +247,6 @@ function Legend() {
 }
 
 /** Top-left of the card: what this is and how long you have. The account lives in the site nav now. */
-/** Two maps, one game. The choice is remembered, and ?map=2 pins the dots for a review. */
-function TheMap() {
-  const kind = useStore((s) => s.mapKind);
-  return kind === 'dots' ? <DotGrid /> : <DotMap />;
-}
-
 /** Prototype-only: swap between the two states of the product. Floats at the bottom, outside the layout. */
 function ViewSwitch() {
   const live = useStore((s) => s.live);
@@ -277,30 +267,9 @@ function ViewSwitch() {
         </button>
       </div>
       <span className="vs-div" />
-      <MapSwitch />
-      <span className="vs-div" />
       <ThemeSwitch />
     </div>,
     document.body,
-  );
-}
-
-/** The two maps, numbered rather than named: they are the same country and the same game, and a
- *  label would claim a difference in kind that is not there. */
-function MapSwitch() {
-  const kind = useStore((s) => s.mapKind);
-  const set = useStore((s) => s.setMapKind);
-  return (
-    <div className="vs-seg vs-map">
-      {([['shape', '1', 'Map 1 — the states themselves'], ['dots', '2', 'Map 2 — the country in dots']] as const).map(([k, n, tip]) => (
-        <Tip key={k} text={tip}>
-          <button className={kind === k ? 'on' : ''} onClick={() => set(k)} aria-pressed={kind === k}>
-            <span className="vs-n">Map</span> {n}
-            {kind === k && <motion.span layoutId="vs-map-hl" className="hl" initial={false} transition={{ type: 'spring', stiffness: 500, damping: 38 }} />}
-          </button>
-        </Tip>
-      ))}
-    </div>
   );
 }
 
