@@ -37,7 +37,7 @@ const onClickOf = (sel: string, done: () => void) => {
 const STEPS: Step[] = [
   {
     title: 'This is your map',
-    body: 'Every dot is a state. Grey states still need a pick; the ones you call turn red or blue.',
+    body: 'Every state on it is a race. The grey ones are still open — the ones you call turn red or blue.',
     aim: '.mapbox',
     dock: 'bottom',
   },
@@ -176,6 +176,27 @@ export default function Onboarding({ ready = true }: { ready?: boolean }) {
   }, [step, setTour]);
 
   const spot = useSpot(s?.aim, step);
+  // The tour dims the map, not the page. Blacking out the whole product to point at one state said
+  // "stop everything", which is not what a first visit needs; confining the dim to the map's own
+  // region says "this is the part we are talking about" and leaves the nav, the panel and the
+  // footer legible. Both maps live in the same box, so this is one measurement for either of them.
+  const [box, setBox] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
+  useLayoutEffect(() => {
+    if (step === null) return;
+    const read = () => {
+      const el = document.querySelector('.mapbox');
+      if (!el) return setBox(null);
+      const r = el.getBoundingClientRect();
+      setBox({ x: r.left, y: r.top, w: r.width, h: r.height });
+    };
+    read();
+    const ro = new ResizeObserver(read);
+    const el = document.querySelector('.mapbox');
+    if (el) ro.observe(el);
+    window.addEventListener('resize', read);
+    window.addEventListener('scroll', read, true);
+    return () => { ro.disconnect(); window.removeEventListener('resize', read); window.removeEventListener('scroll', read, true); };
+  }, [step]);
   // when a step points at a state, the light takes the shape of the state instead of a box
   const st = s?.aim.match(/data-st="([A-Z]+)"/)?.[1] ?? null;
   // and the map only answers for that state while the step is up — '' while the tour points
@@ -247,7 +268,16 @@ export default function Onboarding({ ready = true }: { ready?: boolean }) {
                 )}
               </mask>
             </defs>
-            <rect x="0" y="0" width="100%" height="100%" style={{ fill: 'var(--tour-dim)' }} mask="url(#tour-hole)" />
+            {box && (
+              <motion.rect
+                rx="24"
+                style={{ fill: 'var(--tour-dim)' }}
+                mask="url(#tour-hole)"
+                initial={false}
+                animate={{ x: box.x, y: box.y, width: box.w, height: box.h }}
+                transition={spring}
+              />
+            )}
           </svg>
           {/* and one card, which travels with it */}
           <motion.div
