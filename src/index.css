@@ -304,19 +304,19 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
    goes under its neighbours — but by drawing it again on top of the whole map: the extruded side,
    then the face, raised 9px. The piece still on the map darkens to 55%, so what is left behind
    reads as the hole it came out of. No colour is swapped: the copy carries the state's own fill. */
-.map .st.hov path, .map .st.sel path { filter: brightness(.55); }
+.map .st path { transition: fill .35s ease, filter .2s ease; }
+.map .st.hov path, .map .st.sel path { filter: brightness(.5); }
+/* The raised piece: its height and its landing are a spring, in the component. Here is only what
+   it is made of — the wall, the lit top, the sheen — and the shadow it throws on the board. */
 .map .lift { pointer-events: none; transform-box: fill-box; transform-origin: 50%;
-  transform: translateY(-8px) scale(1.016);
-  filter: drop-shadow(0 12px 18px rgba(0, 0, 0, .3)) drop-shadow(0 2px 4px rgba(0, 0, 0, .26));
-  animation: lift-in .34s cubic-bezier(.22, .7, .25, 1); }
-/* the selected race rests off the board: the same gesture, held, a step lower */
-.map .lift.sel { transform: translateY(-4px) scale(1.008);
-  filter: drop-shadow(0 7px 11px rgba(0, 0, 0, .26)) drop-shadow(0 1px 2px rgba(0, 0, 0, .22)); }
-@keyframes lift-in { from { transform: translateY(0) scale(1); filter: drop-shadow(0 0 transparent) drop-shadow(0 0 transparent); } }
-.map .lift .lift-side { fill: var(--c); filter: brightness(.78); }
-/* the raised piece keeps its ordinary seam — nothing lights up around it */
-.map .lift .lift-top { fill: var(--c); stroke: var(--map-seam); stroke-width: 1.2;
+  filter: drop-shadow(0 14px 20px rgba(0, 0, 0, .5)) drop-shadow(0 3px 5px rgba(0, 0, 0, .42)); }
+.map .lift.sel { filter: drop-shadow(0 7px 11px rgba(0, 0, 0, .38)) drop-shadow(0 2px 3px rgba(0, 0, 0, .3)); }
+.map .lift .lift-side { fill: var(--c); }
+/* the piece under the pointer is cut out in white — the lit edge of something pulled up */
+.map .lift .lift-top { fill: var(--c); stroke: rgba(250, 250, 250, .78); stroke-width: 1.25;
   stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+/* the one that merely rests there keeps its ordinary seam */
+.map .lift.sel .lift-top { stroke: var(--map-seam); stroke-width: 1.2; }
 .map .lift .lb { fill: var(--map-label); }
 .map .lift .lb.on { fill: var(--map-label-on); }
 /* ?hover=halo — the previous one, for comparison */
@@ -928,7 +928,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .app.enter .foot { --d: 860ms; }
 
 @media (prefers-reduced-motion: reduce) {
-  .map .lift { animation: none; }
+  .map .lift { transform: none !important; }
   .map .st.hov path, .map .st.sel path { filter: none; }
   .intro circle, .app.enter .letter, .app.enter .nav, .app.enter .gtitle .sub, .app.enter .head,
   .app.enter .tabs, .app.enter .pal-anchor, .app.enter .legend, .app.enter .tally,

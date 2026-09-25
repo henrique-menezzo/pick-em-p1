@@ -37,18 +37,34 @@ const COLOR = { R: 'var(--R)', D: 'var(--D)', open: 'var(--dot-open)', none: 'va
 /** The piece under the pointer, drawn again on top of the whole map: three copies of itself
     stepped down for the extruded side, then the face. The one on the map below darkens, so it
     reads as the hole the piece came out of. Nothing is moved in place, so the jigsaw stays whole. */
+const WALL = [9, 8, 7, 6, 5, 4, 3, 2, 1];
 const Lift = memo(function Lift({ st, c, label, sel }: { st: string; c: string; label: boolean; sel?: boolean }) {
   const at = LABELS[st];
+  const h = sel ? 0.5 : 1; // the resting piece is half as thick as the one under the pointer
   return (
-    <g className={'lift' + (sel ? ' sel' : '')} aria-hidden style={{ ['--c' as string]: c }}>
-      {[3, 2, 1].map((i) => <path key={i} className="lift-side" d={SHAPES[st]} transform={`translate(0 ${i * 1.7})`} />)}
+    <motion.g
+      className={'lift' + (sel ? ' sel' : '')}
+      aria-hidden
+      style={{ ['--c' as string]: c }}
+      initial={{ opacity: 0, y: 0, scale: 1 }}
+      animate={{ opacity: 1, y: sel ? -5 : -10, scale: sel ? 1.008 : 1.018 }}
+      exit={{ opacity: 0, y: 0, scale: 1, transition: { duration: 0.16, ease: [0.4, 0, 1, 1] } }}
+      transition={{ type: 'spring', stiffness: 300, damping: 26, mass: 0.7 }}
+    >
+      {/* the wall: the same shape stepped down and to the side, each course darker than the one
+          above it, so the piece has a lit top and a face falling away from the light */}
+      {WALL.map((i) => (
+        <path key={i} className="lift-side" d={SHAPES[st]}
+          transform={`translate(${i * 0.3 * h} ${i * 1.25 * h})`}
+          style={{ filter: `brightness(${(0.82 - i * 0.055).toFixed(3)})` }} />
+      ))}
       <path className="lift-top" d={SHAPES[st]} />
       {at && (
         <text className={'lb' + (label ? ' on' : '')} x={at[0]} y={at[1]} fontSize={LABEL_SIZE} textAnchor="middle" dominantBaseline="central">
           {st}
         </text>
       )}
-    </g>
+    </motion.g>
   );
 });
 
@@ -201,8 +217,10 @@ export default function DotMap() {
           {ORDER.map((st) => (
             <State key={st} st={st} {...looks[st]} />
           ))}
-          {restLift && <Lift st={restLift} c={looks[restLift].c} label={looks[restLift].label} sel />}
-          {lifted && <Lift st={lifted} c={looks[lifted].c} label={looks[lifted].label} />}
+          <AnimatePresence>
+            {restLift && <Lift key={'s' + restLift} st={restLift} c={looks[restLift].c} label={looks[restLift].label} sel />}
+            {lifted && <Lift key={lifted} st={lifted} c={looks[lifted].c} label={looks[lifted].label} />}
+          </AnimatePresence>
         </svg>
       </div>
 
