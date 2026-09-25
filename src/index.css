@@ -304,27 +304,28 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
    goes under its neighbours — but by drawing it again on top of the whole map: the extruded side,
    then the face, raised 9px. The piece still on the map darkens to 55%, so what is left behind
    reads as the hole it came out of. No colour is swapped: the copy carries the state's own fill. */
-.map .st.hov path { filter: brightness(.55); }
+.map .st.hov path, .map .st.sel path { filter: brightness(.55); }
 .map .lift { pointer-events: none; transform-box: fill-box; transform-origin: 50%;
-  transform: translateY(-9px) scale(1.02);
-  filter: drop-shadow(0 16px 22px rgba(0, 0, 0, .42)) drop-shadow(0 3px 4px rgba(0, 0, 0, .38));
-  animation: lift-in .24s cubic-bezier(.22, 1, .36, 1); }
+  transform: translateY(-8px) scale(1.016);
+  filter: drop-shadow(0 12px 18px rgba(0, 0, 0, .3)) drop-shadow(0 2px 4px rgba(0, 0, 0, .26));
+  animation: lift-in .34s cubic-bezier(.22, .7, .25, 1); }
+/* the selected race rests off the board: the same gesture, held, a step lower */
+.map .lift.sel { transform: translateY(-4px) scale(1.008);
+  filter: drop-shadow(0 7px 11px rgba(0, 0, 0, .26)) drop-shadow(0 1px 2px rgba(0, 0, 0, .22)); }
 @keyframes lift-in { from { transform: translateY(0) scale(1); filter: drop-shadow(0 0 transparent) drop-shadow(0 0 transparent); } }
-.map .lift .lift-side { fill: var(--c); filter: brightness(.7); }
-.map .lift .lift-top { fill: var(--c); stroke: color-mix(in srgb, var(--fg) 62%, transparent);
-  stroke-width: 1.25; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.map .lift .lift-side { fill: var(--c); filter: brightness(.78); }
+/* the raised piece keeps its ordinary seam — nothing lights up around it */
+.map .lift .lift-top { fill: var(--c); stroke: var(--map-seam); stroke-width: 1.2;
+  stroke-linejoin: round; vector-effect: non-scaling-stroke; }
 .map .lift .lb { fill: var(--map-label); }
 .map .lift .lb.on { fill: var(--map-label-on); }
 /* ?hover=halo — the previous one, for comparison */
 .map.hv-halo .st.hov path { filter: none; }
 .map.hv-halo .st:not(.pk).hov path { fill: var(--dot-open-hv); }
 .map.hv-halo .st.pk.hov { filter: drop-shadow(0 0 9px color-mix(in srgb, var(--c) 58%, transparent)); }
-.map .st.pk.sel { filter: drop-shadow(0 0 7px color-mix(in srgb, var(--c) 72%, transparent)); }
-.map .st.pk.sel.hov path { filter: brightness(.55); }
-.map .st.sel:not(.pk) path { fill: var(--dot-open-hv); }
-.map .st.sel:not(.pk) .hi { opacity: var(--map-hi-sel); }
-.map .st.sel .lb { fill: var(--map-label-hv); }
-.map .st.pk.sel .lb { fill: var(--map-label-on); }
+
+
+
 /* ?hover=light — the light layer over the fill, for comparison */
 .map.hv-light .st:not(.pk).hov path { fill: var(--c); }
 .map.hv-light .st.hov .hi { opacity: var(--map-hi-hov); }
@@ -927,8 +928,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .app.enter .foot { --d: 860ms; }
 
 @media (prefers-reduced-motion: reduce) {
-  .map .lift { animation: none; transform: none; }
-  .map .st.hov path { filter: none; }
+  .map .lift { animation: none; }
+  .map .st.hov path, .map .st.sel path { filter: none; }
   .intro circle, .app.enter .letter, .app.enter .nav, .app.enter .gtitle .sub, .app.enter .head,
   .app.enter .tabs, .app.enter .pal-anchor, .app.enter .legend, .app.enter .tally,
   .app.enter .progress, .app.enter .foot { animation: none; }

@@ -37,10 +37,10 @@ const COLOR = { R: 'var(--R)', D: 'var(--D)', open: 'var(--dot-open)', none: 'va
 /** The piece under the pointer, drawn again on top of the whole map: three copies of itself
     stepped down for the extruded side, then the face. The one on the map below darkens, so it
     reads as the hole the piece came out of. Nothing is moved in place, so the jigsaw stays whole. */
-const Lift = memo(function Lift({ st, c, label }: { st: string; c: string; label: boolean }) {
+const Lift = memo(function Lift({ st, c, label, sel }: { st: string; c: string; label: boolean; sel?: boolean }) {
   const at = LABELS[st];
   return (
-    <g className="lift" aria-hidden style={{ ['--c' as string]: c }}>
+    <g className={'lift' + (sel ? ' sel' : '')} aria-hidden style={{ ['--c' as string]: c }}>
       {[3, 2, 1].map((i) => <path key={i} className="lift-side" d={SHAPES[st]} transform={`translate(0 ${i * 1.7})`} />)}
       <path className="lift-top" d={SHAPES[st]} />
       {at && (
@@ -180,6 +180,9 @@ export default function DotMap() {
   const hovRace = hov ? raceIn(tab, hov.st) : null;
   // which piece is up. HELD is the review flag (?hov=TX)
   const lifted = HOVER === 'halo' ? null : (hov?.st ?? [...HELD][0] ?? null);
+  // the race the panel is showing rests a little off the board too, a step below the hover
+  const curSt = BY_ID[curId]?.state ?? null;
+  const restLift = HOVER === 'halo' || !curSt || curSt === lifted || !looks[curSt] ? null : curSt;
 
   return (
     <>
@@ -196,6 +199,7 @@ export default function DotMap() {
           {ORDER.map((st) => (
             <State key={st} st={st} {...looks[st]} />
           ))}
+          {restLift && <Lift st={restLift} c={looks[restLift].c} label={looks[restLift].label} sel />}
           {lifted && <Lift st={lifted} c={looks[lifted].c} label={looks[lifted].label} />}
         </svg>
       </div>
