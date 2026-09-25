@@ -152,13 +152,15 @@ export default function DotMap() {
     (document.elementFromPoint(e.clientX, e.clientY)?.closest('g[data-st]') as SVGGElement | null)?.dataset.st ?? null;
   function onMove(e: React.PointerEvent) {
     if (e.pointerType !== 'mouse') return;
-    if (useStore.getState().tourLock !== null) return; // the tour is pointing at one thing
     // the pointer is on the map itself: any spotlight borrowed from the list/matrix is over
     if (useStore.getState().hoverId) useStore.getState().setHover(null);
     const cx = e.clientX, cy = e.clientY;
     cancelAnimationFrame(raf.current);
     raf.current = requestAnimationFrame(() => {
       const st = stateUnder({ clientX: cx, clientY: cy });
+      // during the tour only the lit state answers — but it answers normally, lift and all
+      const lock = useStore.getState().tourLock;
+      if (lock !== null && st !== lock) return setHov(null);
       setHov((h) => (st ? { st, x: cx, y: cy } : h && !st ? null : h));
     });
   }
