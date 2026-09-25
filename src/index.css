@@ -390,9 +390,9 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   --dot-pending: #3d3d3d;   /* election night, counting */
 }
 :root[data-theme='light'] .map.dots, :root[data-theme='light'] .map.mmap {
-  --dot-open: #c9c9c9;
-  --dot-none: #a3a3a3;
-  --dot-pending: #c9c9c9;
+  --dot-open: #9e9e9e;
+  --dot-none: #7d7d7d;
+  --dot-pending: #9e9e9e;
 }
 .map.dots .st circle, .map.mmap .st circle {
   fill: var(--c); transform-box: fill-box; transform-origin: center;

@@ -133,6 +133,11 @@ export default function DotGrid() {
   const tap = useStore((s) => s.tap);
   const phase = useStore((s) => s.phase);
   const tourLock = useStore((s) => s.tourLock);
+  // Stepping a state back is done with opacity, which blends it towards whatever is behind it. On
+  // the dark card that keeps a red red; on the light one it walks straight towards white and the
+  // dot goes pink. So the spotlight is gentler under the light theme — enough to say "not this
+  // one", not enough to drain it.
+  const pale = useStore((s) => s.theme) === 'light';
 
   const svgRef = useRef<SVGSVGElement>(null);
   const els = useRef<SVGCircleElement[]>([]);
@@ -162,8 +167,8 @@ export default function DotGrid() {
       const race = raceIn(tab, st);
       // spotlight: colours step back hard, greys only a little, so the base map never sinks into the card
       const off = !!focusSt && focusSt !== st;
-      const dim = off ? 0.6 : 1;
-      const dimGrey = off ? 0.8 : 1;
+      const dim = off ? (pale ? 0.82 : 0.6) : 1;
+      const dimGrey = off ? (pale ? 0.9 : 0.8) : 1;
       const hv = hov?.st === st || focusSt === st ? ' hov' : '';
       if (!race) { out[st] = { cls: 'nr' + hv, c: COLOR.none, o: off ? 0.85 : 1 }; continue; }
       const pick = picks[race.id];
@@ -187,7 +192,7 @@ export default function DotGrid() {
       }
     }
     return out;
-  }, [tab, picks, curId, live, t, focusSt, showSel, hov?.st, tourLock]);
+  }, [tab, picks, curId, live, t, focusSt, showSel, hov?.st, tourLock, pale]);
 
   // ---- pop: a ripple of the state's dots when it gets a pick, or gets called on election night ----
   function ripple(st: string) {
