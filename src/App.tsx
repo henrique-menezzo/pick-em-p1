@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { ALL, TAB_LABEL, TABS, T_MAX, clock, statusAt } from './data/races';
-import { HAD_SAVED_STATE, LOCK_AT, isLocked, liveScore, useStore } from './lib/store';
+import { CONTINUING, LOCK_AT, isLocked, liveScore, useStore } from './lib/store';
 import DotMap from './components/DotMap';
 import DotGrid from './components/DotGrid';
 import Palette from './components/Palette';
@@ -44,10 +44,10 @@ if (Q.has('reset')) {
   history.replaceState(null, '', location.pathname);
   location.reload();
 } else if (STUDY) {
-  // A session is one sitting: keep whatever is already there, so an accidental refresh costs a
-  // moment instead of the interview. Arriving for the first time is different — the store's own
-  // default is the Figma's half-played map, and a participant has to start from nothing.
-  if (!HAD_SAVED_STATE) {
+  // Opening the link is a new participant, so it starts from nothing: empty map, signed out,
+  // onboarding from step one. A refresh or a press of the back button is the same person still
+  // working, so that keeps everything.
+  if (!CONTINUING) {
     useStore.setState({
       picks: {}, savedAt: null, user: null, live: false, playing: false, tourDone: false, tour: null,
       panelMin: false, tab: 'senate',

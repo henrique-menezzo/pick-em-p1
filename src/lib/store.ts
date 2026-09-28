@@ -95,10 +95,16 @@ const lockQ = new URLSearchParams(location.search).get('lock');
 export const LOCK_AT = lockQ != null ? Date.now() + +lockQ * 60000 : Date.parse('2026-11-03T18:00:00-05:00');
 export const isLocked = () => Date.now() >= LOCK_AT;
 
-/** Was there anything to rehydrate when this tab opened? Read before the store is built, because
- *  persist writes back as soon as it is. A session build uses it to tell "they refreshed" from
- *  "they just arrived" — one keeps their work, the other has to start from nothing. */
-export const HAD_SAVED_STATE = (() => { try { return !!localStorage.getItem('pick-em-p1'); } catch { return false; } })();
+/** How this tab got here. A session build keeps someone's work through a refresh or a press of
+ *  the back button, and starts clean when the link is opened, which is what a new participant is
+ *  doing. Browsers that don't report it are treated as a fresh open, since that is the common case
+ *  and the safer mistake: a clean start costs a moderator a minute, a stale one costs a session. */
+export const CONTINUING = (() => {
+  try {
+    const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+    return nav?.type === 'reload' || nav?.type === 'back_forward';
+  } catch { return false; }
+})();
 
 export const useStore = create<State>()(
   persist(
