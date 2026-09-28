@@ -25,6 +25,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      # two locked-down builds for usability sessions, served from their own paths so a session
+      # link carries nothing the rest of the prototype can be reached from
+      - run: npm run build:study
+      - run: mv out-picks dist/picks && mv out-night dist/night
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

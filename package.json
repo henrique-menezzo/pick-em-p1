@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:picks": "VITE_STUDY=picks VITE_BASE=/pick-em-p1/picks/ vite build --outDir out-picks --emptyOutDir",
+    "build:night": "VITE_STUDY=night VITE_BASE=/pick-em-p1/night/ vite build --outDir out-night --emptyOutDir",
+    "build:study": "npm run build:picks && npm run build:night"
   },
   "dependencies": {
     "@fontsource/libre-franklin": "^5.3.0",

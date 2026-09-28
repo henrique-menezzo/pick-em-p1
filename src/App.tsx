@@ -18,7 +18,7 @@ import LockLine from './components/LockLine';
 import HeaderVariant, { CardHelp, CardTitleRow, FooterClock, HDR, HeaderSwitch, clockInFooter, helpInCard, titleInCard } from './components/HeaderVariants';
 import { ResetButton, Toast } from './components/Common';
 import Mobile from './mobile/Mobile';
-import { V } from './lib/variants';
+import { STUDY, V } from './lib/variants';
 import { RACES } from './data/races';
 
 // ?reset · ?night=1&t=220 · ?fill=1 · ?lock=N — handy for reviews and screenshots
@@ -32,6 +32,13 @@ if (Q.get('map')) useStore.getState().setMapKind(Q.get('map') === '2' ? 'dots' :
 // ?off=quiet — out of play dissolves into the card instead of taking the DS's disabled grey
 if (Q.get('off')) document.documentElement.dataset.off = Q.get('off')!;
 const SKIP_INTRO = Q.get('intro') === '0' || Q.has('tour') || Q.has('board');
+// A usability build fixes everything the session is not testing: one map, dark, and one half of
+// the game. The floating switches go with it — a participant should not be able to find the other
+// half of the prototype, or even see that it is there.
+if (STUDY) {
+  useStore.getState().setTheme('dark');
+  useStore.getState().setMapKind('shape');
+}
 if (Q.has('reset')) {
   localStorage.removeItem('pick-em-p1');
   history.replaceState(null, '', location.pathname);
@@ -51,6 +58,18 @@ if (Q.has('reset')) {
   if (Q.has('night')) s.setLive(Q.get('night') !== '0');
   if (Q.has('t')) s.setT(+Q.get('t')!);
   if (Q.has('tour')) setTimeout(() => useStore.getState().setTour(Number(Q.get('tour')) || 0), 100); // ?tour=0..5 — open a step for review
+  // election night needs a map to score: the session is about reading results, not making picks,
+  // so this build arrives with a finished map that got a few of them wrong
+  if (STUDY === 'night') {
+    useStore.setState({
+      picks: Object.fromEntries(ALL.map((r, i) => [r.id, i % 5 === 2 ? (r.poll === 'R' ? 'D' : 'R') : r.poll])),
+      savedAt: Date.now(),
+      tourDone: true,
+    });
+    s.setLive(true);
+  } else if (STUDY) {
+    s.setLive(false);
+  }
 }
 
 export default function App() {
@@ -92,7 +111,7 @@ export default function App() {
         )}
         <Card />
         <AuthModal />
-        <ViewSwitch />
+        {!STUDY && <ViewSwitch />}
         <Onboarding ready={phase === 'live'} />
         <Toast />
         {HDR > 0 && <HeaderSwitch />}

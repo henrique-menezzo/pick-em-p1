@@ -7,7 +7,7 @@ import { Wordmark } from '../components/Nav';
 import { ALL, BY_ID, RACES, RESULTS, TAB_LABEL, TABS, T_MAX, clock, raceIn, statusAt, type Race, type Side } from '../data/races';
 import { liveScore, useStore } from '../lib/store';
 import DeadLine from '../components/LockLine';
-import { V, PURPOSE } from '../lib/variants';
+import { STUDY, V, PURPOSE } from '../lib/variants';
 import { Face, Flag, Icon, PARTY, liveLine } from '../components/ui';
 import { ResetButton } from '../components/Common';
 
@@ -165,6 +165,7 @@ function ProfileMenu({ onClose }: { onClose: () => void }) {
           )}
         </div>
 
+        {!STUDY && <>
         <div className="m-menu-row">
           <span>Map</span>
           <div className="m-seg" role="group" aria-label="Map">
@@ -197,6 +198,7 @@ function ProfileMenu({ onClose }: { onClose: () => void }) {
             </button>
           </div>
         </div>
+        </>}
         <button className="m-menu-item" onClick={() => { onClose(); setTour(0); }}>
           <Icon name="help" size={16} stroke={1.8} /> How it works
         </button>
