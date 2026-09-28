@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { ALL, TAB_LABEL, TABS, T_MAX, clock, statusAt } from './data/races';
-import { LOCK_AT, isLocked, liveScore, useStore } from './lib/store';
+import { HAD_SAVED_STATE, LOCK_AT, isLocked, liveScore, useStore } from './lib/store';
 import DotMap from './components/DotMap';
 import DotGrid from './components/DotGrid';
 import Palette from './components/Palette';
@@ -43,6 +43,28 @@ if (Q.has('reset')) {
   localStorage.removeItem('pick-em-p1');
   history.replaceState(null, '', location.pathname);
   location.reload();
+} else if (STUDY) {
+  // A session is one sitting: keep whatever is already there, so an accidental refresh costs a
+  // moment instead of the interview. Arriving for the first time is different — the store's own
+  // default is the Figma's half-played map, and a participant has to start from nothing.
+  if (!HAD_SAVED_STATE) {
+    useStore.setState({
+      picks: {}, savedAt: null, user: null, live: false, playing: false, tourDone: false, tour: null,
+      panelMin: false, tab: 'senate',
+      cursor: { senate: RACES.senate.find((r) => r.state === 'NM')!.id, gov: RACES.gov[0].id, house: RACES.house[0].id },
+    });
+  }
+  // the night build is the exception: it has no picks of its own to keep, so it arrives with a
+  // finished map that got a few of them wrong
+  const s = useStore.getState();
+  if (STUDY === 'night') {
+    if (!Object.keys(s.picks).length) {
+      useStore.setState({ picks: Object.fromEntries(ALL.map((r, i) => [r.id, i % 5 === 2 ? (r.poll === 'R' ? 'D' : 'R') : r.poll])), savedAt: Date.now() });
+    }
+    useStore.setState({ tourDone: true });
+    s.setLive(true);
+    s.setT(T_MAX);
+  }
 } else {
   // A prototype, not a product: every reload starts the story from the top — empty map, signed out,
   // onboarding from step one. Nothing carries over from the last visit.
@@ -58,18 +80,6 @@ if (Q.has('reset')) {
   if (Q.has('night')) s.setLive(Q.get('night') !== '0');
   if (Q.has('t')) s.setT(+Q.get('t')!);
   if (Q.has('tour')) setTimeout(() => useStore.getState().setTour(Number(Q.get('tour')) || 0), 100); // ?tour=0..5 — open a step for review
-  // election night needs a map to score: the session is about reading results, not making picks,
-  // so this build arrives with a finished map that got a few of them wrong
-  if (STUDY === 'night') {
-    useStore.setState({
-      picks: Object.fromEntries(ALL.map((r, i) => [r.id, i % 5 === 2 ? (r.poll === 'R' ? 'D' : 'R') : r.poll])),
-      savedAt: Date.now(),
-      tourDone: true,
-    });
-    s.setLive(true);
-  } else if (STUDY) {
-    s.setLive(false);
-  }
 }
 
 export default function App() {
@@ -200,7 +210,7 @@ function Card() {
 
       <div className="foot">
         <Matrix />
-        {live ? <Timeline /> : <Actions />}
+        {live ? (STUDY ? null : <Timeline />) : <Actions />}
       </div>
     </section>
   );
