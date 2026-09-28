@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { ALL, BY_ID, RACES, RESULTS, T_MAX, TABS, type Side, type Tab } from '../data/races';
+import { STUDY } from './variants';
 
 export type AuthReason = 'save' | 'play' | 'night';
 export type Theme = 'dark' | 'light';
@@ -83,6 +84,11 @@ interface State {
 
 let advanceTimer = 0;
 
+/** What `savedAt` becomes after a change. Normally nothing: the map is yours until you save it,
+ *  and changing your mind puts it back in that state. A session build keeps it saved once there
+ *  is an account to save it to, so nobody loses an hour of picks to a button they didn't press. */
+const saveStamp = (s: { user: User | null }) => (STUDY && s.user ? Date.now() : null);
+
 // Picks lock when election day starts counting: Nov 3, 2026, 6:00 PM ET (first polls close).
 // `?lock=N` moves it to N minutes from now, to preview the countdown ending.
 const lockQ = new URLSearchParams(location.search).get('lock');
@@ -135,7 +141,7 @@ export const useStore = create<State>()(
           if (isLocked()) return {};
           const picks = { ...s.picks };
           if (side) picks[id] = side; else delete picks[id];
-          return { picks, savedAt: null, pulse: { ...s.pulse, [id]: (s.pulse[id] ?? 0) + 1 } };
+          return { picks, savedAt: saveStamp(s), pulse: { ...s.pulse, [id]: (s.pulse[id] ?? 0) + 1 } };
         }),
       toggle: (id, side, opts) => {
         const s = get();
@@ -179,7 +185,7 @@ export const useStore = create<State>()(
         // one quiet change: every open race fills at once (colours fade via CSS), no per-state ripple
         const picks = { ...s.picks };
         for (const r of todo) picks[r.id] = source === 'market' ? r.market : r.poll;
-        set({ picks, savedAt: null });
+        set({ picks, savedAt: saveStamp(s) });
       },
       save: () => set({ savedAt: Date.now() }),
       resetPicks: () => set((s) => (isLocked() ? {} : { picks: {}, savedAt: null, cursor: { senate: RACES.senate[0].id, gov: RACES.gov[0].id, house: RACES.house[0].id }, pulse: { ...s.pulse } })),
