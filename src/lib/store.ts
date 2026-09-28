@@ -177,11 +177,22 @@ export const useStore = create<State>()(
         if (isLocked()) return s.say('Picks are locked for election day');
         s.vote(id, !p ? 'R' : p === 'R' ? 'D' : null);
       },
+      /** The arrows are for getting through the races you haven't called yet, so they step over
+       *  the ones you have. When the chamber is finished there is nothing left to skip to, and
+       *  they go back to walking the list so you can look back at what you picked. Nothing else
+       *  changes: the map and the matrix still take you wherever you point them. */
       step: (dir) => {
         const s = get();
         const list = RACES[s.tab];
+        const len = list.length;
         const i = list.findIndex((r) => r.id === s.cursor[s.tab]);
-        s.select(list[(i + dir + list.length) % list.length].id);
+        if (!s.live) {
+          for (let k = 1; k <= len; k++) {
+            const r = list[(((i + dir * k) % len) + len) % len];
+            if (!s.picks[r.id]) return s.select(r.id);
+          }
+        }
+        s.select(list[(((i + dir) % len) + len) % len].id);
       },
       autofill: (source) => {
         const s = get();
