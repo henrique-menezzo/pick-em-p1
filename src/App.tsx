@@ -54,9 +54,11 @@ if (Q.has('reset')) {
       cursor: { senate: RACES.senate.find((r) => r.state === 'NM')!.id, gov: RACES.gov[0].id, house: RACES.house[0].id },
     });
   }
-  // the night build is the exception: it has no picks of its own to keep, so it arrives with a
-  // finished map that got a few of them wrong
+  // The one thing a session build never keeps is which half of the game you were in. Election
+  // night is somewhere the moderator sends you, so the link has to open on the picks every time,
+  // however the last visit ended. A refresh during Task 5 costs one click back through the menu.
   const s = useStore.getState();
+  if (STUDY === 'picks') useStore.setState({ live: false, playing: false });
   if (STUDY === 'night') {
     if (!Object.keys(s.picks).length) {
       useStore.setState({ picks: Object.fromEntries(ALL.map((r, i) => [r.id, i % 5 === 2 ? (r.poll === 'R' ? 'D' : 'R') : r.poll])), savedAt: Date.now() });
